@@ -1,0 +1,216 @@
+import { useState, useCallback } from 'react'
+import { ReactFlowProvider } from '@xyflow/react'
+import {
+  Play,
+  Save,
+  FolderOpen,
+  Plus,
+  Settings,
+  Loader2,
+  Square,
+} from 'lucide-react'
+import { Sidebar } from './components/sidebar/Sidebar'
+import { Canvas } from './components/canvas/Canvas'
+import {
+  WorkflowListModal,
+  SaveWorkflowModal,
+  ExecutionPanel,
+} from './components/modals'
+import { NodeConfigPanel } from './components/panels'
+import { useFlowStore } from './store/flowStore'
+import { useWorkflowStore } from './store/workflowStore'
+
+function App() {
+  // Modal states
+  const [showWorkflowList, setShowWorkflowList] = useState(false)
+  const [showSaveModal, setShowSaveModal] = useState(false)
+  const [showExecutionPanel, setShowExecutionPanel] = useState(false)
+
+  // Store hooks
+  const { nodes, edges, clearFlow, selectedNode, setSelectedNode } = useFlowStore()
+  const {
+    currentWorkflowId,
+    workflows,
+    isRunning,
+    runWorkflow,
+    stopExecution,
+    createWorkflow,
+    saveWorkflow,
+  } = useWorkflowStore()
+
+  const currentWorkflow = workflows.find(w => w.id === currentWorkflowId)
+
+  // Handlers
+  const handleNewFlow = useCallback(() => {
+    if (nodes.length > 0) {
+      if (confirm('Create a new flow? Unsaved changes will be lost.')) {
+        clearFlow()
+        useWorkflowStore.getState().setCurrentWorkflow(null)
+      }
+    } else {
+      clearFlow()
+      useWorkflowStore.getState().setCurrentWorkflow(null)
+    }
+  }, [nodes, clearFlow])
+
+  const handleRun = useCallback(async () => {
+    setShowExecutionPanel(true)
+
+    // If no workflow exists, create one first
+    let workflowId = currentWorkflowId
+    if (!workflowId) {
+      const workflow = createWorkflow('Untitled Workflow')
+      saveWorkflow(workflow.id, nodes, edges)
+      workflowId = workflow.id
+    } else {
+      // Save current state before running
+      saveWorkflow(workflowId, nodes, edges)
+    }
+
+    await runWorkflow(workflowId)
+  }, [currentWorkflowId, nodes, edges, createWorkflow, saveWorkflow, runWorkflow])
+
+  const handleStop = useCallback(() => {
+    stopExecution()
+  }, [stopExecution])
+
+  const handleCloseNodePanel = useCallback(() => {
+    setSelectedNode(null)
+  }, [setSelectedNode])
+
+  return (
+    <div className="flex h-screen w-screen overflow-hidden bg-slate-950">
+      <ReactFlowProvider>
+        <Sidebar />
+
+        <main className="relative flex-1">
+          <Canvas />
+
+          {/* Top Bar */}
+          <div className="absolute left-4 top-4 flex items-center gap-2">
+            {/* Workflow Name */}
+            <button
+              onClick={() => setShowWorkflowList(true)}
+              className="flex items-center gap-2 rounded-lg bg-slate-800 px-3 py-2 text-sm font-medium text-white transition hover:bg-slate-700"
+            >
+              <FolderOpen size={16} />
+              {currentWorkflow?.name || 'Untitled Workflow'}
+            </button>
+
+            <div className="h-6 w-px bg-slate-700" />
+
+            {/* New Flow */}
+            <button
+              onClick={handleNewFlow}
+              className="flex items-center gap-2 rounded-lg bg-slate-800 px-3 py-2 text-sm font-medium text-white transition hover:bg-slate-700"
+              title="New Flow"
+            >
+              <Plus size={16} />
+              New
+            </button>
+
+            {/* Save */}
+            <button
+              onClick={() => setShowSaveModal(true)}
+              className="flex items-center gap-2 rounded-lg bg-slate-800 px-3 py-2 text-sm font-medium text-white transition hover:bg-slate-700"
+              title="Save Workflow"
+            >
+              <Save size={16} />
+              Save
+            </button>
+
+            {/* Run / Stop */}
+            {isRunning ? (
+              <button
+                onClick={handleStop}
+                className="flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-red-500"
+              >
+                <Square size={16} />
+                Stop
+              </button>
+            ) : (
+              <button
+                onClick={handleRun}
+                disabled={nodes.length === 0}
+                className="flex items-center gap-2 rounded-lg bg-purple-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-purple-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <Play size={16} />
+                Run
+              </button>
+            )}
+          </div>
+
+          {/* Right Top Bar - Settings */}
+          <div className="absolute right-4 top-4 flex items-center gap-2">
+            <button
+              className="flex items-center gap-2 rounded-lg bg-slate-800 p-2 text-white transition hover:bg-slate-700"
+              title="Settings"
+            >
+              <Settings size={18} />
+            </button>
+          </div>
+
+          {/* Status Bar */}
+          <div className="absolute bottom-4 right-4 flex items-center gap-4 rounded-lg bg-slate-800/80 px-4 py-2 backdrop-blur">
+            {isRunning && (
+              <>
+                <div className="flex items-center gap-2 text-xs">
+                  <Loader2 size={14} className="animate-spin text-purple-500" />
+                  <span className="text-purple-400">Executing...</span>
+                </div>
+                <div className="h-4 w-px bg-slate-600" />
+              </>
+            )}
+            <div className="flex items-center gap-2 text-xs">
+              <div className="h-2 w-2 rounded-full bg-green-500" />
+              <span className="text-slate-300">Ollama Connected</span>
+            </div>
+            <div className="h-4 w-px bg-slate-600" />
+            <div className="flex items-center gap-2 text-xs">
+              <div className="h-2 w-2 rounded-full bg-green-500" />
+              <span className="text-slate-300">Local Mode</span>
+            </div>
+            <div className="h-4 w-px bg-slate-600" />
+            <div className="text-xs text-slate-400">
+              {nodes.length} nodes · {edges.length} connections
+            </div>
+          </div>
+
+          {/* Hint when no node selected */}
+          {!selectedNode && nodes.length > 0 && (
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 rounded-lg bg-slate-800/80 px-4 py-2 backdrop-blur">
+              <p className="text-xs text-slate-400">
+                Click on a node to configure it
+              </p>
+            </div>
+          )}
+        </main>
+
+        {/* Node Configuration Panel */}
+        {selectedNode && (
+          <NodeConfigPanel
+            node={selectedNode}
+            onClose={handleCloseNodePanel}
+            onRunWorkflow={handleRun}
+          />
+        )}
+
+        {/* Modals */}
+        <WorkflowListModal
+          isOpen={showWorkflowList}
+          onClose={() => setShowWorkflowList(false)}
+        />
+        <SaveWorkflowModal
+          isOpen={showSaveModal}
+          onClose={() => setShowSaveModal(false)}
+        />
+        <ExecutionPanel
+          isOpen={showExecutionPanel}
+          onClose={() => setShowExecutionPanel(false)}
+        />
+      </ReactFlowProvider>
+    </div>
+  )
+}
+
+export default App
