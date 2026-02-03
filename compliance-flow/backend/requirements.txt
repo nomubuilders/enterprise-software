@@ -33,6 +33,11 @@ python-dotenv>=1.0.0
 loguru>=0.7.2            # Better logging
 tenacity>=8.2.3          # Retry logic
 
+# Email & Messaging
+email-validator>=2.1.0   # Email validation for Pydantic
+aiohttp>=3.9.0           # Async HTTP for Telegram API
+openpyxl>=3.1.0          # Excel file export (optional)
+
 # Testing
 pytest>=7.4.0
 pytest-asyncio>=0.23.0

@@ -10,7 +10,7 @@ from loguru import logger
 import sys
 
 from app.core.config import settings
-from app.api import health, databases, llm, workflows
+from app.api import health, databases, llm, workflows, outputs
 from app.services.ollama import OllamaService
 # Database connections are created on-demand via API endpoints
 
@@ -80,6 +80,7 @@ app.include_router(health.router, prefix=settings.API_PREFIX, tags=["Health"])
 app.include_router(databases.router, prefix=settings.API_PREFIX, tags=["Databases"])
 app.include_router(llm.router, prefix=settings.API_PREFIX, tags=["LLM"])
 app.include_router(workflows.router, prefix=settings.API_PREFIX, tags=["Workflows"])
+app.include_router(outputs.router, prefix=settings.API_PREFIX, tags=["Outputs"])
 
 
 @app.get("/")

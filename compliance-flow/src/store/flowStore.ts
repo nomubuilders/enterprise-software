@@ -40,7 +40,7 @@ const initialNodes: Node[] = [
     id: 'llm-1',
     type: 'llmNode',
     position: { x: 600, y: 200 },
-    data: { label: 'Llama 3.2', type: 'llm', config: { model: 'llama3.2' } },
+    data: { label: 'AI Agent', type: 'llm', config: { model: 'llama3.2', temperature: 0.7, maxTokens: 2048 } },
   },
   {
     id: 'pii-1',

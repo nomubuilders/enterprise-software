@@ -265,6 +265,115 @@ class ApiClient {
   ): Promise<{ status: string; logs: unknown[]; result?: unknown }> {
     return this.fetch(`/workflows/executions/${executionId}`)
   }
+
+  // Outputs - Spreadsheet
+  async exportToCSV(
+    data: Record<string, unknown>[],
+    filename?: string,
+    includeHeaders: boolean = true
+  ): Promise<{
+    success: boolean
+    file_content: string
+    filename: string
+    mime_type: string
+    row_count: number
+  }> {
+    return this.fetch('/outputs/spreadsheet/export/csv', {
+      method: 'POST',
+      body: JSON.stringify({ data, filename, include_headers: includeHeaders }),
+    })
+  }
+
+  async exportToExcel(
+    data: Record<string, unknown>[],
+    filename?: string,
+    includeHeaders: boolean = true
+  ): Promise<{
+    success: boolean
+    file_content: string
+    filename: string
+    mime_type: string
+    row_count: number
+  }> {
+    return this.fetch('/outputs/spreadsheet/export/xlsx', {
+      method: 'POST',
+      body: JSON.stringify({ data, filename, include_headers: includeHeaders }),
+    })
+  }
+
+  // Outputs - Email
+  async sendEmail(params: {
+    config: {
+      smtp_host: string
+      smtp_port: number
+      smtp_username: string
+      smtp_password: string
+      use_tls: boolean
+    }
+    to_email: string
+    subject: string
+    body: string
+    body_type?: 'html' | 'plain'
+    from_name?: string
+    attachments?: Array<{ filename: string; content: string }>
+  }): Promise<{
+    success: boolean
+    message: string
+    message_id?: string
+  }> {
+    return this.fetch('/outputs/email/send', {
+      method: 'POST',
+      body: JSON.stringify(params),
+    })
+  }
+
+  async testEmailConfig(config: {
+    smtp_host: string
+    smtp_port: number
+    smtp_username: string
+    smtp_password: string
+    use_tls: boolean
+  }): Promise<{
+    success: boolean
+    message: string
+  }> {
+    return this.fetch('/outputs/email/test', {
+      method: 'POST',
+      body: JSON.stringify(config),
+    })
+  }
+
+  // Outputs - Telegram
+  async sendTelegramMessage(params: {
+    config: {
+      bot_token: string
+    }
+    chat_id: string
+    text: string
+    parse_mode?: 'Markdown' | 'HTML'
+    disable_notification?: boolean
+  }): Promise<{
+    success: boolean
+    message: string
+    message_id?: number
+  }> {
+    return this.fetch('/outputs/telegram/send', {
+      method: 'POST',
+      body: JSON.stringify(params),
+    })
+  }
+
+  async testTelegramConfig(config: {
+    bot_token: string
+  }): Promise<{
+    success: boolean
+    message: string
+  }> {
+    return this.fetch('/outputs/telegram/test', {
+      method: 'POST',
+      body: JSON.stringify(config),
+    })
+  }
 }
 
 // Export singleton instance

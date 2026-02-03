@@ -1,4 +1,4 @@
-import { useCallback, useRef } from 'react'
+import { useCallback, useRef, useMemo } from 'react'
 import type { DragEvent } from 'react'
 import {
   ReactFlow,
@@ -7,7 +7,7 @@ import {
   MiniMap,
   BackgroundVariant,
 } from '@xyflow/react'
-import type { ReactFlowInstance } from '@xyflow/react'
+import type { ReactFlowInstance, Edge } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
 
 import { useFlowStore } from '../../store/flowStore'
@@ -81,11 +81,54 @@ export function Canvas() {
     setSelectedNode(null)
   }, [setSelectedNode])
 
+  // Check if a node is properly configured
+  const isNodeConfigured = useCallback((nodeId: string) => {
+    const node = nodes.find(n => n.id === nodeId)
+    if (!node) return false
+
+    const config = (node.data as Record<string, unknown>).config as Record<string, unknown> | undefined
+    if (!config) return false
+
+    switch (node.type) {
+      case 'databaseNode':
+        return !!(config.host && config.database && config.username)
+      case 'llmNode':
+        return !!(config.model)
+      case 'outputNode':
+        return !!(config.outputType)
+      case 'triggerNode':
+        return !!(config.triggerType)
+      case 'piiFilterNode':
+        return !!(config.mode)
+      default:
+        return true
+    }
+  }, [nodes])
+
+  // Enhance edges with visual feedback based on node configuration
+  const enhancedEdges = useMemo(() => {
+    return edges.map((edge): Edge => {
+      const sourceConfigured = isNodeConfigured(edge.source)
+      const targetConfigured = isNodeConfigured(edge.target)
+      const bothConfigured = sourceConfigured && targetConfigured
+
+      return {
+        ...edge,
+        animated: bothConfigured,
+        style: {
+          stroke: bothConfigured ? '#06b6d4' : '#64748b',
+          strokeWidth: bothConfigured ? 3 : 2,
+          opacity: bothConfigured ? 1 : 0.5,
+        },
+      }
+    })
+  }, [edges, isNodeConfigured])
+
   return (
     <div ref={reactFlowWrapper} className="h-full w-full">
       <ReactFlow
         nodes={nodes}
-        edges={edges}
+        edges={enhancedEdges}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}

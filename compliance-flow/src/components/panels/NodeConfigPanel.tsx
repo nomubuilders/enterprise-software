@@ -390,6 +390,7 @@ function DatabaseNodeConfig({
     onUpdate({
       config: {
         ...config,
+        dbType,
         ...connection,
         query,
         isConnected: testResult?.success || false,
@@ -532,9 +533,6 @@ function LLMNodeConfig({
   const config = (node.data as Record<string, unknown>).config as Record<string, unknown> || {}
 
   const [model, setModel] = useState((config.model as string) || 'llama3.2')
-  const [systemPrompt, setSystemPrompt] = useState(
-    (config.systemPrompt as string) || 'You are a helpful assistant.'
-  )
   const [temperature, setTemperature] = useState((config.temperature as number) || 0.7)
   const [maxTokens, setMaxTokens] = useState((config.maxTokens as number) || 2048)
   const [availableModels, setAvailableModels] = useState<string[]>([])
@@ -562,13 +560,31 @@ function LLMNodeConfig({
       config: {
         ...config,
         model,
-        systemPrompt,
         temperature,
         maxTokens,
       },
     })
+    // Update label to show model name
+    onUpdate({
+      label: `AI Agent (${model})`,
+    })
     setShowSaved(true)
     setTimeout(() => setShowSaved(false), 2000)
+  }
+
+  // Get temperature description
+  const getTempDescription = () => {
+    if (temperature < 0.3) return 'Factual & deterministic responses'
+    if (temperature < 0.7) return 'Balanced creativity & accuracy'
+    if (temperature < 1.2) return 'Creative & varied responses'
+    return 'Highly creative & unpredictable'
+  }
+
+  const getTempColor = () => {
+    if (temperature < 0.3) return 'text-blue-400'
+    if (temperature < 0.7) return 'text-green-400'
+    if (temperature < 1.2) return 'text-orange-400'
+    return 'text-red-400'
   }
 
   return (
@@ -577,20 +593,28 @@ function LLMNodeConfig({
       {showSaved && (
         <div className="flex items-center gap-2 text-green-400 text-sm bg-green-900/30 rounded-lg px-3 py-2">
           <CheckCircle2 size={16} />
-          <span>Configuration saved!</span>
+          <span>AI Agent configured!</span>
         </div>
       )}
+
+      {/* Info Box */}
+      <div className="rounded-lg bg-purple-900/30 border border-purple-700/50 p-3">
+        <p className="text-xs text-purple-300">
+          <Bot size={12} className="inline mr-1" />
+          Configure your AI agent's behavior. The agent will process data from upstream nodes.
+        </p>
+      </div>
 
       {/* Model Selection */}
       <div>
         <div className="flex items-center justify-between mb-2">
-          <label className="text-sm font-medium text-slate-300">Model</label>
+          <label className="text-sm font-medium text-slate-300">AI Model</label>
           <button
             onClick={loadModels}
             disabled={isLoading}
-            className="text-xs text-purple-400 hover:text-purple-300"
+            className="text-xs text-purple-400 hover:text-purple-300 disabled:opacity-50"
           >
-            {isLoading ? <Loader2 size={12} className="animate-spin" /> : 'Refresh'}
+            {isLoading ? <Loader2 size={12} className="animate-spin" /> : '🔄 Refresh'}
           </button>
         </div>
         <Select
@@ -599,27 +623,22 @@ function LLMNodeConfig({
           onChange={(e) => setModel(e.target.value)}
         />
         {availableModels.length === 0 && !isLoading && (
-          <p className="mt-1 text-xs text-amber-400">No models found. Make sure Ollama is running.</p>
+          <p className="mt-1 text-xs text-amber-400">⚠️ No models found. Make sure Ollama is running.</p>
         )}
-      </div>
-
-      {/* System Prompt */}
-      <div>
-        <label className="mb-2 block text-sm font-medium text-slate-300">System Prompt</label>
-        <textarea
-          value={systemPrompt}
-          onChange={(e) => setSystemPrompt(e.target.value)}
-          className="w-full rounded-lg border border-slate-600 bg-slate-800 px-3 py-2 text-sm text-white placeholder-slate-500"
-          rows={4}
-          placeholder="You are a helpful assistant..."
-        />
+        {availableModels.length > 0 && (
+          <p className="mt-1 text-xs text-slate-500">
+            Running locally via Ollama • 100% private
+          </p>
+        )}
       </div>
 
       {/* Temperature */}
       <div>
         <div className="flex items-center justify-between mb-2">
           <label className="text-sm font-medium text-slate-300">Temperature</label>
-          <span className="text-sm text-purple-400">{temperature}</span>
+          <div className="flex items-center gap-2">
+            <span className={`text-sm font-medium ${getTempColor()}`}>{temperature}</span>
+          </div>
         </div>
         <input
           type="range"
@@ -630,21 +649,41 @@ function LLMNodeConfig({
           onChange={(e) => setTemperature(parseFloat(e.target.value))}
           className="w-full accent-purple-500"
         />
-        <div className="flex justify-between text-xs text-slate-500">
-          <span>Precise</span>
-          <span>Creative</span>
+        <div className="flex justify-between text-xs text-slate-500 mt-1">
+          <span>0.0 Precise</span>
+          <span>1.0 Balanced</span>
+          <span>2.0 Creative</span>
         </div>
+        <p className={`mt-2 text-xs ${getTempColor()}`}>
+          {getTempDescription()}
+        </p>
       </div>
 
       {/* Max Tokens */}
       <div>
-        <label className="mb-2 block text-sm font-medium text-slate-300">Max Tokens</label>
+        <label className="mb-2 block text-sm font-medium text-slate-300">Max Response Length</label>
         <Input
           type="number"
           value={maxTokens}
           onChange={(e) => setMaxTokens(parseInt(e.target.value) || 2048)}
           placeholder="2048"
+          min="128"
+          max="8192"
+          step="128"
         />
+        <p className="mt-1 text-xs text-slate-500">
+          Tokens: ~{Math.floor(maxTokens / 4)} words • Higher = longer responses
+        </p>
+      </div>
+
+      {/* Performance Tips */}
+      <div className="rounded-lg bg-slate-800 p-3 space-y-2">
+        <p className="text-xs font-medium text-slate-400">💡 Performance Tips</p>
+        <ul className="text-xs text-slate-500 space-y-1 list-disc list-inside">
+          <li><strong>Lower temperature</strong> (0.1-0.3) for factual tasks</li>
+          <li><strong>Higher temperature</strong> (0.8-1.2) for creative writing</li>
+          <li><strong>Fewer tokens</strong> = faster responses</li>
+        </ul>
       </div>
 
       {/* Save */}
@@ -807,411 +846,23 @@ function OutputNodeConfig({
   const config = (node.data as Record<string, unknown>).config as Record<string, unknown> || {}
   const outputType = (config.outputType as string) || 'chat'
 
-  // Get workflow context
-  const { nodes, edges } = useFlowStore()
-  const { currentExecution } = useWorkflowStore()
-
   const [format, setFormat] = useState((config.format as string) || 'text')
   const [destination, setDestination] = useState((config.destination as string) || '')
-
-  // Chat interface state
-  const [messages, setMessages] = useState<Array<{ role: 'user' | 'assistant'; content: string }>>([])
-  const [inputMessage, setInputMessage] = useState('')
-  const [isGenerating, setIsGenerating] = useState(false)
-  const [selectedModel, setSelectedModel] = useState((config.chatModel as string) || 'llama3.2')
-  const [availableModels, setAvailableModels] = useState<string[]>([])
-
-  // Database context state
-  const [dbSchema, setDbSchema] = useState<Array<{ name: string; columns: Array<{ name: string; type: string }> }>>([])
-  const [dbConfig, setDbConfig] = useState<Record<string, unknown> | null>(null)
-  const [sampleData, setSampleData] = useState<Record<string, unknown>[] | null>(null)
-  const [dataRowCount, setDataRowCount] = useState<number>(0)
-  const [isLoadingContext, setIsLoadingContext] = useState(false)
-  const [dataLoadError, setDataLoadError] = useState<string | null>(null)
-
-  // Find connected database nodes and load their schema
-  useEffect(() => {
-    if (outputType === 'chat') {
-      loadModels()
-      loadDatabaseContext()
-    }
-  }, [outputType, nodes, edges])
-
-  const loadModels = async () => {
-    try {
-      const result = await api.listModels()
-      setAvailableModels(result.models.map((m) => m.name))
-      if (result.models.length > 0 && !selectedModel) {
-        setSelectedModel(result.models[0].name)
-      }
-    } catch {
-      setAvailableModels(['llama3.2', 'mistral', 'codellama'])
-    }
-  }
-
-  // Load database schema from connected database nodes
-  const loadDatabaseContext = async () => {
-    setIsLoadingContext(true)
-    setDataLoadError(null)
-    setSampleData(null)
-    setDataRowCount(0)
-
-    // Find database nodes in the workflow
-    const dbNodes = nodes.filter((n) => n.type === 'databaseNode')
-    console.log('[Chat] Found database nodes:', dbNodes.length)
-
-    for (const dbNode of dbNodes) {
-      const nodeConfig = (dbNode.data as Record<string, unknown>).config as Record<string, unknown>
-      console.log('[Chat] DB Node config:', nodeConfig)
-
-      if (nodeConfig?.host && nodeConfig?.database) {
-        try {
-          const dbConfigData = {
-            type: (nodeConfig.dbType as 'postgresql' | 'mysql' | 'mongodb') || 'postgresql',
-            host: nodeConfig.host as string,
-            port: (nodeConfig.port as number) || 5432,
-            database: nodeConfig.database as string,
-            username: (nodeConfig.username as string) || '',
-            password: (nodeConfig.password as string) || '',
-            ssl: (nodeConfig.ssl as boolean) || false,
-          }
-
-          setDbConfig(dbConfigData)
-
-          // Fetch table schema
-          const tablesResult = await api.listTables(dbConfigData)
-          console.log('[Chat] Tables result:', tablesResult)
-
-          if (tablesResult.success && tablesResult.tables) {
-            setDbSchema(tablesResult.tables.map((t) => ({
-              name: t.name,
-              columns: t.columns || [],
-            })))
-
-            // Fetch actual sample data - use simple query without semicolon
-            const tableName = tablesResult.tables[0]?.name || 'data'
-            const configuredQuery = (nodeConfig.query as string) || ''
-            // Clean up the query - remove trailing semicolon and add LIMIT if not present
-            let query = configuredQuery.trim().replace(/;$/, '')
-            if (!query) {
-              query = `SELECT * FROM ${tableName}`
-            }
-            if (!query.toLowerCase().includes('limit')) {
-              query += ' LIMIT 100'
-            }
-
-            console.log('[Chat] Executing query:', query)
-
-            try {
-              const queryResult = await api.executeQuery(dbConfigData, query, 100)
-              console.log('[Chat] Query result:', queryResult)
-
-              if (queryResult.success && queryResult.rows && queryResult.rows.length > 0) {
-                setSampleData(queryResult.rows)
-                setDataRowCount(queryResult.row_count || queryResult.rows.length)
-                console.log('[Chat] Loaded', queryResult.rows.length, 'rows')
-              } else if (queryResult.error) {
-                setDataLoadError(queryResult.error)
-                console.error('[Chat] Query error:', queryResult.error)
-              } else {
-                setDataLoadError('No data returned from query')
-              }
-            } catch (queryErr) {
-              const errMsg = queryErr instanceof Error ? queryErr.message : 'Query failed'
-              setDataLoadError(errMsg)
-              console.error('[Chat] Failed to fetch sample data:', queryErr)
-            }
-          } else if (tablesResult.error) {
-            setDataLoadError(tablesResult.error)
-          }
-          break // Use first connected database
-        } catch (err) {
-          const errMsg = err instanceof Error ? err.message : 'Failed to load database'
-          setDataLoadError(errMsg)
-          console.error('[Chat] Failed to load database schema:', err)
-        }
-      }
-    }
-
-    setIsLoadingContext(false)
-  }
-
-  // Build system prompt with database context
-  const buildSystemPrompt = () => {
-    let systemPrompt = `You are a helpful data analyst assistant. You have DIRECT ACCESS to the database data shown below. Answer questions using ONLY this data - do NOT suggest SQL queries for the user to run. You can see and analyze the actual data.`
-
-    // Add database schema context
-    if (dbSchema.length > 0 && dbConfig) {
-      systemPrompt += `\n\n## Database: ${(dbConfig as Record<string, unknown>).database} (${(dbConfig as Record<string, unknown>).type || 'PostgreSQL'})\n\n`
-      systemPrompt += `### Schema:\n`
-      for (const table of dbSchema) {
-        systemPrompt += `- **${table.name}**: ${table.columns.map((c) => `${c.name} (${c.type})`).join(', ')}\n`
-      }
-    }
-
-    // Add actual sample data - this is the key part!
-    if (sampleData && sampleData.length > 0) {
-      systemPrompt += `\n\n### Actual Data (${dataRowCount} total rows, showing ${Math.min(sampleData.length, 30)}):\n\n`
-      systemPrompt += '```json\n'
-      systemPrompt += JSON.stringify(sampleData.slice(0, 30), null, 2)
-      systemPrompt += '\n```\n'
-      if (dataRowCount > 30) {
-        systemPrompt += `\n(${dataRowCount - 30} more rows not shown)\n`
-      }
-    }
-
-    // Add workflow execution results if available (fresher data)
-    if (currentExecution?.results) {
-      const results = currentExecution.results as Record<string, unknown>
-      if (results.dbResult) {
-        const dbResult = results.dbResult as Record<string, unknown>[]
-        systemPrompt += `\n\n### Latest Workflow Query Results (${dbResult.length} rows):\n\n`
-        systemPrompt += '```json\n'
-        systemPrompt += JSON.stringify(dbResult.slice(0, 20), null, 2)
-        systemPrompt += '\n```\n'
-      }
-    }
-
-    systemPrompt += `\n\n## Instructions:
-- Answer questions by analyzing the ACTUAL DATA shown above
-- Provide specific values, counts, averages, etc. from the data
-- Do NOT tell the user to run SQL queries - you already have the data
-- If asked about data not shown, explain what data you can see
-- Be precise and use the actual values from the data`
-
-    return systemPrompt
-  }
-
-  const handleSendMessage = async () => {
-    if (!inputMessage.trim() || isGenerating) return
-
-    const userMessage = inputMessage.trim()
-    setInputMessage('')
-    setMessages((prev) => [...prev, { role: 'user', content: userMessage }])
-    setIsGenerating(true)
-
-    try {
-      // Build context-aware messages
-      const systemPrompt = buildSystemPrompt()
-
-      const result = await api.chat({
-        model: selectedModel,
-        messages: [
-          { role: 'system' as const, content: systemPrompt },
-          ...messages.map((m) => ({ role: m.role, content: m.content })),
-          { role: 'user' as const, content: userMessage },
-        ],
-        temperature: 0.7,
-        max_tokens: 2048,
-      })
-
-      const assistantContent = result.message?.content || 'No response received'
-      setMessages((prev) => [...prev, { role: 'assistant', content: assistantContent }])
-    } catch (error) {
-      setMessages((prev) => [
-        ...prev,
-        { role: 'assistant', content: `Error: ${error instanceof Error ? error.message : 'Failed to get response'}` },
-      ])
-    }
-
-    setIsGenerating(false)
-  }
 
   const handleSave = () => {
     onUpdate({
       config: {
         ...config,
+        outputType,
         format,
         destination,
-        chatModel: selectedModel,
       },
     })
   }
 
-  // Chat Interface for chat output type
+  // Chat Interface - Uses floating window, no config panel needed
   if (outputType === 'chat') {
-    return (
-      <div className="flex flex-col h-full">
-        {/* Chat Header */}
-        <div className="flex items-center justify-between border-b border-slate-700 px-4 py-2 bg-slate-800">
-          <span className="text-sm font-medium text-white">Chat Interface</span>
-          <select
-            value={selectedModel}
-            onChange={(e) => setSelectedModel(e.target.value)}
-            className="rounded bg-slate-700 px-2 py-1 text-xs text-white border-none outline-none"
-          >
-            {availableModels.map((model) => (
-              <option key={model} value={model}>
-                {model}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {/* Database Context Status */}
-        {dbSchema.length > 0 && (
-          <div className="px-4 py-2 bg-green-900/30 border-b border-green-700/50">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 text-green-400 text-xs">
-                <Database size={12} />
-                <span>Connected to {(dbConfig as Record<string, unknown>)?.database as string}</span>
-                <span className="text-green-600">({dbSchema.length} tables)</span>
-                {sampleData && sampleData.length > 0 && (
-                  <span className="text-green-500">• {dataRowCount} rows loaded</span>
-                )}
-              </div>
-              <button
-                onClick={loadDatabaseContext}
-                disabled={isLoadingContext}
-                className="text-green-400 hover:text-green-300 disabled:opacity-50"
-                title="Refresh data"
-              >
-                <RefreshCw size={12} className={isLoadingContext ? 'animate-spin' : ''} />
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Error status */}
-        {dataLoadError && (
-          <div className="px-4 py-2 bg-red-900/30 border-b border-red-700/50">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 text-red-400 text-xs">
-                <XCircle size={12} />
-                <span>Data load failed: {dataLoadError}</span>
-              </div>
-              <button
-                onClick={loadDatabaseContext}
-                className="text-red-400 hover:text-red-300"
-                title="Retry"
-              >
-                <RefreshCw size={12} />
-              </button>
-            </div>
-          </div>
-        )}
-
-        {isLoadingContext && (
-          <div className="px-4 py-2 bg-slate-800 border-b border-slate-700">
-            <div className="flex items-center gap-2 text-slate-400 text-xs">
-              <Loader2 size={12} className="animate-spin" />
-              <span>Loading database context...</span>
-            </div>
-          </div>
-        )}
-
-        {/* No data warning */}
-        {!isLoadingContext && dbSchema.length > 0 && !sampleData && !dataLoadError && (
-          <div className="px-4 py-2 bg-yellow-900/30 border-b border-yellow-700/50">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 text-yellow-400 text-xs">
-                <Shield size={12} />
-                <span>Schema loaded but no data. Click refresh or save your PostgreSQL config first.</span>
-              </div>
-              <button
-                onClick={loadDatabaseContext}
-                className="text-yellow-400 hover:text-yellow-300"
-                title="Refresh data"
-              >
-                <RefreshCw size={12} />
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* No database configured */}
-        {!isLoadingContext && dbSchema.length === 0 && !dataLoadError && (
-          <div className="px-4 py-2 bg-slate-800 border-b border-slate-700">
-            <div className="flex items-center gap-2 text-slate-400 text-xs">
-              <Database size={12} />
-              <span>No database configured. Add a PostgreSQL node and save its configuration.</span>
-            </div>
-          </div>
-        )}
-
-        {/* Messages Area */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-4">
-          {messages.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-full text-slate-500">
-              <MessageSquare size={32} className="mb-2 opacity-50" />
-              <p className="text-sm">Start a conversation</p>
-              {sampleData && sampleData.length > 0 ? (
-                <p className="text-xs text-green-400">✓ {dataRowCount} rows loaded - ask about your data!</p>
-              ) : dbSchema.length > 0 ? (
-                <p className="text-xs text-yellow-400">Schema loaded, fetching data...</p>
-              ) : (
-                <p className="text-xs">Configure a database node to enable data queries</p>
-              )}
-            </div>
-          ) : (
-            messages.map((msg, idx) => (
-              <div
-                key={idx}
-                className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
-              >
-                <div
-                  className={`max-w-[85%] rounded-lg px-3 py-2 ${
-                    msg.role === 'user'
-                      ? 'bg-purple-600 text-white'
-                      : 'bg-slate-700 text-slate-200'
-                  }`}
-                >
-                  {msg.role === 'user' ? (
-                    <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
-                  ) : (
-                    <div className="text-sm prose prose-sm prose-invert max-w-none prose-p:my-1 prose-headings:my-2 prose-ul:my-1 prose-ol:my-1 prose-li:my-0 prose-code:bg-slate-800 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-pre:bg-slate-800 prose-pre:p-2 prose-pre:rounded-lg prose-pre:overflow-x-auto">
-                      <ReactMarkdown>{msg.content}</ReactMarkdown>
-                    </div>
-                  )}
-                </div>
-              </div>
-            ))
-          )}
-          {isGenerating && (
-            <div className="flex justify-start">
-              <div className="bg-slate-700 rounded-lg px-3 py-2">
-                <Loader2 size={16} className="animate-spin text-purple-400" />
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Input Area */}
-        <div className="border-t border-slate-700 p-3 bg-slate-800">
-          <div className="flex gap-2">
-            <input
-              type="text"
-              value={inputMessage}
-              onChange={(e) => setInputMessage(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-              placeholder="Type a message..."
-              className="flex-1 rounded-lg bg-slate-700 px-3 py-2 text-sm text-white placeholder-slate-400 outline-none focus:ring-2 focus:ring-purple-500"
-              disabled={isGenerating}
-            />
-            <Button
-              variant="primary"
-              size="sm"
-              onClick={handleSendMessage}
-              disabled={isGenerating || !inputMessage.trim()}
-              className="px-3"
-            >
-              {isGenerating ? <Loader2 size={16} className="animate-spin" /> : <Play size={16} />}
-            </Button>
-          </div>
-          <div className="flex justify-between mt-2">
-            <button
-              onClick={() => setMessages([])}
-              className="text-xs text-slate-500 hover:text-slate-400"
-            >
-              Clear chat
-            </button>
-            <Button variant="secondary" size="sm" onClick={handleSave}>
-              <Save size={12} className="mr-1" /> Save
-            </Button>
-          </div>
-        </div>
-      </div>
-    )
+    return null
   }
 
   // Non-chat output types

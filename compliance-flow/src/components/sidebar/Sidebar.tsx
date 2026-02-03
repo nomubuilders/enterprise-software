@@ -77,27 +77,11 @@ const nodeTemplates: NodeTemplate[] = [
   // AI Models
   {
     type: 'llmNode',
-    label: 'Llama 3.2',
+    label: 'AI Agent',
     icon: <Bot size={18} />,
     color: 'bg-purple-600',
     category: 'AI Models',
-    config: { model: 'llama3.2' },
-  },
-  {
-    type: 'llmNode',
-    label: 'Mistral',
-    icon: <Bot size={18} />,
-    color: 'bg-purple-600',
-    category: 'AI Models',
-    config: { model: 'mistral' },
-  },
-  {
-    type: 'llmNode',
-    label: 'CodeLlama',
-    icon: <Bot size={18} />,
-    color: 'bg-purple-600',
-    category: 'AI Models',
-    config: { model: 'codellama' },
+    config: { model: 'llama3.2', temperature: 0.7, maxTokens: 2048 },
   },
   // Compliance
   {

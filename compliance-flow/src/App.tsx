@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { ReactFlowProvider } from '@xyflow/react'
 import {
   Play,
@@ -8,6 +8,7 @@ import {
   Settings,
   Loader2,
   Square,
+  Sparkles,
 } from 'lucide-react'
 import { Sidebar } from './components/sidebar/Sidebar'
 import { Canvas } from './components/canvas/Canvas'
@@ -17,6 +18,8 @@ import {
   ExecutionPanel,
 } from './components/modals'
 import { NodeConfigPanel } from './components/panels'
+import { AIAssistantPanel } from './components/panels/AIAssistantPanel'
+import { ChatInterfacePanel } from './components/panels/ChatInterfacePanel'
 import { useFlowStore } from './store/flowStore'
 import { useWorkflowStore } from './store/workflowStore'
 
@@ -25,6 +28,8 @@ function App() {
   const [showWorkflowList, setShowWorkflowList] = useState(false)
   const [showSaveModal, setShowSaveModal] = useState(false)
   const [showExecutionPanel, setShowExecutionPanel] = useState(false)
+  const [showAIAssistant, setShowAIAssistant] = useState(false)
+  const [chatInterfaceNode, setChatInterfaceNode] = useState<typeof selectedNode>(null)
 
   // Store hooks
   const { nodes, edges, clearFlow, selectedNode, setSelectedNode } = useFlowStore()
@@ -78,9 +83,25 @@ function App() {
     setSelectedNode(null)
   }, [setSelectedNode])
 
+  // Handle node selection - open chat interface for output nodes
+  useEffect(() => {
+    if (selectedNode?.type === 'outputNode') {
+      const nodeData = selectedNode.data as Record<string, unknown>
+      const config = nodeData.config as Record<string, unknown>
+      if (config?.outputType === 'chat') {
+        setChatInterfaceNode(selectedNode)
+        // Close the config panel since chat uses floating window
+        setSelectedNode(null)
+      }
+    }
+  }, [selectedNode, setSelectedNode])
+
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-slate-950">
       <ReactFlowProvider>
+        {/* AI Assistant Panel */}
+        <AIAssistantPanel isOpen={showAIAssistant} onClose={() => setShowAIAssistant(false)} />
+
         <Sidebar />
 
         <main className="relative flex-1">
@@ -140,8 +161,20 @@ function App() {
             )}
           </div>
 
-          {/* Right Top Bar - Settings */}
+          {/* Right Top Bar - AI Assistant & Settings */}
           <div className="absolute right-4 top-4 flex items-center gap-2">
+            <button
+              onClick={() => setShowAIAssistant(!showAIAssistant)}
+              className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition ${
+                showAIAssistant
+                  ? 'bg-purple-600 text-white hover:bg-purple-500'
+                  : 'bg-slate-800 text-white hover:bg-slate-700'
+              }`}
+              title="AI Workflow Assistant"
+            >
+              <Sparkles size={16} />
+              AI Assistant
+            </button>
             <button
               className="flex items-center gap-2 rounded-lg bg-slate-800 p-2 text-white transition hover:bg-slate-700"
               title="Settings"
@@ -192,6 +225,14 @@ function App() {
             node={selectedNode}
             onClose={handleCloseNodePanel}
             onRunWorkflow={handleRun}
+          />
+        )}
+
+        {/* Floating Chat Interface */}
+        {chatInterfaceNode && (
+          <ChatInterfacePanel
+            node={chatInterfaceNode}
+            onClose={() => setChatInterfaceNode(null)}
           />
         )}
 
