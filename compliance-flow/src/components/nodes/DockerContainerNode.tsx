@@ -2,6 +2,7 @@ import { memo } from 'react'
 import type { NodeProps } from '@xyflow/react'
 import { Container } from 'lucide-react'
 import { BaseNode } from './BaseNode'
+import { useDockerStore } from '../../store/dockerStore'
 
 export const DockerContainerNode = memo((props: NodeProps) => {
   const nodeData = props.data as { label: string; config?: Record<string, unknown> }
@@ -11,6 +12,7 @@ export const DockerContainerNode = memo((props: NodeProps) => {
   const memoryLimit = (nodeData.config?.memoryLimit as number) || 512
   const networkMode = (nodeData.config?.networkMode as string) || 'none'
   const status = (nodeData.config?.status as string) || 'idle'
+  const dockerAvailable = useDockerStore((s) => s.dockerAvailable)
 
   const getStatusDisplay = () => {
     switch (status) {
@@ -49,6 +51,11 @@ export const DockerContainerNode = memo((props: NodeProps) => {
           ) : (
             <span className="inline-flex items-center gap-1 rounded-full bg-[var(--nomu-accent)]/20 px-2 py-0.5 text-[10px] font-medium text-[var(--nomu-accent)]">
               Internal Only
+            </span>
+          )}
+          {!dockerAvailable && (
+            <span className="inline-flex items-center gap-1 rounded-full bg-gray-500/20 px-2 py-0.5 text-[10px] font-medium text-gray-400">
+              Docker Unavailable
             </span>
           )}
         </div>

@@ -10,6 +10,9 @@ interface DockerState {
   executionHistory: ContainerExecution[]
   runtimeConfig: RuntimeConfig
 
+  dockerAvailable: boolean
+  dockerHealth: { available: boolean; runtime: string; error?: string } | null
+
   // Actions
   loadAllowlist: (images: ApprovedImage[]) => void
   isImageApproved: (image: string, tag: string) => boolean
@@ -21,6 +24,7 @@ interface DockerState {
   validateExecution: (config: Pick<DockerContainerConfig, 'image' | 'tag' | 'cpuLimit' | 'memoryLimit'>) => ValidationResult
   setRuntimeConfig: (config: Partial<RuntimeConfig>) => void
   detectRuntime: () => Promise<void>
+  checkDockerHealth: () => Promise<void>
 }
 
 export const useDockerStore = create<DockerState>()(
@@ -30,6 +34,8 @@ export const useDockerStore = create<DockerState>()(
       activeContainers: {},
       executionHistory: [],
       runtimeConfig: { runtime: 'docker' as ContainerRuntime },
+      dockerAvailable: false,
+      dockerHealth: null,
 
       loadAllowlist: (images) => set({ approvedImages: images }),
 
@@ -109,6 +115,16 @@ export const useDockerStore = create<DockerState>()(
           }
         } catch {
           // Keep default
+        }
+      },
+
+      checkDockerHealth: async () => {
+        try {
+          const { dockerApi } = await import('../services/dockerApi')
+          const health = await dockerApi.checkHealth()
+          set({ dockerAvailable: health.available, dockerHealth: health })
+        } catch {
+          set({ dockerAvailable: false, dockerHealth: { available: false, runtime: 'unknown', error: 'Health check failed' } })
         }
       },
     }),

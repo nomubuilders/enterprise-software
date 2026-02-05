@@ -14,6 +14,7 @@ import {
   Search,
   Sparkles,
 } from 'lucide-react'
+import { useDockerStore } from '../../store/dockerStore'
 
 interface NodeTemplate {
   type: string
@@ -148,6 +149,8 @@ const nodeTemplates: NodeTemplate[] = [
 const categories = ['Triggers', 'Data Sources', 'AI Models', 'Compliance', 'Outputs', 'Containers']
 
 export function Sidebar() {
+  const dockerAvailable = useDockerStore((s) => s.dockerAvailable)
+
   const onDragStart = (event: DragEvent, template: NodeTemplate) => {
     event.dataTransfer.setData('application/reactflow', JSON.stringify(template))
     event.dataTransfer.effectAllowed = 'move'
@@ -182,6 +185,9 @@ export function Sidebar() {
           <div key={category} className="mb-4">
             <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-500">
               {category}
+              {category === 'Containers' && (
+                <span className={`ml-1.5 inline-block h-1.5 w-1.5 rounded-full ${dockerAvailable ? 'bg-green-500' : 'bg-gray-500'}`} />
+              )}
             </h3>
             <div className="space-y-1">
               {nodeTemplates

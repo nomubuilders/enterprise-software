@@ -19,12 +19,14 @@ import {
   Container,
   Plus,
   Minus,
+  AlertTriangle,
 } from 'lucide-react'
 import ReactMarkdown from 'react-markdown'
 import { Button, Input, Select } from '../common'
 import { DockerTerminal } from './DockerTerminal'
 import { useFlowStore } from '../../store/flowStore'
 import { useWorkflowStore } from '../../store/workflowStore'
+import { useDockerStore } from '../../store/dockerStore'
 import { api } from '../../services/api'
 
 interface NodeConfigPanelProps {
@@ -933,6 +935,7 @@ function DockerContainerNodeConfig({
   node: Node
   onUpdate: (data: Record<string, unknown>) => void
 }) {
+  const { dockerAvailable, dockerHealth } = useDockerStore()
   const config = (node.data as Record<string, unknown>).config as Record<string, unknown> || {}
 
   const [image, setImage] = useState((config.image as string) || '')
@@ -978,6 +981,18 @@ function DockerContainerNodeConfig({
 
   return (
     <div className="space-y-6">
+      {!dockerAvailable && (
+        <div className="rounded-lg bg-amber-900/20 border border-amber-600/30 p-3">
+          <div className="flex items-center gap-2 text-amber-400">
+            <AlertTriangle size={16} />
+            <span className="text-sm font-medium">Docker Unavailable</span>
+          </div>
+          <p className="mt-1 text-xs text-slate-400">
+            {dockerHealth?.error || 'Docker daemon is not running. Please start Docker Desktop to execute containers.'}
+          </p>
+        </div>
+      )}
+
       {showSaved && (
         <div className="flex items-center gap-2 text-green-400 text-sm bg-green-900/30 rounded-lg px-3 py-2">
           <CheckCircle2 size={16} />
