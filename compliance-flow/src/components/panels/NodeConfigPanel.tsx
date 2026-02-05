@@ -74,29 +74,29 @@ export function NodeConfigPanel({ node, onClose, onRunWorkflow }: NodeConfigPane
     <div
       ref={panelRef}
       style={{ width: panelWidth }}
-      className="fixed right-0 top-0 z-40 flex h-full flex-col border-l border-slate-700 bg-slate-900 shadow-2xl"
+      className="fixed right-0 top-0 z-40 flex h-full flex-col border-l border-[var(--nomu-border)] bg-[var(--nomu-bg)] shadow-2xl"
     >
       {/* Resize Handle */}
       <div
         onMouseDown={handleMouseDown}
-        className="absolute left-0 top-0 h-full w-1 cursor-ew-resize bg-transparent hover:bg-purple-500/50 transition-colors group"
+        className="absolute left-0 top-0 h-full w-1 cursor-ew-resize bg-transparent hover:bg-[var(--nomu-primary)]/50 transition-colors group"
       >
         <div className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
-          <GripVertical size={16} className="text-purple-400" />
+          <GripVertical size={16} className="text-[var(--nomu-primary)]" />
         </div>
       </div>
       {/* Header */}
-      <div className="flex items-center justify-between border-b border-slate-700 px-4 py-3">
+      <div className="flex items-center justify-between border-b border-[var(--nomu-border)] px-4 py-3">
         <div className="flex items-center gap-3">
           <NodeIcon type={nodeType} />
           <div>
-            <h2 className="font-semibold text-white">{nodeData.label as string}</h2>
-            <p className="text-xs text-slate-400">Configure node settings</p>
+            <h2 className="font-semibold text-[var(--nomu-text)]">{nodeData.label as string}</h2>
+            <p className="text-xs text-[var(--nomu-text-muted)]">Configure node settings</p>
           </div>
         </div>
         <button
           onClick={onClose}
-          className="rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-800 hover:text-white"
+          className="rounded-lg p-1.5 text-[var(--nomu-text-muted)] transition hover:bg-[var(--nomu-surface-hover)] hover:text-[var(--nomu-text)]"
         >
           <X size={20} />
         </button>
@@ -139,7 +139,7 @@ export function NodeConfigPanel({ node, onClose, onRunWorkflow }: NodeConfigPane
       </div>
 
       {/* Footer */}
-      <div className="flex items-center justify-between border-t border-slate-700 px-4 py-3">
+      <div className="flex items-center justify-between border-t border-[var(--nomu-border)] px-4 py-3">
         <Button
           variant="danger"
           size="sm"
@@ -166,11 +166,11 @@ function NodeIcon({ type }: { type: string }) {
     case 'databaseNode':
       return <div className={`${iconClass} bg-blue-600`}><Database size={20} className="text-white" /></div>
     case 'llmNode':
-      return <div className={`${iconClass} bg-purple-600`}><Bot size={20} className="text-white" /></div>
+      return <div className={`${iconClass} bg-[var(--nomu-primary)]`}><Bot size={20} className="text-white" /></div>
     case 'piiFilterNode':
       return <div className={`${iconClass} bg-amber-600`}><Shield size={20} className="text-white" /></div>
     case 'outputNode':
-      return <div className={`${iconClass} bg-cyan-600`}><MessageSquare size={20} className="text-white" /></div>
+      return <div className={`${iconClass} bg-[var(--nomu-accent)]`}><MessageSquare size={20} className="text-white" /></div>
     default:
       return null
   }
@@ -221,26 +221,26 @@ function TriggerNodeConfig({
       )}
 
       {/* Trigger Type Info */}
-      <div className="rounded-lg bg-slate-800 p-4">
+      <div className="rounded-lg bg-[var(--nomu-surface)] p-4">
         <div className="flex items-center gap-3 mb-3">
           {triggerType === 'manual' && <Play size={20} className="text-green-500" />}
           {triggerType === 'schedule' && <Clock size={20} className="text-green-500" />}
           {triggerType === 'webhook' && <Webhook size={20} className="text-green-500" />}
-          <span className="font-medium text-white capitalize">{triggerType} Trigger</span>
+          <span className="font-medium text-[var(--nomu-text)] capitalize">{triggerType} Trigger</span>
         </div>
 
         {triggerType === 'manual' && (
-          <p className="text-sm text-slate-400">
+          <p className="text-sm text-[var(--nomu-text-muted)]">
             Click the button below to manually start this workflow.
           </p>
         )}
         {triggerType === 'schedule' && (
-          <p className="text-sm text-slate-400">
+          <p className="text-sm text-[var(--nomu-text-muted)]">
             This workflow runs automatically based on the cron schedule.
           </p>
         )}
         {triggerType === 'webhook' && (
-          <p className="text-sm text-slate-400">
+          <p className="text-sm text-[var(--nomu-text-muted)]">
             This workflow is triggered by HTTP requests to the webhook endpoint.
           </p>
         )}
@@ -250,7 +250,7 @@ function TriggerNodeConfig({
       {triggerType === 'manual' && (
         <div className="rounded-lg border-2 border-dashed border-green-600/50 bg-green-900/20 p-6 text-center">
           <Play size={32} className="mx-auto mb-3 text-green-500" />
-          <p className="mb-4 text-sm text-slate-300">Ready to execute workflow</p>
+          <p className="mb-4 text-sm text-[var(--nomu-text-muted)]">Ready to execute workflow</p>
           <Button
             variant="primary"
             onClick={onRun}
@@ -274,14 +274,14 @@ function TriggerNodeConfig({
             placeholder="0 * * * *"
             helperText="Standard cron format: minute hour day month weekday"
           />
-          <div className="rounded-lg bg-slate-800 p-3">
-            <p className="text-xs text-slate-500 mb-1">Common schedules:</p>
+          <div className="rounded-lg bg-[var(--nomu-surface)] p-3">
+            <p className="text-xs text-[var(--nomu-text-muted)] mb-1">Common schedules:</p>
             <div className="flex flex-wrap gap-2">
               {['0 * * * *', '0 0 * * *', '0 0 * * 0', '*/5 * * * *'].map((cron) => (
                 <button
                   key={cron}
                   onClick={() => setSchedule(cron)}
-                  className="rounded bg-slate-700 px-2 py-1 text-xs text-slate-300 hover:bg-slate-600"
+                  className="rounded bg-[var(--nomu-surface-hover)] px-2 py-1 text-xs text-[var(--nomu-text-muted)] hover:bg-[var(--nomu-border)]"
                 >
                   {cron}
                 </button>
@@ -303,9 +303,9 @@ function TriggerNodeConfig({
             onChange={(e) => setWebhookPath(e.target.value)}
             placeholder="/webhook/my-trigger"
           />
-          <div className="rounded-lg bg-slate-800 p-3">
-            <p className="text-xs text-slate-500 mb-1">Full URL:</p>
-            <code className="text-xs text-purple-400 break-all">
+          <div className="rounded-lg bg-[var(--nomu-surface)] p-3">
+            <p className="text-xs text-[var(--nomu-text-muted)] mb-1">Full URL:</p>
+            <code className="text-xs text-[var(--nomu-primary)] break-all">
               http://localhost:8000{webhookPath}
             </code>
           </div>
@@ -413,7 +413,7 @@ function DatabaseNodeConfig({
 
       {/* Connection Settings */}
       <div>
-        <h3 className="mb-3 text-sm font-medium text-white">Connection</h3>
+        <h3 className="mb-3 text-sm font-medium text-[var(--nomu-text)]">Connection</h3>
         <div className="space-y-3">
           <div className="grid grid-cols-3 gap-2">
             <div className="col-span-2">
@@ -457,9 +457,9 @@ function DatabaseNodeConfig({
               type="checkbox"
               checked={connection.ssl}
               onChange={(e) => setConnection({ ...connection, ssl: e.target.checked })}
-              className="h-4 w-4 rounded border-slate-600 bg-slate-900 text-purple-600"
+              className="h-4 w-4 rounded border-[var(--nomu-border)] bg-[var(--nomu-bg)] text-[var(--nomu-primary)]"
             />
-            <span className="text-sm text-slate-300">Use SSL/TLS</span>
+            <span className="text-sm text-[var(--nomu-text-muted)]">Use SSL/TLS</span>
           </label>
         </div>
       </div>
@@ -480,25 +480,25 @@ function DatabaseNodeConfig({
           <div className={`flex items-center gap-1 text-sm ${testResult.success ? 'text-green-400' : 'text-red-400'}`}>
             {testResult.success ? <CheckCircle2 size={14} /> : <XCircle size={14} />}
             <span>{testResult.success ? 'Connected' : 'Failed'}</span>
-            {testResult.version && <span className="text-xs text-slate-500">({testResult.version})</span>}
+            {testResult.version && <span className="text-xs text-[var(--nomu-text-muted)]">({testResult.version})</span>}
           </div>
         )}
       </div>
 
       {/* Query */}
       <div>
-        <h3 className="mb-3 text-sm font-medium text-white">Query</h3>
+        <h3 className="mb-3 text-sm font-medium text-[var(--nomu-text)]">Query</h3>
         {tables.length > 0 && (
           <div className="mb-2">
-            <p className="text-xs text-slate-500 mb-1">Available tables:</p>
+            <p className="text-xs text-[var(--nomu-text-muted)] mb-1">Available tables:</p>
             <div className="flex flex-wrap gap-1">
               {tables.slice(0, 8).map((table) => (
-                <span key={table} className="rounded bg-slate-800 px-2 py-0.5 text-xs text-slate-400">
+                <span key={table} className="rounded bg-[var(--nomu-surface)] px-2 py-0.5 text-xs text-[var(--nomu-text-muted)]">
                   {table}
                 </span>
               ))}
               {tables.length > 8 && (
-                <span className="text-xs text-slate-500">+{tables.length - 8} more</span>
+                <span className="text-xs text-[var(--nomu-text-muted)]">+{tables.length - 8} more</span>
               )}
             </div>
           </div>
@@ -506,7 +506,7 @@ function DatabaseNodeConfig({
         <textarea
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          className="w-full rounded-lg border border-slate-600 bg-slate-800 px-3 py-2 font-mono text-sm text-white placeholder-slate-500"
+          className="w-full rounded-lg border border-[var(--nomu-border)] bg-[var(--nomu-surface)] px-3 py-2 font-mono text-sm text-[var(--nomu-text)] placeholder-[var(--nomu-text-muted)]"
           rows={4}
           placeholder="SELECT * FROM users LIMIT 10"
         />
@@ -598,8 +598,8 @@ function LLMNodeConfig({
       )}
 
       {/* Info Box */}
-      <div className="rounded-lg bg-purple-900/30 border border-purple-700/50 p-3">
-        <p className="text-xs text-purple-300">
+      <div className="rounded-lg bg-[var(--nomu-primary)]/10 border border-[var(--nomu-primary)]/30 p-3">
+        <p className="text-xs text-[var(--nomu-primary)]">
           <Bot size={12} className="inline mr-1" />
           Configure your AI agent's behavior. The agent will process data from upstream nodes.
         </p>
@@ -608,11 +608,11 @@ function LLMNodeConfig({
       {/* Model Selection */}
       <div>
         <div className="flex items-center justify-between mb-2">
-          <label className="text-sm font-medium text-slate-300">AI Model</label>
+          <label className="text-sm font-medium text-[var(--nomu-text-muted)]">AI Model</label>
           <button
             onClick={loadModels}
             disabled={isLoading}
-            className="text-xs text-purple-400 hover:text-purple-300 disabled:opacity-50"
+            className="text-xs text-[var(--nomu-primary)] hover:text-[var(--nomu-primary-hover)] disabled:opacity-50"
           >
             {isLoading ? <Loader2 size={12} className="animate-spin" /> : '🔄 Refresh'}
           </button>
@@ -626,7 +626,7 @@ function LLMNodeConfig({
           <p className="mt-1 text-xs text-amber-400">⚠️ No models found. Make sure Ollama is running.</p>
         )}
         {availableModels.length > 0 && (
-          <p className="mt-1 text-xs text-slate-500">
+          <p className="mt-1 text-xs text-[var(--nomu-text-muted)]">
             Running locally via Ollama • 100% private
           </p>
         )}
@@ -635,7 +635,7 @@ function LLMNodeConfig({
       {/* Temperature */}
       <div>
         <div className="flex items-center justify-between mb-2">
-          <label className="text-sm font-medium text-slate-300">Temperature</label>
+          <label className="text-sm font-medium text-[var(--nomu-text-muted)]">Temperature</label>
           <div className="flex items-center gap-2">
             <span className={`text-sm font-medium ${getTempColor()}`}>{temperature}</span>
           </div>
@@ -647,9 +647,9 @@ function LLMNodeConfig({
           step="0.1"
           value={temperature}
           onChange={(e) => setTemperature(parseFloat(e.target.value))}
-          className="w-full accent-purple-500"
+          className="w-full accent-[var(--nomu-primary)]"
         />
-        <div className="flex justify-between text-xs text-slate-500 mt-1">
+        <div className="flex justify-between text-xs text-[var(--nomu-text-muted)] mt-1">
           <span>0.0 Precise</span>
           <span>1.0 Balanced</span>
           <span>2.0 Creative</span>
@@ -661,7 +661,7 @@ function LLMNodeConfig({
 
       {/* Max Tokens */}
       <div>
-        <label className="mb-2 block text-sm font-medium text-slate-300">Max Response Length</label>
+        <label className="mb-2 block text-sm font-medium text-[var(--nomu-text-muted)]">Max Response Length</label>
         <Input
           type="number"
           value={maxTokens}
@@ -671,15 +671,15 @@ function LLMNodeConfig({
           max="8192"
           step="128"
         />
-        <p className="mt-1 text-xs text-slate-500">
+        <p className="mt-1 text-xs text-[var(--nomu-text-muted)]">
           Tokens: ~{Math.floor(maxTokens / 4)} words • Higher = longer responses
         </p>
       </div>
 
       {/* Performance Tips */}
-      <div className="rounded-lg bg-slate-800 p-3 space-y-2">
-        <p className="text-xs font-medium text-slate-400">💡 Performance Tips</p>
-        <ul className="text-xs text-slate-500 space-y-1 list-disc list-inside">
+      <div className="rounded-lg bg-[var(--nomu-surface)] p-3 space-y-2">
+        <p className="text-xs font-medium text-[var(--nomu-text-muted)]">💡 Performance Tips</p>
+        <ul className="text-xs text-[var(--nomu-text-muted)] space-y-1 list-disc list-inside">
           <li><strong>Lower temperature</strong> (0.1-0.3) for factual tasks</li>
           <li><strong>Higher temperature</strong> (0.8-1.2) for creative writing</li>
           <li><strong>Fewer tokens</strong> = faster responses</li>
@@ -744,36 +744,36 @@ function PIIFilterNodeConfig({
 
       {/* Mode Selection */}
       <div>
-        <label className="mb-2 block text-sm font-medium text-slate-300">Filter Mode</label>
+        <label className="mb-2 block text-sm font-medium text-[var(--nomu-text-muted)]">Filter Mode</label>
         <div className="grid grid-cols-2 gap-2">
           <button
             onClick={() => setMode('redact')}
             className={`rounded-lg p-3 text-left transition ${
               mode === 'redact'
                 ? 'bg-amber-600/20 border-2 border-amber-500'
-                : 'bg-slate-800 border-2 border-transparent hover:border-slate-600'
+                : 'bg-[var(--nomu-surface)] border-2 border-transparent hover:border-[var(--nomu-border)]'
             }`}
           >
-            <p className="font-medium text-white">Redact</p>
-            <p className="text-xs text-slate-400">Remove PII completely</p>
+            <p className="font-medium text-[var(--nomu-text)]">Redact</p>
+            <p className="text-xs text-[var(--nomu-text-muted)]">Remove PII completely</p>
           </button>
           <button
             onClick={() => setMode('mask')}
             className={`rounded-lg p-3 text-left transition ${
               mode === 'mask'
                 ? 'bg-amber-600/20 border-2 border-amber-500'
-                : 'bg-slate-800 border-2 border-transparent hover:border-slate-600'
+                : 'bg-[var(--nomu-surface)] border-2 border-transparent hover:border-[var(--nomu-border)]'
             }`}
           >
-            <p className="font-medium text-white">Mask</p>
-            <p className="text-xs text-slate-400">Replace with asterisks</p>
+            <p className="font-medium text-[var(--nomu-text)]">Mask</p>
+            <p className="text-xs text-[var(--nomu-text-muted)]">Replace with asterisks</p>
           </button>
         </div>
       </div>
 
       {/* Entity Types */}
       <div>
-        <label className="mb-2 block text-sm font-medium text-slate-300">Detect Entities</label>
+        <label className="mb-2 block text-sm font-medium text-[var(--nomu-text-muted)]">Detect Entities</label>
         <div className="flex flex-wrap gap-2">
           {allEntities.map((entity) => (
             <button
@@ -782,7 +782,7 @@ function PIIFilterNodeConfig({
               className={`rounded-lg px-3 py-1.5 text-xs font-medium transition ${
                 entities.includes(entity)
                   ? 'bg-amber-600 text-white'
-                  : 'bg-slate-800 text-slate-400 hover:bg-slate-700'
+                  : 'bg-[var(--nomu-surface)] text-[var(--nomu-text-muted)] hover:bg-[var(--nomu-surface-hover)]'
               }`}
             >
               {entity.replace('_', ' ')}
@@ -792,13 +792,13 @@ function PIIFilterNodeConfig({
       </div>
 
       {/* Preview */}
-      <div className="rounded-lg bg-slate-800 p-3">
-        <p className="text-xs text-slate-500 mb-2">Example:</p>
-        <p className="text-sm text-slate-300">
+      <div className="rounded-lg bg-[var(--nomu-surface)] p-3">
+        <p className="text-xs text-[var(--nomu-text-muted)] mb-2">Example:</p>
+        <p className="text-sm text-[var(--nomu-text-muted)]">
           Input: <span className="text-red-400">john@email.com</span> called{' '}
           <span className="text-red-400">555-1234</span>
         </p>
-        <p className="text-sm text-slate-300 mt-1">
+        <p className="text-sm text-[var(--nomu-text-muted)] mt-1">
           Output:{' '}
           {mode === 'redact' ? (
             <>
@@ -820,7 +820,7 @@ function PIIFilterNodeConfig({
           <Shield size={16} />
           <span className="text-sm font-medium">GDPR Article 17 Compliant</span>
         </div>
-        <p className="mt-1 text-xs text-slate-400">
+        <p className="mt-1 text-xs text-[var(--nomu-text-muted)]">
           Right to erasure - PII is processed locally and never stored.
         </p>
       </div>
@@ -869,9 +869,9 @@ function OutputNodeConfig({
   return (
     <div className="space-y-6 p-4">
       {/* Output Type Info */}
-      <div className="rounded-lg bg-slate-800 p-4">
-        <p className="text-sm font-medium text-white capitalize">{outputType} Output</p>
-        <p className="text-xs text-slate-400 mt-1">
+      <div className="rounded-lg bg-[var(--nomu-surface)] p-4">
+        <p className="text-sm font-medium text-[var(--nomu-text)] capitalize">{outputType} Output</p>
+        <p className="text-xs text-[var(--nomu-text-muted)] mt-1">
           {outputType === 'spreadsheet' && 'Export results to a spreadsheet format'}
           {outputType === 'email' && 'Send results via email notification'}
           {outputType === 'telegram' && 'Send results to a Telegram bot'}
@@ -880,7 +880,7 @@ function OutputNodeConfig({
 
       {/* Format */}
       <div>
-        <label className="mb-2 block text-sm font-medium text-slate-300">Output Format</label>
+        <label className="mb-2 block text-sm font-medium text-[var(--nomu-text-muted)]">Output Format</label>
         <Select
           options={[
             { value: 'json', label: 'JSON' },

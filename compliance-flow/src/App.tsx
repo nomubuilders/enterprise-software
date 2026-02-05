@@ -10,6 +10,8 @@ import {
   Square,
   Sparkles,
 } from 'lucide-react'
+import { NomuLogo } from './components/common/NomuLogo'
+import { ThemeToggle } from './components/common/ThemeToggle'
 import { Sidebar } from './components/sidebar/Sidebar'
 import { Canvas } from './components/canvas/Canvas'
 import {
@@ -22,6 +24,7 @@ import { AIAssistantPanel } from './components/panels/AIAssistantPanel'
 import { ChatInterfacePanel } from './components/panels/ChatInterfacePanel'
 import { useFlowStore } from './store/flowStore'
 import { useWorkflowStore } from './store/workflowStore'
+import { useThemeStore } from './store/themeStore'
 
 function App() {
   // Modal states
@@ -42,6 +45,9 @@ function App() {
     createWorkflow,
     saveWorkflow,
   } = useWorkflowStore()
+
+  // Initialize theme store (ensures theme class is applied to root)
+  useThemeStore()
 
   const currentWorkflow = workflows.find(w => w.id === currentWorkflowId)
 
@@ -97,7 +103,7 @@ function App() {
   }, [selectedNode, setSelectedNode])
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden bg-slate-950">
+    <div className="flex h-screen w-screen overflow-hidden bg-[var(--nomu-bg)]">
       <ReactFlowProvider>
         {/* AI Assistant Panel */}
         <AIAssistantPanel isOpen={showAIAssistant} onClose={() => setShowAIAssistant(false)} />
@@ -109,21 +115,25 @@ function App() {
 
           {/* Top Bar */}
           <div className="absolute left-4 top-4 flex items-center gap-2">
+            {/* Nomu Logo */}
+            <NomuLogo className="h-6" />
+            <div className="h-6 w-px bg-[var(--nomu-border)]" />
+
             {/* Workflow Name */}
             <button
               onClick={() => setShowWorkflowList(true)}
-              className="flex items-center gap-2 rounded-lg bg-slate-800 px-3 py-2 text-sm font-medium text-white transition hover:bg-slate-700"
+              className="flex items-center gap-2 rounded-lg bg-[var(--nomu-surface)] px-3 py-2 text-sm font-medium text-[var(--nomu-text)] transition hover:bg-[var(--nomu-surface-hover)]"
             >
               <FolderOpen size={16} />
               {currentWorkflow?.name || 'Untitled Workflow'}
             </button>
 
-            <div className="h-6 w-px bg-slate-700" />
+            <div className="h-6 w-px bg-[var(--nomu-border)]" />
 
             {/* New Flow */}
             <button
               onClick={handleNewFlow}
-              className="flex items-center gap-2 rounded-lg bg-slate-800 px-3 py-2 text-sm font-medium text-white transition hover:bg-slate-700"
+              className="flex items-center gap-2 rounded-lg bg-[var(--nomu-surface)] px-3 py-2 text-sm font-medium text-[var(--nomu-text)] transition hover:bg-[var(--nomu-surface-hover)]"
               title="New Flow"
             >
               <Plus size={16} />
@@ -133,7 +143,7 @@ function App() {
             {/* Save */}
             <button
               onClick={() => setShowSaveModal(true)}
-              className="flex items-center gap-2 rounded-lg bg-slate-800 px-3 py-2 text-sm font-medium text-white transition hover:bg-slate-700"
+              className="flex items-center gap-2 rounded-lg bg-[var(--nomu-surface)] px-3 py-2 text-sm font-medium text-[var(--nomu-text)] transition hover:bg-[var(--nomu-surface-hover)]"
               title="Save Workflow"
             >
               <Save size={16} />
@@ -153,7 +163,7 @@ function App() {
               <button
                 onClick={handleRun}
                 disabled={nodes.length === 0}
-                className="flex items-center gap-2 rounded-lg bg-purple-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-purple-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex items-center gap-2 rounded-lg bg-[var(--nomu-primary)] px-4 py-2 text-sm font-medium text-white transition hover:bg-[var(--nomu-primary-hover)] disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Play size={16} />
                 Run
@@ -161,22 +171,23 @@ function App() {
             )}
           </div>
 
-          {/* Right Top Bar - AI Assistant & Settings */}
+          {/* Right Top Bar - AI Assistant, Theme Toggle & Settings */}
           <div className="absolute right-4 top-4 flex items-center gap-2">
             <button
               onClick={() => setShowAIAssistant(!showAIAssistant)}
               className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition ${
                 showAIAssistant
-                  ? 'bg-purple-600 text-white hover:bg-purple-500'
-                  : 'bg-slate-800 text-white hover:bg-slate-700'
+                  ? 'bg-[var(--nomu-primary)] text-white hover:bg-[var(--nomu-primary-hover)]'
+                  : 'bg-[var(--nomu-surface)] text-[var(--nomu-text)] hover:bg-[var(--nomu-surface-hover)]'
               }`}
               title="AI Workflow Assistant"
             >
               <Sparkles size={16} />
               AI Assistant
             </button>
+            <ThemeToggle />
             <button
-              className="flex items-center gap-2 rounded-lg bg-slate-800 p-2 text-white transition hover:bg-slate-700"
+              className="flex items-center gap-2 rounded-lg bg-[var(--nomu-surface)] p-2 text-[var(--nomu-text)] transition hover:bg-[var(--nomu-surface-hover)]"
               title="Settings"
             >
               <Settings size={18} />
@@ -184,35 +195,35 @@ function App() {
           </div>
 
           {/* Status Bar */}
-          <div className="absolute bottom-4 right-4 flex items-center gap-4 rounded-lg bg-slate-800/80 px-4 py-2 backdrop-blur">
+          <div className="absolute bottom-4 right-4 flex items-center gap-4 rounded-lg bg-[var(--nomu-surface)]/80 px-4 py-2 backdrop-blur">
             {isRunning && (
               <>
                 <div className="flex items-center gap-2 text-xs">
-                  <Loader2 size={14} className="animate-spin text-purple-500" />
-                  <span className="text-purple-400">Executing...</span>
+                  <Loader2 size={14} className="animate-spin text-[var(--nomu-primary)]" />
+                  <span className="text-[var(--nomu-primary)]">Executing...</span>
                 </div>
-                <div className="h-4 w-px bg-slate-600" />
+                <div className="h-4 w-px bg-[var(--nomu-border)]" />
               </>
             )}
             <div className="flex items-center gap-2 text-xs">
               <div className="h-2 w-2 rounded-full bg-green-500" />
-              <span className="text-slate-300">Ollama Connected</span>
+              <span className="text-[var(--nomu-text-muted)]">Ollama Connected</span>
             </div>
-            <div className="h-4 w-px bg-slate-600" />
+            <div className="h-4 w-px bg-[var(--nomu-border)]" />
             <div className="flex items-center gap-2 text-xs">
               <div className="h-2 w-2 rounded-full bg-green-500" />
-              <span className="text-slate-300">Local Mode</span>
+              <span className="text-[var(--nomu-text-muted)]">Local Mode</span>
             </div>
-            <div className="h-4 w-px bg-slate-600" />
-            <div className="text-xs text-slate-400">
+            <div className="h-4 w-px bg-[var(--nomu-border)]" />
+            <div className="text-xs text-[var(--nomu-text-muted)]">
               {nodes.length} nodes · {edges.length} connections
             </div>
           </div>
 
           {/* Hint when no node selected */}
           {!selectedNode && nodes.length > 0 && (
-            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 rounded-lg bg-slate-800/80 px-4 py-2 backdrop-blur">
-              <p className="text-xs text-slate-400">
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 rounded-lg bg-[var(--nomu-surface)]/80 px-4 py-2 backdrop-blur">
+              <p className="text-xs text-[var(--nomu-text-muted)]">
                 Click on a node to configure it
               </p>
             </div>

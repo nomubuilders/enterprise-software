@@ -22,13 +22,13 @@ export const Button = memo(({
   className = '',
   ...props
 }: ButtonProps) => {
-  const baseClasses = 'inline-flex items-center justify-center font-medium rounded-lg transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-900'
+  const baseClasses = 'inline-flex items-center justify-center font-medium rounded-lg transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[var(--nomu-bg)]'
 
   const variantClasses = {
-    primary: 'bg-purple-600 text-white hover:bg-purple-500 focus:ring-purple-500 disabled:bg-purple-800',
-    secondary: 'bg-slate-700 text-white hover:bg-slate-600 focus:ring-slate-500 disabled:bg-slate-800',
+    primary: 'bg-[var(--nomu-primary)] text-white hover:bg-[var(--nomu-primary-hover)] focus:ring-[var(--nomu-primary)] disabled:opacity-60',
+    secondary: 'bg-[var(--nomu-surface)] text-[var(--nomu-text)] hover:bg-[var(--nomu-surface-hover)] focus:ring-[var(--nomu-primary)] disabled:opacity-60',
     danger: 'bg-red-600 text-white hover:bg-red-500 focus:ring-red-500 disabled:bg-red-800',
-    ghost: 'bg-transparent text-slate-300 hover:bg-slate-700 focus:ring-slate-500',
+    ghost: 'bg-transparent text-[var(--nomu-text)] hover:bg-[var(--nomu-surface)] focus:ring-[var(--nomu-primary)]',
   }
 
   const sizeClasses = {

@@ -22,30 +22,30 @@ export const TriggerNode = memo(({ data, selected }: NodeProps) => {
   return (
     <div
       className={`
-        min-w-[180px] rounded-lg border-2 bg-slate-800 shadow-lg
+        min-w-[180px] rounded-lg border-2 bg-[var(--nomu-surface)] shadow-lg
         transition-all duration-200
-        ${selected ? 'border-green-500 shadow-green-500/25' : 'border-slate-600'}
-        hover:border-slate-500
+        ${selected ? 'border-[#FF6C1D] shadow-[0_0_12px_rgba(255,108,29,0.25)]' : 'border-[var(--nomu-border)]'}
+        hover:border-[var(--nomu-text-muted)]
       `}
     >
-      <div className="flex items-center gap-2 rounded-t-md bg-green-600 px-3 py-2">
+      <div className="flex items-center gap-2 rounded-t-md bg-[#FF6C1D] px-3 py-2">
         <div className="text-white">{triggerIcons[triggerType]}</div>
         <span className="text-sm font-medium text-white">{nodeData.label}</span>
       </div>
-      <div className="p-3 text-xs text-slate-300">
+      <div className="p-3 text-xs text-[var(--nomu-text-muted)]">
         <div className="flex justify-between">
-          <span className="text-slate-400">Type:</span>
-          <span className="capitalize text-green-400">{triggerType}</span>
+          <span className="text-[var(--nomu-text-muted)]">Type:</span>
+          <span className="capitalize text-[#FF6C1D]">{triggerType}</span>
         </div>
         <div className="mt-1 flex justify-between">
-          <span className="text-slate-400">Info:</span>
-          <span className="text-slate-300">{triggerLabels[triggerType]}</span>
+          <span className="text-[var(--nomu-text-muted)]">Info:</span>
+          <span className="text-[var(--nomu-text-muted)]">{triggerLabels[triggerType]}</span>
         </div>
       </div>
       <Handle
         type="source"
         position={Position.Right}
-        className="!h-3 !w-3 !border-2 !border-slate-800 !bg-green-500"
+        className="!h-3 !w-3 !border-2 !border-[var(--nomu-surface)] !bg-[#FF6C1D]"
       />
     </div>
   )

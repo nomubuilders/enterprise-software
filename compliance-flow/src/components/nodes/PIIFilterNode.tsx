@@ -15,16 +15,16 @@ export const PIIFilterNode = memo((props: NodeProps) => {
   }
 
   return (
-    <BaseNode {...props} icon={<Shield size={16} />} color="bg-amber-600">
+    <BaseNode {...props} icon={<Shield size={16} />} color="bg-[#36312E] border-l-4 border-l-[#FF6C1D]">
       <div className="space-y-1">
         <div className="flex justify-between">
-          <span className="text-slate-400">Mode:</span>
-          <span className="capitalize text-amber-400">{mode}</span>
+          <span className="text-[var(--nomu-text-muted)]">Mode:</span>
+          <span className="capitalize text-[#FF6C1D]">{mode}</span>
         </div>
-        <div className="mt-1 text-[10px] text-slate-500">
+        <div className="mt-1 text-[10px] text-[var(--nomu-text-muted)]">
           {modeDescriptions[mode]}
         </div>
-        <div className="mt-2 rounded bg-amber-900/30 px-2 py-1 text-[10px] text-amber-300">
+        <div className="mt-2 rounded bg-[#FF6C1D]/10 px-2 py-1 text-[10px] text-[#FF6C1D]">
           ✓ GDPR Article 17 Compliant
         </div>
       </div>

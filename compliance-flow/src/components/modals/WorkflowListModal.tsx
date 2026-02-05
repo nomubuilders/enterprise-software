@@ -91,7 +91,7 @@ export function WorkflowListModal({ isOpen, onClose }: WorkflowListModalProps) {
       case 'error':
         return <AlertCircle size={14} className="text-red-500" />
       default:
-        return <Clock size={14} className="text-slate-500" />
+        return <Clock size={14} className="text-[var(--nomu-text-muted)]" />
     }
   }
 
@@ -139,9 +139,9 @@ export function WorkflowListModal({ isOpen, onClose }: WorkflowListModalProps) {
         <div className="max-h-96 overflow-y-auto space-y-2">
           {workflows.length === 0 ? (
             <div className="py-8 text-center">
-              <FolderOpen size={48} className="mx-auto mb-3 text-slate-600" />
-              <p className="text-slate-400">No workflows yet</p>
-              <p className="text-sm text-slate-500">Create your first workflow to get started</p>
+              <FolderOpen size={48} className="mx-auto mb-3 text-[var(--nomu-text-muted)]" />
+              <p className="text-[var(--nomu-text-muted)]">No workflows yet</p>
+              <p className="text-sm text-[var(--nomu-text-muted)]">Create your first workflow to get started</p>
             </div>
           ) : (
             workflows.map((workflow) => (
@@ -150,15 +150,15 @@ export function WorkflowListModal({ isOpen, onClose }: WorkflowListModalProps) {
                 className={`
                   group relative flex items-center justify-between rounded-lg border p-3 transition cursor-pointer
                   ${currentWorkflowId === workflow.id
-                    ? 'border-purple-500 bg-purple-500/10'
-                    : 'border-slate-700 hover:border-slate-600 hover:bg-slate-800/50'}
+                    ? 'border-[var(--nomu-primary)] bg-[var(--nomu-primary)]/10'
+                    : 'border-[var(--nomu-border)] hover:border-[var(--nomu-border)] hover:bg-[var(--nomu-surface)]/50'}
                 `}
                 onClick={() => handleLoadWorkflow(workflow)}
               >
                 <div className="flex-1 min-w-0">
                   {editingId === workflow.id ? (
                     <input
-                      className="w-full bg-slate-900 border border-purple-500 rounded px-2 py-1 text-sm text-white focus:outline-none"
+                      className="w-full bg-[var(--nomu-bg)] border border-[var(--nomu-primary)] rounded px-2 py-1 text-sm text-[var(--nomu-text)] focus:outline-none"
                       value={editName}
                       onChange={(e) => setEditName(e.target.value)}
                       onKeyDown={(e) => {
@@ -173,9 +173,9 @@ export function WorkflowListModal({ isOpen, onClose }: WorkflowListModalProps) {
                     <>
                       <div className="flex items-center gap-2">
                         {getStatusIcon(workflow.status)}
-                        <span className="font-medium text-white truncate">{workflow.name}</span>
+                        <span className="font-medium text-[var(--nomu-text)] truncate">{workflow.name}</span>
                       </div>
-                      <div className="mt-1 flex items-center gap-3 text-xs text-slate-500">
+                      <div className="mt-1 flex items-center gap-3 text-xs text-[var(--nomu-text-muted)]">
                         <span>{workflow.nodes.length} nodes</span>
                         <span>•</span>
                         <span>Updated {formatDate(workflow.updatedAt)}</span>
@@ -191,19 +191,19 @@ export function WorkflowListModal({ isOpen, onClose }: WorkflowListModalProps) {
                       e.stopPropagation()
                       setMenuOpenId(menuOpenId === workflow.id ? null : workflow.id)
                     }}
-                    className="rounded p-1.5 text-slate-400 opacity-0 group-hover:opacity-100 hover:bg-slate-700 hover:text-white transition"
+                    className="rounded p-1.5 text-[var(--nomu-text-muted)] opacity-0 group-hover:opacity-100 hover:bg-[var(--nomu-surface-hover)] hover:text-[var(--nomu-text)] transition"
                   >
                     <MoreVertical size={16} />
                   </button>
 
                   {menuOpenId === workflow.id && (
-                    <div className="absolute right-0 top-full mt-1 w-36 rounded-lg bg-slate-700 py-1 shadow-xl z-10">
+                    <div className="absolute right-0 top-full mt-1 w-36 rounded-lg bg-[var(--nomu-surface-hover)] py-1 shadow-xl z-10">
                       <button
                         onClick={(e) => {
                           e.stopPropagation()
                           handleStartRename(workflow)
                         }}
-                        className="flex w-full items-center gap-2 px-3 py-2 text-sm text-slate-300 hover:bg-slate-600"
+                        className="flex w-full items-center gap-2 px-3 py-2 text-sm text-[var(--nomu-text)] hover:bg-[var(--nomu-surface)]"
                       >
                         <FileEdit size={14} />
                         Rename
@@ -213,18 +213,18 @@ export function WorkflowListModal({ isOpen, onClose }: WorkflowListModalProps) {
                           e.stopPropagation()
                           handleDuplicate(workflow.id)
                         }}
-                        className="flex w-full items-center gap-2 px-3 py-2 text-sm text-slate-300 hover:bg-slate-600"
+                        className="flex w-full items-center gap-2 px-3 py-2 text-sm text-[var(--nomu-text)] hover:bg-[var(--nomu-surface)]"
                       >
                         <Copy size={14} />
                         Duplicate
                       </button>
-                      <hr className="my-1 border-slate-600" />
+                      <hr className="my-1 border-[var(--nomu-border)]" />
                       <button
                         onClick={(e) => {
                           e.stopPropagation()
                           handleDelete(workflow.id)
                         }}
-                        className="flex w-full items-center gap-2 px-3 py-2 text-sm text-red-400 hover:bg-slate-600"
+                        className="flex w-full items-center gap-2 px-3 py-2 text-sm text-red-400 hover:bg-[var(--nomu-surface)]"
                       >
                         <Trash2 size={14} />
                         Delete

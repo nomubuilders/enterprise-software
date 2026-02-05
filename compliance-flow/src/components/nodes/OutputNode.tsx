@@ -15,39 +15,39 @@ export const OutputNode = memo(({ data, selected }: NodeProps) => {
   }
 
   const outputColors: Record<string, string> = {
-    chat: 'bg-cyan-600',
-    spreadsheet: 'bg-emerald-600',
-    email: 'bg-rose-600',
-    telegram: 'bg-sky-600',
+    chat: 'bg-[#4004DA]',
+    spreadsheet: 'bg-[#4D4D4D]',
+    email: 'bg-[#FF6C1D]',
+    telegram: 'bg-[#4D4D4D]',
   }
 
   return (
     <div
       className={`
-        min-w-[180px] rounded-lg border-2 bg-slate-800 shadow-lg
+        min-w-[180px] rounded-lg border-2 bg-[var(--nomu-surface)] shadow-lg
         transition-all duration-200
-        ${selected ? 'border-cyan-500 shadow-cyan-500/25' : 'border-slate-600'}
-        hover:border-slate-500
+        ${selected ? 'border-[var(--nomu-primary)] shadow-[0_0_12px_rgba(64,4,218,0.25)]' : 'border-[var(--nomu-border)]'}
+        hover:border-[var(--nomu-text-muted)]
       `}
     >
       <div className={`flex items-center gap-2 rounded-t-md px-3 py-2 ${outputColors[outputType]}`}>
         <div className="text-white">{outputIcons[outputType]}</div>
         <span className="text-sm font-medium text-white">{nodeData.label}</span>
       </div>
-      <div className="p-3 text-xs text-slate-300">
+      <div className="p-3 text-xs text-[var(--nomu-text-muted)]">
         <div className="flex justify-between">
-          <span className="text-slate-400">Output:</span>
-          <span className="capitalize text-cyan-400">{outputType}</span>
+          <span className="text-[var(--nomu-text-muted)]">Output:</span>
+          <span className="capitalize text-[var(--nomu-primary)]">{outputType}</span>
         </div>
         <div className="mt-1 flex justify-between">
-          <span className="text-slate-400">Status:</span>
-          <span className="text-green-400">● Ready</span>
+          <span className="text-[var(--nomu-text-muted)]">Status:</span>
+          <span className="text-[#FF6C1D]">● Ready</span>
         </div>
       </div>
       <Handle
         type="target"
         position={Position.Left}
-        className="!h-3 !w-3 !border-2 !border-slate-800 !bg-blue-500"
+        className="!h-3 !w-3 !border-2 !border-[var(--nomu-surface)] !bg-[#4004DA]"
       />
     </div>
   )

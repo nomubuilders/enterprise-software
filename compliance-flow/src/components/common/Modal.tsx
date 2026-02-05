@@ -44,14 +44,14 @@ export const Modal = memo(({ isOpen, onClose, title, children, size = 'md' }: Mo
 
       {/* Modal */}
       <div
-        className={`relative w-full ${sizeClasses[size]} mx-4 rounded-xl bg-slate-800 shadow-2xl`}
+        className={`relative w-full ${sizeClasses[size]} mx-4 rounded-xl bg-[var(--nomu-surface)] shadow-2xl`}
       >
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-slate-700 px-6 py-4">
-          <h2 className="text-lg font-semibold text-white">{title}</h2>
+        <div className="flex items-center justify-between border-b border-[var(--nomu-border)] px-6 py-4">
+          <h2 className="text-lg font-semibold text-[var(--nomu-text)]">{title}</h2>
           <button
             onClick={onClose}
-            className="rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-700 hover:text-white"
+            className="rounded-lg p-1.5 text-[var(--nomu-text-muted)] transition hover:bg-[var(--nomu-surface-hover)] hover:text-[var(--nomu-text)]"
           >
             <X size={20} />
           </button>

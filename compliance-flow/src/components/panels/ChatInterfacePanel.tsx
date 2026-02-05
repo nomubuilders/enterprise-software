@@ -341,22 +341,22 @@ export function ChatInterfacePanel({ node, onClose }: ChatInterfacePanelProps) {
     return (
       <div
         style={{ left: position.x, top: position.y }}
-        className="fixed z-50 rounded-lg bg-slate-800 border border-slate-700 shadow-2xl cursor-move"
+        className="fixed z-50 rounded-lg bg-[var(--nomu-surface)] border border-[var(--nomu-border)] shadow-2xl cursor-move"
         onMouseDown={handleMouseDown}
       >
         <div className="drag-handle flex items-center justify-between px-4 py-2 cursor-move">
           <div className="flex items-center gap-2">
-            <MessageSquare size={16} className="text-cyan-400" />
-            <span className="text-sm font-medium text-white">Chat</span>
+            <MessageSquare size={16} className="text-[var(--nomu-accent)]" />
+            <span className="text-sm font-medium text-[var(--nomu-text)]">Chat</span>
           </div>
           <div className="flex items-center gap-1">
             <button
               onClick={() => setIsMinimized(false)}
-              className="p-1 text-slate-400 hover:text-white transition"
+              className="p-1 text-[var(--nomu-text-muted)] hover:text-[var(--nomu-text)] transition"
             >
               <Maximize2 size={16} />
             </button>
-            <button onClick={onClose} className="p-1 text-slate-400 hover:text-white transition">
+            <button onClick={onClose} className="p-1 text-[var(--nomu-text-muted)] hover:text-[var(--nomu-text)] transition">
               <X size={16} />
             </button>
           </div>
@@ -374,62 +374,62 @@ export function ChatInterfacePanel({ node, onClose }: ChatInterfacePanelProps) {
         width: size.width,
         height: size.height,
       }}
-      className="fixed z-50 flex flex-col rounded-lg bg-slate-900 border-2 border-slate-700 shadow-2xl"
+      className="fixed z-50 flex flex-col rounded-lg bg-[var(--nomu-bg)] border-2 border-[var(--nomu-border)] shadow-2xl"
       onMouseDown={handleMouseDown}
     >
       {/* Resize Handles */}
       <div
         data-resize-handle="n"
-        className="absolute top-0 left-0 right-0 h-1 cursor-n-resize hover:bg-cyan-500/50 transition-colors"
+        className="absolute top-0 left-0 right-0 h-1 cursor-n-resize hover:bg-[var(--nomu-accent)]/50 transition-colors"
       />
       <div
         data-resize-handle="s"
-        className="absolute bottom-0 left-0 right-0 h-1 cursor-s-resize hover:bg-cyan-500/50 transition-colors"
+        className="absolute bottom-0 left-0 right-0 h-1 cursor-s-resize hover:bg-[var(--nomu-accent)]/50 transition-colors"
       />
       <div
         data-resize-handle="e"
-        className="absolute top-0 right-0 bottom-0 w-1 cursor-e-resize hover:bg-cyan-500/50 transition-colors"
+        className="absolute top-0 right-0 bottom-0 w-1 cursor-e-resize hover:bg-[var(--nomu-accent)]/50 transition-colors"
       />
       <div
         data-resize-handle="w"
-        className="absolute top-0 left-0 bottom-0 w-1 cursor-w-resize hover:bg-cyan-500/50 transition-colors"
+        className="absolute top-0 left-0 bottom-0 w-1 cursor-w-resize hover:bg-[var(--nomu-accent)]/50 transition-colors"
       />
       <div
         data-resize-handle="ne"
-        className="absolute top-0 right-0 w-3 h-3 cursor-ne-resize hover:bg-cyan-500/70 transition-colors"
+        className="absolute top-0 right-0 w-3 h-3 cursor-ne-resize hover:bg-[var(--nomu-accent)]/70 transition-colors"
       />
       <div
         data-resize-handle="nw"
-        className="absolute top-0 left-0 w-3 h-3 cursor-nw-resize hover:bg-cyan-500/70 transition-colors"
+        className="absolute top-0 left-0 w-3 h-3 cursor-nw-resize hover:bg-[var(--nomu-accent)]/70 transition-colors"
       />
       <div
         data-resize-handle="se"
-        className="absolute bottom-0 right-0 w-3 h-3 cursor-se-resize hover:bg-cyan-500/70 transition-colors"
+        className="absolute bottom-0 right-0 w-3 h-3 cursor-se-resize hover:bg-[var(--nomu-accent)]/70 transition-colors"
       />
       <div
         data-resize-handle="sw"
-        className="absolute bottom-0 left-0 w-3 h-3 cursor-sw-resize hover:bg-cyan-500/70 transition-colors"
+        className="absolute bottom-0 left-0 w-3 h-3 cursor-sw-resize hover:bg-[var(--nomu-accent)]/70 transition-colors"
       />
       {/* Header - Draggable */}
-      <div className="drag-handle flex items-center justify-between border-b border-slate-700 bg-gradient-to-r from-cyan-900/50 to-blue-900/50 px-4 py-3 cursor-move">
+      <div className="drag-handle flex items-center justify-between border-b border-[var(--nomu-border)] bg-[var(--nomu-accent)]/10 px-4 py-3 cursor-move">
         <div className="flex items-center gap-2">
-          <GripHorizontal size={16} className="text-slate-500" />
-          <MessageSquare size={18} className="text-cyan-400" />
+          <GripHorizontal size={16} className="text-[var(--nomu-text-muted)]" />
+          <MessageSquare size={18} className="text-[var(--nomu-accent)]" />
           <div>
-            <h3 className="text-sm font-semibold text-white">Chat Interface</h3>
-            <p className="text-xs text-slate-400">Ask questions about your data</p>
+            <h3 className="text-sm font-semibold text-[var(--nomu-text)]">Chat Interface</h3>
+            <p className="text-xs text-[var(--nomu-text-muted)]">Ask questions about your data</p>
           </div>
         </div>
         <div className="flex items-center gap-1">
           <button
             onClick={() => setIsMinimized(true)}
-            className="p-1.5 text-slate-400 hover:bg-slate-800 hover:text-white rounded transition"
+            className="p-1.5 text-[var(--nomu-text-muted)] hover:bg-[var(--nomu-surface-hover)] hover:text-[var(--nomu-text)] rounded transition"
           >
             <Minimize2 size={16} />
           </button>
           <button
             onClick={onClose}
-            className="p-1.5 text-slate-400 hover:bg-slate-800 hover:text-white rounded transition"
+            className="p-1.5 text-[var(--nomu-text-muted)] hover:bg-[var(--nomu-surface-hover)] hover:text-[var(--nomu-text)] rounded transition"
           >
             <X size={16} />
           </button>
@@ -437,9 +437,9 @@ export function ChatInterfacePanel({ node, onClose }: ChatInterfacePanelProps) {
       </div>
 
       {/* Connection Status */}
-      <div className="border-b border-slate-700 bg-slate-800/50 px-4 py-2 space-y-1">
+      <div className="border-b border-[var(--nomu-border)] bg-[var(--nomu-surface)]/50 px-4 py-2 space-y-1">
         {aiAgent ? (
-          <div className="flex items-center gap-2 text-xs text-purple-400">
+          <div className="flex items-center gap-2 text-xs text-[var(--nomu-primary)]">
             <Bot size={12} />
             <span>
               AI Agent: <strong>{((aiAgent.data as Record<string, unknown>).config as Record<string, unknown>)?.model || 'llama3.2'}</strong>
@@ -466,7 +466,7 @@ export function ChatInterfacePanel({ node, onClose }: ChatInterfacePanelProps) {
             <span>Database connected, loading...</span>
           </div>
         ) : (
-          <div className="flex items-center gap-2 text-xs text-slate-500">
+          <div className="flex items-center gap-2 text-xs text-[var(--nomu-text-muted)]">
             <Database size={12} />
             <span>No data source connected</span>
           </div>
@@ -477,8 +477,8 @@ export function ChatInterfacePanel({ node, onClose }: ChatInterfacePanelProps) {
       <div className="flex-1 overflow-y-auto p-4 space-y-3">
         {messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-center">
-            <MessageSquare size={40} className="mb-3 text-slate-600" />
-            <p className="text-sm text-slate-400 mb-1">Start a conversation</p>
+            <MessageSquare size={40} className="mb-3 text-[var(--nomu-border)]" />
+            <p className="text-sm text-[var(--nomu-text-muted)] mb-1">Start a conversation</p>
             {aiAgent && sampleData ? (
               <p className="text-xs text-green-400">✓ Ready to answer questions about your data</p>
             ) : !aiAgent ? (
@@ -492,13 +492,13 @@ export function ChatInterfacePanel({ node, onClose }: ChatInterfacePanelProps) {
             <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
               <div
                 className={`max-w-[85%] rounded-lg px-3 py-2 ${
-                  msg.role === 'user' ? 'bg-cyan-600 text-white' : 'bg-slate-800 text-slate-200'
+                  msg.role === 'user' ? 'bg-[var(--nomu-accent)] text-[var(--nomu-text)]' : 'bg-[var(--nomu-primary)]/10 text-[var(--nomu-text)]'
                 }`}
               >
                 {msg.role === 'user' ? (
                   <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
                 ) : (
-                  <div className="text-sm prose prose-sm prose-invert max-w-none prose-p:my-1 prose-headings:my-2 prose-ul:my-1 prose-code:bg-slate-900 prose-code:px-1 prose-code:rounded">
+                  <div className="text-sm prose prose-sm prose-invert max-w-none prose-p:my-1 prose-headings:my-2 prose-ul:my-1 prose-code:bg-[var(--nomu-bg)] prose-code:px-1 prose-code:rounded">
                     <ReactMarkdown>{msg.content}</ReactMarkdown>
                   </div>
                 )}
@@ -509,9 +509,9 @@ export function ChatInterfacePanel({ node, onClose }: ChatInterfacePanelProps) {
 
         {isGenerating && (
           <div className="flex justify-start">
-            <div className="bg-slate-800 rounded-lg px-3 py-2 flex items-center gap-2">
-              <Loader2 size={16} className="animate-spin text-cyan-400" />
-              <span className="text-sm text-slate-400">Thinking...</span>
+            <div className="bg-[var(--nomu-surface)] rounded-lg px-3 py-2 flex items-center gap-2">
+              <Loader2 size={16} className="animate-spin text-[var(--nomu-accent)]" />
+              <span className="text-sm text-[var(--nomu-text-muted)]">Thinking...</span>
             </div>
           </div>
         )}
@@ -520,7 +520,7 @@ export function ChatInterfacePanel({ node, onClose }: ChatInterfacePanelProps) {
       </div>
 
       {/* Input */}
-      <div className="border-t border-slate-700 bg-slate-800 p-3">
+      <div className="border-t border-[var(--nomu-border)] bg-[var(--nomu-surface)] p-3">
         <div className="flex gap-2">
           <input
             type="text"
@@ -529,14 +529,14 @@ export function ChatInterfacePanel({ node, onClose }: ChatInterfacePanelProps) {
             onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && handleSendMessage()}
             placeholder={aiAgent ? 'Ask a question...' : 'Connect an AI Agent first...'}
             disabled={!aiAgent || isGenerating}
-            className="flex-1 rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white placeholder-slate-500 outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 disabled:opacity-50"
+            className="flex-1 rounded-lg border border-[var(--nomu-border)] bg-[var(--nomu-bg)] px-3 py-2 text-sm text-[var(--nomu-text)] placeholder-[var(--nomu-text-muted)] outline-none focus:border-[var(--nomu-accent)] focus:ring-1 focus:ring-[var(--nomu-accent)] disabled:opacity-50"
           />
           <Button
             variant="primary"
             size="sm"
             onClick={handleSendMessage}
             disabled={!aiAgent || isGenerating || !inputValue.trim()}
-            className="bg-cyan-600 hover:bg-cyan-500 px-3"
+            className="bg-[var(--nomu-accent)] hover:bg-[var(--nomu-accent)] px-3"
           >
             {isGenerating ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
           </Button>
@@ -545,11 +545,11 @@ export function ChatInterfacePanel({ node, onClose }: ChatInterfacePanelProps) {
           <button
             onClick={() => setMessages([])}
             disabled={messages.length === 0}
-            className="text-xs text-slate-500 hover:text-slate-400 disabled:opacity-30"
+            className="text-xs text-[var(--nomu-text-muted)] hover:text-[var(--nomu-text)] disabled:opacity-30"
           >
             Clear chat
           </button>
-          <span className="text-xs text-slate-600">{messages.length} messages</span>
+          <span className="text-xs text-[var(--nomu-border)]">{messages.length} messages</span>
         </div>
       </div>
     </div>

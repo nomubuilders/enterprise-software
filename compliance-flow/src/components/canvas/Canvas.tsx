@@ -116,7 +116,7 @@ export function Canvas() {
         ...edge,
         animated: bothConfigured,
         style: {
-          stroke: bothConfigured ? '#06b6d4' : '#64748b',
+          stroke: bothConfigured ? 'var(--nomu-primary)' : 'var(--nomu-text-muted)',
           strokeWidth: bothConfigured ? 3 : 2,
           opacity: bothConfigured ? 1 : 0.5,
         },
@@ -143,40 +143,40 @@ export function Canvas() {
         snapGrid={[15, 15]}
         defaultEdgeOptions={{
           animated: true,
-          style: { stroke: '#64748b', strokeWidth: 2 },
+          style: { stroke: 'var(--nomu-text-muted)', strokeWidth: 2 },
         }}
-        connectionLineStyle={{ stroke: '#64748b', strokeWidth: 2 }}
-        className="bg-slate-950"
+        connectionLineStyle={{ stroke: 'var(--nomu-text-muted)', strokeWidth: 2 }}
+        className="bg-[var(--nomu-bg)]"
       >
         <Background
           variant={BackgroundVariant.Dots}
           gap={20}
           size={1}
-          color="#334155"
+          color="var(--nomu-border)"
         />
         <Controls
-          className="!bg-slate-800 !border-slate-700 !rounded-lg !shadow-lg"
+          className="!bg-[var(--nomu-surface)] !border-[var(--nomu-border)] !rounded-lg !shadow-lg"
           showInteractive={false}
         />
         <MiniMap
           nodeColor={(node) => {
             switch (node.type) {
               case 'llmNode':
-                return '#9333ea'
+                return '#4004DA'
               case 'databaseNode':
                 return '#2563eb'
               case 'triggerNode':
-                return '#16a34a'
+                return '#FF6C1D'
               case 'piiFilterNode':
                 return '#d97706'
               case 'outputNode':
                 return '#0891b2'
               default:
-                return '#64748b'
+                return '#4D4D4D'
             }
           }}
-          maskColor="rgba(15, 23, 42, 0.8)"
-          className="!bg-slate-800 !border-slate-700 !rounded-lg"
+          maskColor="rgba(0, 0, 0, 0.8)"
+          className="!bg-[var(--nomu-surface)] !border-[var(--nomu-border)] !rounded-lg"
           position="bottom-left"
           style={{ left: 60, bottom: 10 }}
         />
@@ -186,8 +186,8 @@ export function Canvas() {
       {nodes.length === 0 && (
         <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
           <div className="text-center">
-            <p className="text-lg text-slate-500">Drag nodes from the sidebar</p>
-            <p className="text-sm text-slate-600">to start building your workflow</p>
+            <p className="text-lg text-[var(--nomu-text-muted)]">Drag nodes from the sidebar</p>
+            <p className="text-sm text-[var(--nomu-text-muted)]">to start building your workflow</p>
           </div>
         </div>
       )}

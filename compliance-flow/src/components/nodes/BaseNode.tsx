@@ -15,26 +15,26 @@ export const BaseNode = memo(({ data, selected, icon, color, children }: BaseNod
   return (
     <div
       className={`
-        min-w-[180px] rounded-lg border-2 bg-slate-800 shadow-lg
+        min-w-[180px] rounded-lg border-2 bg-[var(--nomu-surface)] shadow-lg
         transition-all duration-200
-        ${selected ? 'border-blue-500 shadow-blue-500/25' : 'border-slate-600'}
-        hover:border-slate-500
+        ${selected ? 'border-[var(--nomu-primary)] shadow-[0_0_12px_rgba(64,4,218,0.25)]' : 'border-[var(--nomu-border)]'}
+        hover:border-[var(--nomu-text-muted)]
       `}
     >
       <div className={`flex items-center gap-2 rounded-t-md px-3 py-2 ${color}`}>
         <div className="text-white">{icon}</div>
         <span className="text-sm font-medium text-white">{nodeData.label}</span>
       </div>
-      <div className="p-3 text-xs text-slate-300">{children}</div>
+      <div className="p-3 text-xs text-[var(--nomu-text-muted)]">{children}</div>
       <Handle
         type="target"
         position={Position.Left}
-        className="!h-3 !w-3 !border-2 !border-slate-800 !bg-blue-500"
+        className="!h-3 !w-3 !border-2 !border-[var(--nomu-surface)] !bg-[#4004DA]"
       />
       <Handle
         type="source"
         position={Position.Right}
-        className="!h-3 !w-3 !border-2 !border-slate-800 !bg-green-500"
+        className="!h-3 !w-3 !border-2 !border-[var(--nomu-surface)] !bg-[#FF6C1D]"
       />
     </div>
   )

@@ -54,16 +54,16 @@ export function ExecutionPanel({ isOpen, onClose }: ExecutionPanelProps) {
   return (
     <div
       className={`
-        fixed bottom-0 right-4 z-40 w-[480px] rounded-t-xl bg-slate-800 shadow-2xl border border-slate-700 border-b-0
+        fixed bottom-0 right-4 z-40 w-[480px] rounded-t-xl bg-[var(--nomu-surface)] shadow-2xl border border-[var(--nomu-border)] border-b-0
         transition-all duration-300
         ${isMinimized ? 'h-12' : 'h-80'}
       `}
     >
       {/* Header */}
-      <div className="flex items-center justify-between border-b border-slate-700 px-4 py-3">
+      <div className="flex items-center justify-between border-b border-[var(--nomu-border)] px-4 py-3">
         <div className="flex items-center gap-3">
-          <Terminal size={18} className="text-purple-500" />
-          <span className="font-medium text-white">Execution Log</span>
+          <Terminal size={18} className="text-[var(--nomu-primary)]" />
+          <span className="font-medium text-[var(--nomu-text)]">Execution Log</span>
           {isRunning && (
             <span className="flex items-center gap-1.5 rounded-full bg-blue-500/20 px-2 py-0.5 text-xs text-blue-400">
               <span className="h-1.5 w-1.5 rounded-full bg-blue-400 animate-pulse" />
@@ -96,13 +96,13 @@ export function ExecutionPanel({ isOpen, onClose }: ExecutionPanelProps) {
           )}
           <button
             onClick={() => setIsMinimized(!isMinimized)}
-            className="rounded p-1.5 text-slate-400 hover:bg-slate-700 hover:text-white transition"
+            className="rounded p-1.5 text-[var(--nomu-text-muted)] hover:bg-[var(--nomu-surface-hover)] hover:text-[var(--nomu-text)] transition"
           >
             {isMinimized ? <Maximize2 size={16} /> : <Minimize2 size={16} />}
           </button>
           <button
             onClick={onClose}
-            className="rounded p-1.5 text-slate-400 hover:bg-slate-700 hover:text-white transition"
+            className="rounded p-1.5 text-[var(--nomu-text-muted)] hover:bg-[var(--nomu-surface-hover)] hover:text-[var(--nomu-text)] transition"
           >
             <X size={16} />
           </button>
@@ -113,12 +113,12 @@ export function ExecutionPanel({ isOpen, onClose }: ExecutionPanelProps) {
       {!isMinimized && (
         <div className="h-[calc(100%-48px)] overflow-y-auto p-4 font-mono text-sm">
           {!currentExecution ? (
-            <div className="flex h-full items-center justify-center text-slate-500">
+            <div className="flex h-full items-center justify-center text-[var(--nomu-text-muted)]">
               <p>Run a workflow to see execution logs</p>
             </div>
           ) : currentExecution.logs.length === 0 ? (
             <div className="flex h-full items-center justify-center">
-              <div className="flex items-center gap-2 text-slate-400">
+              <div className="flex items-center gap-2 text-[var(--nomu-text-muted)]">
                 <Clock size={16} className="animate-spin" />
                 <span>Starting execution...</span>
               </div>
@@ -128,15 +128,15 @@ export function ExecutionPanel({ isOpen, onClose }: ExecutionPanelProps) {
               {currentExecution.logs.map((log, index) => (
                 <div
                   key={index}
-                  className="flex items-start gap-3 rounded-lg bg-slate-900/50 p-2"
+                  className="flex items-start gap-3 rounded-lg bg-[var(--nomu-bg)]/50 p-2"
                 >
                   <div className="mt-0.5">{getLogIcon(log.level)}</div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <span className="font-medium text-white">{log.nodeName}</span>
-                      <span className="text-xs text-slate-500">{formatTime(log.timestamp)}</span>
+                      <span className="font-medium text-[var(--nomu-text)]">{log.nodeName}</span>
+                      <span className="text-xs text-[var(--nomu-text-muted)]">{formatTime(log.timestamp)}</span>
                     </div>
-                    <p className="mt-0.5 text-slate-400">{log.message}</p>
+                    <p className="mt-0.5 text-[var(--nomu-text-muted)]">{log.message}</p>
                   </div>
                 </div>
               ))}

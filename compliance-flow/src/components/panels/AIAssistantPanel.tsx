@@ -332,19 +332,19 @@ ${improvements.suggestions.map((s, i) => `${i + 1}. ${s}`).join('\n')}`,
     return (
       <div
         style={{ left: position.x, top: position.y }}
-        className="fixed z-50 rounded-lg bg-slate-800 border border-slate-700 shadow-2xl cursor-move"
+        className="fixed z-50 rounded-lg bg-[var(--nomu-surface)] border border-[var(--nomu-border)] shadow-2xl cursor-move"
         onMouseDown={handleMouseDown}
       >
         <div className="drag-handle flex items-center justify-between px-4 py-2 cursor-move">
           <div className="flex items-center gap-2">
-            <Sparkles size={16} className="text-purple-400" />
-            <span className="text-sm font-medium text-white">AI Assistant</span>
+            <Sparkles size={16} className="text-[var(--nomu-primary)]" />
+            <span className="text-sm font-medium text-[var(--nomu-text)]">AI Assistant</span>
           </div>
           <div className="flex items-center gap-1">
-            <button onClick={() => setIsMinimized(false)} className="p-1 text-slate-400 hover:text-white transition">
+            <button onClick={() => setIsMinimized(false)} className="p-1 text-[var(--nomu-text-muted)] hover:text-[var(--nomu-text)] transition">
               <Maximize2 size={16} />
             </button>
-            <button onClick={onClose} className="p-1 text-slate-400 hover:text-white transition">
+            <button onClick={onClose} className="p-1 text-[var(--nomu-text-muted)] hover:text-[var(--nomu-text)] transition">
               <X size={16} />
             </button>
           </div>
@@ -357,37 +357,37 @@ ${improvements.suggestions.map((s, i) => `${i + 1}. ${s}`).join('\n')}`,
     <div
       ref={panelRef}
       style={{ left: position.x, top: position.y, width: size.width, height: size.height }}
-      className="fixed z-50 flex flex-col rounded-lg bg-slate-900 border-2 border-slate-700 shadow-2xl"
+      className="fixed z-50 flex flex-col rounded-lg bg-[var(--nomu-bg)] border-2 border-[var(--nomu-border)] shadow-2xl"
       onMouseDown={handleMouseDown}
     >
-      <div data-resize-handle="n" className="absolute top-0 left-0 right-0 h-1 cursor-n-resize hover:bg-purple-500/50 transition-colors" />
-      <div data-resize-handle="s" className="absolute bottom-0 left-0 right-0 h-1 cursor-s-resize hover:bg-purple-500/50 transition-colors" />
-      <div data-resize-handle="e" className="absolute top-0 right-0 bottom-0 w-1 cursor-e-resize hover:bg-purple-500/50 transition-colors" />
-      <div data-resize-handle="w" className="absolute top-0 left-0 bottom-0 w-1 cursor-w-resize hover:bg-purple-500/50 transition-colors" />
-      <div data-resize-handle="ne" className="absolute top-0 right-0 w-3 h-3 cursor-ne-resize hover:bg-purple-500/70 transition-colors" />
-      <div data-resize-handle="nw" className="absolute top-0 left-0 w-3 h-3 cursor-nw-resize hover:bg-purple-500/70 transition-colors" />
-      <div data-resize-handle="se" className="absolute bottom-0 right-0 w-3 h-3 cursor-se-resize hover:bg-purple-500/70 transition-colors" />
-      <div data-resize-handle="sw" className="absolute bottom-0 left-0 w-3 h-3 cursor-sw-resize hover:bg-purple-500/70 transition-colors" />
+      <div data-resize-handle="n" className="absolute top-0 left-0 right-0 h-1 cursor-n-resize hover:bg-[var(--nomu-primary)]/50 transition-colors" />
+      <div data-resize-handle="s" className="absolute bottom-0 left-0 right-0 h-1 cursor-s-resize hover:bg-[var(--nomu-primary)]/50 transition-colors" />
+      <div data-resize-handle="e" className="absolute top-0 right-0 bottom-0 w-1 cursor-e-resize hover:bg-[var(--nomu-primary)]/50 transition-colors" />
+      <div data-resize-handle="w" className="absolute top-0 left-0 bottom-0 w-1 cursor-w-resize hover:bg-[var(--nomu-primary)]/50 transition-colors" />
+      <div data-resize-handle="ne" className="absolute top-0 right-0 w-3 h-3 cursor-ne-resize hover:bg-[var(--nomu-primary)]/70 transition-colors" />
+      <div data-resize-handle="nw" className="absolute top-0 left-0 w-3 h-3 cursor-nw-resize hover:bg-[var(--nomu-primary)]/70 transition-colors" />
+      <div data-resize-handle="se" className="absolute bottom-0 right-0 w-3 h-3 cursor-se-resize hover:bg-[var(--nomu-primary)]/70 transition-colors" />
+      <div data-resize-handle="sw" className="absolute bottom-0 left-0 w-3 h-3 cursor-sw-resize hover:bg-[var(--nomu-primary)]/70 transition-colors" />
       {/* Header */}
-      <div className="drag-handle flex items-center justify-between border-b border-slate-700 bg-gradient-to-r from-purple-900/50 to-pink-900/50 px-4 py-3 cursor-move">
+      <div className="drag-handle flex items-center justify-between border-b border-[var(--nomu-border)] bg-[var(--nomu-primary)]/10 px-4 py-3 cursor-move">
         <div className="flex items-center gap-2">
-          <GripHorizontal size={16} className="text-slate-500" />
-          <Sparkles size={18} className="text-purple-400" />
+          <GripHorizontal size={16} className="text-[var(--nomu-text-muted)]" />
+          <Sparkles size={18} className="text-[var(--nomu-primary)]" />
           <div>
-            <h2 className="text-sm font-semibold text-white">AI Assistant</h2>
-            <p className="text-xs text-purple-300">Ask me anything!</p>
+            <h2 className="text-sm font-semibold text-[var(--nomu-text)]">AI Assistant</h2>
+            <p className="text-xs text-[var(--nomu-primary)]">Ask me anything!</p>
           </div>
         </div>
         <div className="flex items-center gap-1">
           <button
             onClick={() => setIsMinimized(true)}
-            className="p-1.5 text-slate-400 hover:bg-slate-800 hover:text-white rounded transition"
+            className="p-1.5 text-[var(--nomu-text-muted)] hover:bg-[var(--nomu-surface-hover)] hover:text-[var(--nomu-text)] rounded transition"
           >
             <Minimize2 size={16} />
           </button>
           <button
             onClick={onClose}
-            className="p-1.5 text-slate-400 hover:bg-slate-800 hover:text-white rounded transition"
+            className="p-1.5 text-[var(--nomu-text-muted)] hover:bg-[var(--nomu-surface-hover)] hover:text-[var(--nomu-text)] rounded transition"
           >
             <X size={16} />
           </button>
@@ -404,16 +404,16 @@ ${improvements.suggestions.map((s, i) => `${i + 1}. ${s}`).join('\n')}`,
             <div
               className={`max-w-[85%] rounded-lg px-3 py-2 ${
                 message.role === 'user'
-                  ? 'bg-purple-600 text-white'
+                  ? 'bg-[var(--nomu-primary)] text-[var(--nomu-text)]'
                   : message.role === 'system'
-                  ? 'bg-slate-800 border border-slate-700 text-slate-300'
-                  : 'bg-slate-800 text-slate-200'
+                  ? 'bg-[var(--nomu-surface)] border border-[var(--nomu-border)] text-[var(--nomu-text-muted)]'
+                  : 'bg-[var(--nomu-primary)]/10 text-[var(--nomu-text)]'
               }`}
             >
               {message.role === 'user' ? (
                 <p className="text-sm whitespace-pre-wrap">{message.content}</p>
               ) : (
-                <div className="text-sm prose prose-sm prose-invert max-w-none prose-p:my-1 prose-headings:my-2 prose-ul:my-1 prose-ol:my-1 prose-li:my-0.5 prose-strong:text-purple-400 prose-code:bg-slate-900 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-pre:bg-slate-900 prose-pre:p-2 prose-pre:rounded">
+                <div className="text-sm prose prose-sm prose-invert max-w-none prose-p:my-1 prose-headings:my-2 prose-ul:my-1 prose-ol:my-1 prose-li:my-0.5 prose-strong:text-[var(--nomu-primary)] prose-code:bg-[var(--nomu-bg)] prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-pre:bg-[var(--nomu-bg)] prose-pre:p-2 prose-pre:rounded">
                   <ReactMarkdown>{message.content}</ReactMarkdown>
                 </div>
               )}
@@ -423,9 +423,9 @@ ${improvements.suggestions.map((s, i) => `${i + 1}. ${s}`).join('\n')}`,
 
         {isGenerating && (
           <div className="flex justify-start">
-            <div className="bg-slate-800 rounded-lg px-3 py-2 flex items-center gap-2">
-              <Loader2 size={16} className="animate-spin text-purple-400" />
-              <span className="text-sm text-slate-400">Building workflow...</span>
+            <div className="bg-[var(--nomu-surface)] rounded-lg px-3 py-2 flex items-center gap-2">
+              <Loader2 size={16} className="animate-spin text-[var(--nomu-primary)]" />
+              <span className="text-sm text-[var(--nomu-text-muted)]">Building workflow...</span>
             </div>
           </div>
         )}
@@ -435,14 +435,14 @@ ${improvements.suggestions.map((s, i) => `${i + 1}. ${s}`).join('\n')}`,
 
       {/* Suggestions */}
       {showSuggestions && messages.length === 1 && (
-        <div className="border-t border-slate-700 bg-slate-800/50 p-3">
-          <p className="text-xs text-slate-500 mb-2">Quick start:</p>
+        <div className="border-t border-[var(--nomu-border)] bg-[var(--nomu-surface)]/50 p-3">
+          <p className="text-xs text-[var(--nomu-text-muted)] mb-2">Quick start:</p>
           <div className="space-y-1">
             {suggestions.map((suggestion, index) => (
               <button
                 key={index}
                 onClick={() => handleSendMessage(suggestion)}
-                className="w-full text-left rounded-lg bg-slate-800 px-3 py-2 text-xs text-slate-300 hover:bg-slate-700 hover:text-white transition"
+                className="w-full text-left rounded-lg bg-[var(--nomu-surface)] px-3 py-2 text-xs text-[var(--nomu-text-muted)] hover:bg-[var(--nomu-surface-hover)] hover:text-[var(--nomu-text)] transition"
               >
                 {suggestion}
               </button>
@@ -452,7 +452,7 @@ ${improvements.suggestions.map((s, i) => `${i + 1}. ${s}`).join('\n')}`,
       )}
 
       {/* Action Buttons */}
-      <div className="border-t border-slate-700 bg-slate-800 px-4 py-2 space-y-2">
+      <div className="border-t border-[var(--nomu-border)] bg-[var(--nomu-surface)] px-4 py-2 space-y-2">
         <div className="flex gap-2">
           <Button
             variant="secondary"
@@ -488,7 +488,7 @@ ${improvements.suggestions.map((s, i) => `${i + 1}. ${s}`).join('\n')}`,
       </div>
 
       {/* Input */}
-      <div className="border-t border-slate-700 bg-slate-900 p-3">
+      <div className="border-t border-[var(--nomu-border)] bg-[var(--nomu-bg)] p-3">
         <div className="flex gap-2">
           <input
             type="text"
@@ -496,7 +496,7 @@ ${improvements.suggestions.map((s, i) => `${i + 1}. ${s}`).join('\n')}`,
             onChange={(e) => setInputValue(e.target.value)}
             onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
             placeholder="Describe the workflow you want to build..."
-            className="flex-1 rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-white placeholder-slate-500 outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
+            className="flex-1 rounded-lg border border-[var(--nomu-border)] bg-[var(--nomu-surface)] px-3 py-2 text-sm text-[var(--nomu-text)] placeholder-[var(--nomu-text-muted)] outline-none focus:border-[var(--nomu-primary)] focus:ring-1 focus:ring-[var(--nomu-primary)]"
             disabled={isGenerating}
           />
           <Button
@@ -504,7 +504,7 @@ ${improvements.suggestions.map((s, i) => `${i + 1}. ${s}`).join('\n')}`,
             size="sm"
             onClick={() => handleSendMessage()}
             disabled={isGenerating || !inputValue.trim()}
-            className="bg-purple-600 hover:bg-purple-500 px-3"
+            className="bg-[var(--nomu-primary)] hover:bg-[var(--nomu-primary-hover)] px-3"
           >
             {isGenerating ? (
               <Loader2 size={16} className="animate-spin" />
@@ -513,7 +513,7 @@ ${improvements.suggestions.map((s, i) => `${i + 1}. ${s}`).join('\n')}`,
             )}
           </Button>
         </div>
-        <p className="text-xs text-slate-500 mt-2">
+        <p className="text-xs text-[var(--nomu-text-muted)] mt-2">
           <Wand2 size={12} className="inline mr-1" />
           Powered by {aiWorkflowBuilder['model'] || 'Llama 3.2'}
         </p>

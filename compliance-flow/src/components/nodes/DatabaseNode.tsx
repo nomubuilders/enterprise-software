@@ -10,31 +10,31 @@ export const DatabaseNode = memo((props: NodeProps) => {
   const hasConfig = !!(nodeData.config?.host && nodeData.config?.database)
 
   const dbColors: Record<string, string> = {
-    postgresql: 'text-blue-400',
-    mysql: 'text-orange-400',
-    mongodb: 'text-green-400',
+    postgresql: 'text-[#4004DA]',
+    mysql: 'text-[#FF6C1D]',
+    mongodb: 'text-[#FF6C1D]',
     redis: 'text-red-400',
   }
 
   const getStatus = () => {
-    if (isConnected) return { text: 'Connected', color: 'text-green-400', dot: '●' }
+    if (isConnected) return { text: 'Connected', color: 'text-[#FF6C1D]', dot: '●' }
     if (hasConfig) return { text: 'Configured', color: 'text-yellow-400', dot: '○' }
-    return { text: 'Not configured', color: 'text-slate-500', dot: '○' }
+    return { text: 'Not configured', color: 'text-[var(--nomu-text-muted)]', dot: '○' }
   }
 
   const status = getStatus()
 
   return (
-    <BaseNode {...props} icon={<Database size={16} />} color="bg-blue-600">
+    <BaseNode {...props} icon={<Database size={16} />} color="bg-[#4004DA]">
       <div className="space-y-1">
         <div className="flex justify-between">
-          <span className="text-slate-400">Type:</span>
-          <span className={dbColors[dbType] || 'text-slate-300'}>
+          <span className="text-[var(--nomu-text-muted)]">Type:</span>
+          <span className={dbColors[dbType] || 'text-[var(--nomu-text-muted)]'}>
             {dbType.toUpperCase()}
           </span>
         </div>
         <div className="flex justify-between">
-          <span className="text-slate-400">Status:</span>
+          <span className="text-[var(--nomu-text-muted)]">Status:</span>
           <span className={status.color}>{status.dot} {status.text}</span>
         </div>
       </div>

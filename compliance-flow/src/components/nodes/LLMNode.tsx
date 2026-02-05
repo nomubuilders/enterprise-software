@@ -10,9 +10,9 @@ export const LLMNode = memo((props: NodeProps) => {
 
   // Temperature indicator
   const getTempColor = () => {
-    if (temperature < 0.3) return 'text-blue-400'
-    if (temperature < 0.7) return 'text-green-400'
-    return 'text-orange-400'
+    if (temperature < 0.3) return 'text-[#4004DA]'
+    if (temperature < 0.7) return 'text-[#FF6C1D]'
+    return 'text-[#FF6C1D]'
   }
 
   const getTempLabel = () => {
@@ -22,20 +22,20 @@ export const LLMNode = memo((props: NodeProps) => {
   }
 
   return (
-    <BaseNode {...props} icon={<Bot size={16} />} color="bg-purple-600">
+    <BaseNode {...props} icon={<Bot size={16} />} color="bg-gradient-to-br from-[#4004DA] to-[#6B3FA0]">
       <div className="space-y-1">
         <div className="flex justify-between items-center">
-          <span className="text-slate-400 text-[10px]">Model:</span>
-          <span className="text-purple-400 font-medium">{model}</span>
+          <span className="text-[var(--nomu-text-muted)] text-[10px]">Model:</span>
+          <span className="text-[#4004DA] font-medium">{model}</span>
         </div>
         <div className="flex justify-between items-center">
-          <span className="text-slate-400 text-[10px]">Mode:</span>
+          <span className="text-[var(--nomu-text-muted)] text-[10px]">Mode:</span>
           <div className="flex items-center gap-1">
             <Zap size={10} className={getTempColor()} />
             <span className={`text-[10px] ${getTempColor()}`}>{getTempLabel()}</span>
           </div>
         </div>
-        <div className="mt-1 text-[9px] text-slate-500">
+        <div className="mt-1 text-[9px] text-[var(--nomu-text-muted)]">
           100% Local • Ollama
         </div>
       </div>

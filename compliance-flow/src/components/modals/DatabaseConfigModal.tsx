@@ -156,15 +156,15 @@ export function DatabaseConfigModal({ isOpen, onClose, editConfig }: DatabaseCon
             type="checkbox"
             checked={formData.ssl}
             onChange={(e) => setFormData({ ...formData, ssl: e.target.checked })}
-            className="h-4 w-4 rounded border-slate-600 bg-slate-900 text-purple-600 focus:ring-purple-500"
+            className="h-4 w-4 rounded border-[var(--nomu-border)] bg-[var(--nomu-surface)] text-[var(--nomu-primary)] focus:ring-[var(--nomu-primary)]"
           />
-          <span className="text-sm text-slate-300">Use SSL/TLS connection</span>
+          <span className="text-sm text-[var(--nomu-text-muted)]">Use SSL/TLS connection</span>
         </label>
 
         {/* Connection String Preview */}
-        <div className="rounded-lg bg-slate-900 p-3">
-          <p className="mb-1 text-xs font-medium text-slate-500">Connection String Preview</p>
-          <code className="text-xs text-slate-400 break-all">
+        <div className="rounded-lg bg-[var(--nomu-bg)] p-3">
+          <p className="mb-1 text-xs font-medium text-[var(--nomu-text-muted)]">Connection String Preview</p>
+          <code className="text-xs text-[var(--nomu-text-muted)] break-all">
             {formData.type === 'mongodb'
               ? `mongodb://${formData.username}:****@${formData.host}:${formData.port}/${formData.database}`
               : `${formData.type}://${formData.username}:****@${formData.host}:${formData.port}/${formData.database}`}
@@ -198,7 +198,7 @@ export function DatabaseConfigModal({ isOpen, onClose, editConfig }: DatabaseCon
         )}
 
         {/* Actions */}
-        <div className="flex items-center justify-between pt-4 border-t border-slate-700">
+        <div className="flex items-center justify-between pt-4 border-t border-[var(--nomu-border)]">
           <Button
             variant="ghost"
             onClick={handleTestConnection}

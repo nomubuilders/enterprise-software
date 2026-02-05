@@ -62,11 +62,11 @@ export function SaveWorkflowModal({ isOpen, onClose }: SaveWorkflowModalProps) {
 
         {/* Description */}
         <div>
-          <label className="mb-1.5 block text-sm font-medium text-slate-300">
+          <label className="mb-1.5 block text-sm font-medium text-[var(--nomu-text-muted)]">
             Description (optional)
           </label>
           <textarea
-            className="w-full rounded-lg border border-slate-600 bg-slate-900 px-3 py-2 text-sm text-white placeholder-slate-500 transition hover:border-slate-500 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
+            className="w-full rounded-lg border border-[var(--nomu-border)] bg-[var(--nomu-surface)] px-3 py-2 text-sm text-[var(--nomu-text)] placeholder-[var(--nomu-text-muted)] transition hover:border-[var(--nomu-border)] focus:border-[var(--nomu-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--nomu-primary)]"
             rows={3}
             placeholder="Describe what this workflow does..."
             value={description}
@@ -75,30 +75,30 @@ export function SaveWorkflowModal({ isOpen, onClose }: SaveWorkflowModalProps) {
         </div>
 
         {/* Stats */}
-        <div className="rounded-lg bg-slate-900 p-4">
-          <h4 className="mb-2 text-xs font-medium uppercase tracking-wider text-slate-500">
+        <div className="rounded-lg bg-[var(--nomu-bg)] p-4">
+          <h4 className="mb-2 text-xs font-medium uppercase tracking-wider text-[var(--nomu-text-muted)]">
             Workflow Summary
           </h4>
           <div className="grid grid-cols-3 gap-4">
             <div>
-              <p className="text-2xl font-bold text-white">{nodes.length}</p>
-              <p className="text-xs text-slate-400">Nodes</p>
+              <p className="text-2xl font-bold text-[var(--nomu-text)]">{nodes.length}</p>
+              <p className="text-xs text-[var(--nomu-text-muted)]">Nodes</p>
             </div>
             <div>
-              <p className="text-2xl font-bold text-white">{edges.length}</p>
-              <p className="text-xs text-slate-400">Connections</p>
+              <p className="text-2xl font-bold text-[var(--nomu-text)]">{edges.length}</p>
+              <p className="text-xs text-[var(--nomu-text-muted)]">Connections</p>
             </div>
             <div>
-              <p className="text-2xl font-bold text-white">
+              <p className="text-2xl font-bold text-[var(--nomu-text)]">
                 {nodes.filter(n => n.type === 'llmNode').length}
               </p>
-              <p className="text-xs text-slate-400">AI Nodes</p>
+              <p className="text-xs text-[var(--nomu-text-muted)]">AI Nodes</p>
             </div>
           </div>
         </div>
 
         {/* Actions */}
-        <div className="flex justify-end gap-2 pt-4 border-t border-slate-700">
+        <div className="flex justify-end gap-2 pt-4 border-t border-[var(--nomu-border)]">
           <Button variant="secondary" onClick={onClose}>
             Cancel
           </Button>
