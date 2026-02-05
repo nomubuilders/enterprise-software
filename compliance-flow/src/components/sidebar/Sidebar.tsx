@@ -4,6 +4,7 @@ import {
   Database,
   Play,
   Shield,
+  Container,
   MessageSquare,
   FileSpreadsheet,
   Mail,
@@ -13,6 +14,7 @@ import {
   Search,
   Sparkles,
 } from 'lucide-react'
+import { useDockerStore } from '../../store/dockerStore'
 
 interface NodeTemplate {
   type: string
@@ -133,11 +135,22 @@ const nodeTemplates: NodeTemplate[] = [
     category: 'Outputs',
     config: { outputType: 'telegram' },
   },
+  // Containers
+  {
+    type: 'dockerContainerNode',
+    label: 'Docker Container',
+    icon: <Container size={18} />,
+    color: 'bg-[#36312E]',
+    category: 'Containers',
+    config: { image: '', tag: 'latest', command: [], envVars: {}, cpuLimit: 0.5, memoryLimit: 512, timeout: 300, networkMode: 'none' },
+  },
 ]
 
-const categories = ['Triggers', 'Data Sources', 'AI Models', 'Compliance', 'Outputs']
+const categories = ['Triggers', 'Data Sources', 'AI Models', 'Compliance', 'Outputs', 'Containers']
 
 export function Sidebar() {
+  const dockerAvailable = useDockerStore((s) => s.dockerAvailable)
+
   const onDragStart = (event: DragEvent, template: NodeTemplate) => {
     event.dataTransfer.setData('application/reactflow', JSON.stringify(template))
     event.dataTransfer.effectAllowed = 'move'
@@ -172,6 +185,9 @@ export function Sidebar() {
           <div key={category} className="mb-4">
             <h3 className="mb-2 font-['Barlow'] text-xs font-semibold uppercase tracking-wider text-[var(--nomu-text-muted)]">
               {category}
+              {category === 'Containers' && (
+                <span className={`ml-1.5 inline-block h-1.5 w-1.5 rounded-full ${dockerAvailable ? 'bg-green-500' : 'bg-gray-500'}`} />
+              )}
             </h3>
             <div className="space-y-1">
               {nodeTemplates
