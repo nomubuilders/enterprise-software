@@ -22,6 +22,7 @@ import {
 } from 'lucide-react'
 import ReactMarkdown from 'react-markdown'
 import { Button, Input, Select } from '../common'
+import { DockerTerminal } from './DockerTerminal'
 import { useFlowStore } from '../../store/flowStore'
 import { useWorkflowStore } from '../../store/workflowStore'
 import { api } from '../../services/api'
@@ -1141,6 +1142,12 @@ function DockerContainerNodeConfig({
           Container runs with resource limits, audit logging, and {networkMode === 'none' ? 'air-gapped isolation' : 'internal network only'}.
         </p>
       </div>
+
+      {/* Execution Console */}
+      <DockerTerminal
+        containerId={(config.containerId as string) || null}
+        isRunning={(config.status as string) === 'running'}
+      />
 
       {/* Save */}
       <Button variant="primary" onClick={handleSave} leftIcon={<Save size={14} />} className="w-full">
