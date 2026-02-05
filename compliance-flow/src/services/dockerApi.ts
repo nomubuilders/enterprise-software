@@ -27,6 +27,12 @@ export interface ExecuteContainerRequest {
   inputData?: Record<string, unknown>
   nodeId: string
   workflowRunId: string
+  runtime?: 'docker' | 'podman' | 'remote'
+  runtimeConfig?: {
+    socketPath?: string
+    remoteHost?: string
+    tlsVerify?: boolean
+  }
 }
 
 export interface ExecuteContainerResponse {

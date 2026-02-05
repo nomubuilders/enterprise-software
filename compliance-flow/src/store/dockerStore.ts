@@ -1,12 +1,14 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import type { ApprovedImage, ContainerExecution } from '../types/docker'
+import type { ApprovedImage, ContainerExecution, ContainerRuntime, DockerContainerConfig, RuntimeConfig } from '../types/docker'
+import { validateImage, type ValidationResult } from '../services/imageValidator'
 
 interface DockerState {
   // State
   approvedImages: ApprovedImage[]
   activeContainers: Record<string, ContainerExecution>
   executionHistory: ContainerExecution[]
+  runtimeConfig: RuntimeConfig
 
   // Actions
   loadAllowlist: (images: ApprovedImage[]) => void
@@ -16,6 +18,9 @@ interface DockerState {
   updateExecution: (id: string, updates: Partial<ContainerExecution>) => void
   completeExecution: (id: string, exitCode: number, output?: Record<string, unknown>) => void
   getActiveExecution: (nodeId: string) => ContainerExecution | undefined
+  validateExecution: (config: Pick<DockerContainerConfig, 'image' | 'tag' | 'cpuLimit' | 'memoryLimit'>) => ValidationResult
+  setRuntimeConfig: (config: Partial<RuntimeConfig>) => void
+  detectRuntime: () => Promise<void>
 }
 
 export const useDockerStore = create<DockerState>()(
@@ -24,6 +29,7 @@ export const useDockerStore = create<DockerState>()(
       approvedImages: [],
       activeContainers: {},
       executionHistory: [],
+      runtimeConfig: { runtime: 'docker' as ContainerRuntime },
 
       loadAllowlist: (images) => set({ approvedImages: images }),
 
@@ -85,12 +91,33 @@ export const useDockerStore = create<DockerState>()(
         }
         return undefined
       },
+
+      validateExecution: (config) => {
+        return validateImage(config, get().approvedImages)
+      },
+
+      setRuntimeConfig: (config) => {
+        set({ runtimeConfig: { ...get().runtimeConfig, ...config } })
+      },
+
+      detectRuntime: async () => {
+        try {
+          const { dockerApi } = await import('../services/dockerApi')
+          const health = await dockerApi.checkHealth()
+          if (health.available) {
+            set({ runtimeConfig: { ...get().runtimeConfig, runtime: health.runtime === 'podman' ? 'podman' : 'docker' } })
+          }
+        } catch {
+          // Keep default
+        }
+      },
     }),
     {
       name: 'docker-container-storage',
       partialize: (state) => ({
         approvedImages: state.approvedImages,
         executionHistory: state.executionHistory,
+        runtimeConfig: state.runtimeConfig,
       }),
     }
   )

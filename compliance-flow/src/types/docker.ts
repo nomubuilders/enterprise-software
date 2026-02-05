@@ -71,3 +71,14 @@ export interface ContainerAuditLog {
   blocked?: boolean
   blockReason?: string
 }
+
+export type ContainerRuntime = 'docker' | 'podman' | 'remote'
+
+export interface RuntimeConfig {
+  runtime: ContainerRuntime
+  socketPath?: string           // Custom socket path for Docker/Podman
+  remoteHost?: string           // TCP host for remote Docker (e.g., 'tcp://host:2376')
+  remoteSshHost?: string        // SSH host for remote Docker (e.g., 'ssh://user@host')
+  tlsVerify?: boolean           // Enable TLS for remote connections
+  tlsCertPath?: string          // Path to TLS certificates
+}
