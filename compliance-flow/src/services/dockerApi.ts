@@ -33,6 +33,16 @@ export interface ExecuteContainerRequest {
     remoteHost?: string
     tlsVerify?: boolean
   }
+  securityProfile?: {
+    user: string
+    privileged: boolean
+    capDrop: string[]
+    readonlyRootfs: boolean
+    noNewPrivileges: boolean
+    pidMode: string
+    ipcMode: string
+    tmpfs: Record<string, string>
+  }
 }
 
 export interface ExecuteContainerResponse {
