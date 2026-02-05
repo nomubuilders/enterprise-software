@@ -4,6 +4,7 @@ import {
   Database,
   Play,
   Shield,
+  Container,
   MessageSquare,
   FileSpreadsheet,
   Mail,
@@ -133,9 +134,18 @@ const nodeTemplates: NodeTemplate[] = [
     category: 'Outputs',
     config: { outputType: 'telegram' },
   },
+  // Containers
+  {
+    type: 'dockerContainerNode',
+    label: 'Docker Container',
+    icon: <Container size={18} />,
+    color: 'bg-[#36312E]',
+    category: 'Containers',
+    config: { image: '', tag: 'latest', command: [], envVars: {}, cpuLimit: 0.5, memoryLimit: 512, timeout: 300, networkMode: 'none' },
+  },
 ]
 
-const categories = ['Triggers', 'Data Sources', 'AI Models', 'Compliance', 'Outputs']
+const categories = ['Triggers', 'Data Sources', 'AI Models', 'Compliance', 'Outputs', 'Containers']
 
 export function Sidebar() {
   const onDragStart = (event: DragEvent, template: NodeTemplate) => {
