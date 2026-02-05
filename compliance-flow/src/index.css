@@ -1,9 +1,48 @@
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
 
+/* Nomu Brand Colors */
+:root {
+  --nomu-primary: #4004DA;
+  --nomu-primary-hover: #3503B0;
+  --nomu-accent: #FF6C1D;
+  --nomu-accent-hover: #E55A0F;
+  --nomu-bg: #000000;
+  --nomu-bg-secondary: #0A0A0A;
+  --nomu-surface: #36312E;
+  --nomu-surface-hover: #433D39;
+  --nomu-text: #FEFCFD;
+  --nomu-text-muted: #4D4D4D;
+  --nomu-border: #4D4D4D;
+  --nomu-border-light: #36312E;
+}
+
+:root.light {
+  --nomu-bg: #FEFCFD;
+  --nomu-bg-secondary: #F5F5F5;
+  --nomu-surface: #FFFFFF;
+  --nomu-surface-hover: #F0F0F0;
+  --nomu-text: #000000;
+  --nomu-text-muted: #4D4D4D;
+  --nomu-border: #E5E5E5;
+  --nomu-border-light: #F0F0F0;
+}
+
+/* Brand Typography */
+body {
+  font-family: 'Work Sans', system-ui, -apple-system, sans-serif;
+  background-color: var(--nomu-bg);
+  color: var(--nomu-text);
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Barlow', system-ui, -apple-system, sans-serif;
+}
+
 /* React Flow overrides */
 .react-flow__node {
-  font-family: system-ui, -apple-system, sans-serif;
+  font-family: 'Work Sans', system-ui, -apple-system, sans-serif;
 }
 
 .react-flow__attribution {
@@ -17,16 +56,16 @@
 }
 
 ::-webkit-scrollbar-track {
-  background: #1e293b;
+  background: var(--nomu-bg-secondary);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #475569;
+  background: var(--nomu-border);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #64748b;
+  background: var(--nomu-text-muted);
 }
 
 /* Drag and drop styles */
