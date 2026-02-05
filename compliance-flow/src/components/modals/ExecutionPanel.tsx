@@ -5,6 +5,7 @@ import {
   AlertCircle,
   Clock,
   Terminal,
+  Container,
   X,
   Minimize2,
   Maximize2,
@@ -125,21 +126,44 @@ export function ExecutionPanel({ isOpen, onClose }: ExecutionPanelProps) {
             </div>
           ) : (
             <div className="space-y-2">
-              {currentExecution.logs.map((log, index) => (
-                <div
-                  key={index}
-                  className="flex items-start gap-3 rounded-lg bg-slate-900/50 p-2"
-                >
-                  <div className="mt-0.5">{getLogIcon(log.level)}</div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium text-white">{log.nodeName}</span>
-                      <span className="text-xs text-slate-500">{formatTime(log.timestamp)}</span>
+              {currentExecution.logs.map((log, index) => {
+                const containerData = (log as { data?: { containerExecution?: { image?: string; exitCode?: number; duration?: string } } }).data?.containerExecution
+
+                return (
+                  <div
+                    key={index}
+                    className="flex items-start gap-3 rounded-lg bg-slate-900/50 p-2"
+                  >
+                    <div className="mt-0.5">
+                      {containerData
+                        ? <Container size={14} className="text-purple-400" />
+                        : getLogIcon(log.level)}
                     </div>
-                    <p className="mt-0.5 text-slate-400">{log.message}</p>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium text-white">{log.nodeName}</span>
+                        <span className="text-xs text-slate-500">{formatTime(log.timestamp)}</span>
+                        {containerData && (
+                          <span className="rounded bg-purple-500/20 px-1.5 py-0.5 text-xs text-purple-300">
+                            {containerData.image}
+                          </span>
+                        )}
+                      </div>
+                      <p className="mt-0.5 text-slate-400">{log.message}</p>
+                      {containerData && containerData.exitCode !== undefined && (
+                        <div className="mt-1 flex items-center gap-3 text-xs text-slate-500">
+                          <span className={containerData.exitCode === 0 ? 'text-green-400' : 'text-red-400'}>
+                            Exit: {containerData.exitCode}
+                          </span>
+                          {containerData.duration && (
+                            <span>Duration: {containerData.duration}</span>
+                          )}
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))}
+                )
+              })}
               <div ref={logsEndRef} />
             </div>
           )}
