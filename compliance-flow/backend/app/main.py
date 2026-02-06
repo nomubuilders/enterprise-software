@@ -10,7 +10,7 @@ from loguru import logger
 import sys
 
 from app.core.config import settings
-from app.api import health, databases, llm, workflows, outputs, docker
+from app.api import health, databases, llm, workflows, outputs, docker, documents
 from app.services.ollama import OllamaService
 from app.services.docker_service import DockerService
 # Database connections are created on-demand via API endpoints
@@ -86,6 +86,7 @@ app.include_router(llm.router, prefix=settings.API_PREFIX, tags=["LLM"])
 app.include_router(workflows.router, prefix=settings.API_PREFIX, tags=["Workflows"])
 app.include_router(outputs.router, prefix=settings.API_PREFIX, tags=["Outputs"])
 app.include_router(docker.router, prefix=settings.API_PREFIX, tags=["Docker"])
+app.include_router(documents.router, prefix=settings.API_PREFIX, tags=["Documents"])
 
 
 @app.get("/")
