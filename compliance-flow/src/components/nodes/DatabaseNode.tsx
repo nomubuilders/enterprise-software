@@ -10,14 +10,14 @@ export const DatabaseNode = memo((props: NodeProps) => {
   const hasConfig = !!(nodeData.config?.host && nodeData.config?.database)
 
   const dbColors: Record<string, string> = {
-    postgresql: 'text-[#4004DA]',
-    mysql: 'text-[#FF6C1D]',
-    mongodb: 'text-[#FF6C1D]',
+    postgresql: 'text-[var(--nomu-primary)]',
+    mysql: 'text-[var(--nomu-accent)]',
+    mongodb: 'text-[var(--nomu-accent)]',
     redis: 'text-red-400',
   }
 
   const getStatus = () => {
-    if (isConnected) return { text: 'Connected', color: 'text-[#FF6C1D]', dot: '●' }
+    if (isConnected) return { text: 'Connected', color: 'text-[var(--nomu-accent)]', dot: '●' }
     if (hasConfig) return { text: 'Configured', color: 'text-yellow-400', dot: '○' }
     return { text: 'Not configured', color: 'text-[var(--nomu-text-muted)]', dot: '○' }
   }
@@ -25,7 +25,7 @@ export const DatabaseNode = memo((props: NodeProps) => {
   const status = getStatus()
 
   return (
-    <BaseNode {...props} icon={<Database size={16} />} color="bg-[#4004DA]">
+    <BaseNode {...props} icon={<Database size={16} />} color="bg-[var(--nomu-primary)]">
       <div className="space-y-1">
         <div className="flex justify-between">
           <span className="text-[var(--nomu-text-muted)]">Type:</span>

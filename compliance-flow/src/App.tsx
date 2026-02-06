@@ -1,6 +1,8 @@
 import { useState, useCallback, useEffect } from 'react'
 import { ReactFlowProvider } from '@xyflow/react'
 import type { Node } from '@xyflow/react'
+import { AnimatePresence } from 'framer-motion'
+import { Toaster } from 'sonner'
 import {
   Play,
   Save,
@@ -250,14 +252,16 @@ function App() {
         </main>
 
         {/* Node Configuration Panel */}
-        {selectedNode && (
-          <NodeConfigPanel
-            node={selectedNode}
-            onClose={handleCloseNodePanel}
-            onRunWorkflow={handleRun}
-            onOpenChat={handleOpenChatWindow}
-          />
-        )}
+        <AnimatePresence>
+          {selectedNode && (
+            <NodeConfigPanel
+              node={selectedNode}
+              onClose={handleCloseNodePanel}
+              onRunWorkflow={handleRun}
+              onOpenChat={handleOpenChatWindow}
+            />
+          )}
+        </AnimatePresence>
 
         {/* Floating Chat Interface */}
         {chatInterfaceNode && (
@@ -281,6 +285,17 @@ function App() {
           onClose={() => setShowExecutionPanel(false)}
         />
       </ReactFlowProvider>
+      <Toaster
+        theme="dark"
+        position="bottom-right"
+        toastOptions={{
+          style: {
+            background: 'var(--nomu-surface)',
+            border: '1px solid var(--nomu-border)',
+            color: 'var(--nomu-text)',
+          },
+        }}
+      />
     </div>
   )
 }

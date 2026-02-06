@@ -27,7 +27,7 @@ export const DockerContainerNode = memo((props: NodeProps) => {
   const statusDisplay = getStatusDisplay()
 
   return (
-    <BaseNode {...props} icon={<Container size={16} />} color="bg-[#36312E]">
+    <BaseNode {...props} icon={<Container size={16} />} color="bg-[var(--nomu-surface)]">
       <div className="space-y-1.5">
         <div className="flex justify-between items-center">
           <span className="text-[var(--nomu-text-muted)]">Image:</span>

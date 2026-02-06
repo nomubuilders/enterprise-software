@@ -1,6 +1,43 @@
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
 
+/* Self-hosted fonts (no external CDN calls) */
+@font-face {
+  font-family: 'Barlow';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/barlow-400.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Barlow';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('/fonts/barlow-500.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Barlow';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('/fonts/barlow-700.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Work Sans';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/worksans-variable.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Work Sans';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('/fonts/worksans-variable.woff2') format('woff2');
+}
+
 /* Nomu Brand Colors */
 :root {
   --nomu-primary: #4004DA;
@@ -15,6 +52,9 @@
   --nomu-text-muted: #4D4D4D;
   --nomu-border: #4D4D4D;
   --nomu-border-light: #36312E;
+  --nomu-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --nomu-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
+  --nomu-shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.5);
 }
 
 :root.light {
@@ -26,6 +66,9 @@
   --nomu-text-muted: #4D4D4D;
   --nomu-border: #E5E5E5;
   --nomu-border-light: #F0F0F0;
+  --nomu-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --nomu-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --nomu-shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
 }
 
 /* Brand Typography */

@@ -3,6 +3,7 @@ import { persist } from 'zustand/middleware'
 import type { Node, Edge } from '@xyflow/react'
 import type { Workflow, DatabaseConfig, WorkflowExecution } from '../types'
 import type { DocumentSummary } from '../types/document'
+import { toast } from 'sonner'
 import { api } from '../services/api'
 import { dockerApi } from '../services/dockerApi'
 import { useFlowStore } from './flowStore'
@@ -101,6 +102,7 @@ export const useWorkflowStore = create<WorkflowState>()(
         } else {
           set({ workflows, isSaving: false })
         }
+        toast.success('Workflow saved')
       },
 
       deleteWorkflow: (id) => {
@@ -675,6 +677,7 @@ export const useWorkflowStore = create<WorkflowState>()(
               w.id === workflowId ? { ...w, status: 'completed' as const } : w
             ),
           })
+          toast.success('Workflow completed')
         } catch (error) {
           const errorExecution: WorkflowExecution = {
             ...get().currentExecution!,
@@ -696,6 +699,7 @@ export const useWorkflowStore = create<WorkflowState>()(
             executionHistory: [...get().executionHistory, errorExecution],
             isRunning: false,
           })
+          toast.error('Workflow failed')
         }
       },
 

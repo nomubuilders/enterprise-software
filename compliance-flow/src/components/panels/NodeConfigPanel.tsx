@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import type { Node } from '@xyflow/react'
+import { motion } from 'framer-motion'
 import {
   X,
   Play,
@@ -85,8 +86,12 @@ export function NodeConfigPanel({ node, onClose, onRunWorkflow, onOpenChat }: No
   }
 
   return (
-    <div
+    <motion.div
       ref={panelRef}
+      initial={{ opacity: 0, x: 20 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: 20 }}
+      transition={{ duration: 0.15 }}
       style={{ width: panelWidth }}
       className="fixed right-0 top-0 z-40 flex h-full flex-col border-l border-[var(--nomu-border)] bg-[var(--nomu-bg)] shadow-2xl"
     >
@@ -179,7 +184,7 @@ export function NodeConfigPanel({ node, onClose, onRunWorkflow, onOpenChat }: No
           Close
         </Button>
       </div>
-    </div>
+    </motion.div>
   )
 }
 
@@ -199,7 +204,7 @@ function NodeIcon({ type }: { type: string }) {
     case 'outputNode':
       return <div className={`${iconClass} bg-[var(--nomu-accent)]`}><MessageSquare size={20} className="text-white" /></div>
     case 'dockerContainerNode':
-      return <div className={`${iconClass} bg-[#36312E]`}><Container size={20} className="text-white" /></div>
+      return <div className={`${iconClass} bg-[var(--nomu-surface)]`}><Container size={20} className="text-white" /></div>
     case 'documentNode':
       return <div className={`${iconClass} bg-[var(--nomu-primary)]`}><FileText size={20} className="text-white" /></div>
     default:

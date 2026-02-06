@@ -10,9 +10,9 @@ export const LLMNode = memo((props: NodeProps) => {
 
   // Temperature indicator
   const getTempColor = () => {
-    if (temperature < 0.3) return 'text-[#4004DA]'
-    if (temperature < 0.7) return 'text-[#FF6C1D]'
-    return 'text-[#FF6C1D]'
+    if (temperature < 0.3) return 'text-[var(--nomu-primary)]'
+    if (temperature < 0.7) return 'text-[var(--nomu-accent)]'
+    return 'text-[var(--nomu-accent)]'
   }
 
   const getTempLabel = () => {
@@ -22,11 +22,11 @@ export const LLMNode = memo((props: NodeProps) => {
   }
 
   return (
-    <BaseNode {...props} icon={<Bot size={16} />} color="bg-gradient-to-br from-[#4004DA] to-[#6B3FA0]">
+    <BaseNode {...props} icon={<Bot size={16} />} color="bg-[var(--nomu-primary)]">
       <div className="space-y-1">
         <div className="flex justify-between items-center">
           <span className="text-[var(--nomu-text-muted)] text-[10px]">Model:</span>
-          <span className="text-[#4004DA] font-medium">{model}</span>
+          <span className="text-[var(--nomu-primary)] font-medium">{model}</span>
         </div>
         <div className="flex justify-between items-center">
           <span className="text-[var(--nomu-text-muted)] text-[10px]">Mode:</span>

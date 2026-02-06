@@ -24,18 +24,18 @@ export const TriggerNode = memo(({ data, selected }: NodeProps) => {
       className={`
         min-w-[180px] rounded-lg border-2 bg-[var(--nomu-surface)] shadow-lg
         transition-all duration-200
-        ${selected ? 'border-[#FF6C1D] shadow-[0_0_12px_rgba(255,108,29,0.25)]' : 'border-[var(--nomu-border)]'}
+        ${selected ? 'border-[var(--nomu-accent)] shadow-[0_0_12px_rgba(255,108,29,0.25)]' : 'border-[var(--nomu-border)]'}
         hover:border-[var(--nomu-text-muted)]
       `}
     >
-      <div className="flex items-center gap-2 rounded-t-md bg-[#FF6C1D] px-3 py-2">
+      <div className="flex items-center gap-2 rounded-t-md bg-[var(--nomu-accent)] px-3 py-2">
         <div className="text-white">{triggerIcons[triggerType]}</div>
         <span className="text-sm font-medium text-white">{nodeData.label}</span>
       </div>
       <div className="p-3 text-xs text-[var(--nomu-text-muted)]">
         <div className="flex justify-between">
           <span className="text-[var(--nomu-text-muted)]">Type:</span>
-          <span className="capitalize text-[#FF6C1D]">{triggerType}</span>
+          <span className="capitalize text-[var(--nomu-accent)]">{triggerType}</span>
         </div>
         <div className="mt-1 flex justify-between">
           <span className="text-[var(--nomu-text-muted)]">Info:</span>
@@ -45,7 +45,7 @@ export const TriggerNode = memo(({ data, selected }: NodeProps) => {
       <Handle
         type="source"
         position={Position.Right}
-        className="!h-3 !w-3 !border-2 !border-[var(--nomu-surface)] !bg-[#FF6C1D]"
+        className="!h-3 !w-3 !border-2 !border-[var(--nomu-surface)] !bg-[var(--nomu-accent)]"
       />
     </div>
   )

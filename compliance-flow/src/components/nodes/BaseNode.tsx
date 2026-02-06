@@ -29,12 +29,12 @@ export const BaseNode = memo(({ data, selected, icon, color, children }: BaseNod
       <Handle
         type="target"
         position={Position.Left}
-        className="!h-3 !w-3 !border-2 !border-[var(--nomu-surface)] !bg-[#4004DA]"
+        className="!h-3 !w-3 !border-2 !border-[var(--nomu-surface)] !bg-[var(--nomu-primary)]"
       />
       <Handle
         type="source"
         position={Position.Right}
-        className="!h-3 !w-3 !border-2 !border-[var(--nomu-surface)] !bg-[#FF6C1D]"
+        className="!h-3 !w-3 !border-2 !border-[var(--nomu-surface)] !bg-[var(--nomu-accent)]"
       />
     </div>
   )

@@ -15,10 +15,10 @@ export const OutputNode = memo(({ data, selected }: NodeProps) => {
   }
 
   const outputColors: Record<string, string> = {
-    chat: 'bg-[#4004DA]',
-    spreadsheet: 'bg-[#4D4D4D]',
-    email: 'bg-[#FF6C1D]',
-    telegram: 'bg-[#4D4D4D]',
+    chat: 'bg-[var(--nomu-primary)]',
+    spreadsheet: 'bg-[var(--nomu-text-muted)]',
+    email: 'bg-[var(--nomu-accent)]',
+    telegram: 'bg-[var(--nomu-text-muted)]',
   }
 
   return (
@@ -47,7 +47,7 @@ export const OutputNode = memo(({ data, selected }: NodeProps) => {
       <Handle
         type="target"
         position={Position.Left}
-        className="!h-3 !w-3 !border-2 !border-[var(--nomu-surface)] !bg-[#4004DA]"
+        className="!h-3 !w-3 !border-2 !border-[var(--nomu-surface)] !bg-[var(--nomu-primary)]"
       />
     </div>
   )
@@ -58,19 +58,19 @@ function OutputStatusLabel({ outputType, config }: { outputType: string; config:
     const to = config.toEmail as string
     return to
       ? <span className="text-green-400" title={to}>● {to.length > 18 ? to.slice(0, 18) + '...' : to}</span>
-      : <span className="text-[#FF6C1D]">● Not configured</span>
+      : <span className="text-[var(--nomu-accent)]">● Not configured</span>
   }
   if (outputType === 'spreadsheet') {
     const fmt = config.fileFormat as string
     return fmt
       ? <span className="text-green-400">● {fmt.toUpperCase()}</span>
-      : <span className="text-[#FF6C1D]">● Not configured</span>
+      : <span className="text-[var(--nomu-accent)]">● Not configured</span>
   }
   if (outputType === 'telegram') {
     const chatId = config.chatId as string
     return chatId
       ? <span className="text-green-400" title={chatId}>● {chatId.length > 14 ? chatId.slice(0, 14) + '...' : chatId}</span>
-      : <span className="text-[#FF6C1D]">● Not configured</span>
+      : <span className="text-[var(--nomu-accent)]">● Not configured</span>
   }
   return <span className="text-green-400">● Ready</span>
 }
