@@ -45,9 +45,9 @@
 
 - Use Tailwind utility classes for all styling (no inline styles, no CSS modules)
 - Use Zustand for any new state management needs
-- All components are in `src/components/` organized by type (nodes, panels, modals, common, sidebar, canvas)
-- Reusable UI components (Button, Input, Modal, Select) are in `src/components/common/`
-- Follow the existing pattern of TypeScript interfaces in `src/types/`
+- All components are in `frontend/src/components/` organized by type (nodes, panels, modals, common, sidebar, canvas)
+- Reusable UI components (Button, Input, Modal, Select) are in `frontend/src/components/common/`
+- Follow the existing pattern of TypeScript interfaces in `frontend/src/types/`
 - Keep node types visually distinct from each other
 
 ## Testing
