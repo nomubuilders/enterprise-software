@@ -20,12 +20,14 @@ import {
   Plus,
   Minus,
   AlertTriangle,
+  FileText,
 } from 'lucide-react'
-import { Button, Input, Select } from '../common'
+import { Button, Input, Select, DocumentUploadZone } from '../common'
 import { DockerTerminal } from './DockerTerminal'
 import { useFlowStore } from '../../store/flowStore'
 import { useWorkflowStore } from '../../store/workflowStore'
 import { useDockerStore } from '../../store/dockerStore'
+import { useDocumentStore } from '../../store/documentStore'
 import { api } from '../../services/api'
 
 interface NodeConfigPanelProps {
@@ -149,6 +151,12 @@ export function NodeConfigPanel({ node, onClose, onRunWorkflow, onOpenChat }: No
             onUpdate={(data) => updateNodeData(node.id, data)}
           />
         )}
+        {nodeType === 'documentNode' && (
+          <DocumentNodeConfig
+            node={node}
+            onUpdate={(data) => updateNodeData(node.id, data)}
+          />
+        )}
       </div>
 
       {/* Footer */}
@@ -186,6 +194,8 @@ function NodeIcon({ type }: { type: string }) {
       return <div className={`${iconClass} bg-[var(--nomu-accent)]`}><MessageSquare size={20} className="text-white" /></div>
     case 'dockerContainerNode':
       return <div className={`${iconClass} bg-[#36312E]`}><Container size={20} className="text-white" /></div>
+    case 'documentNode':
+      return <div className={`${iconClass} bg-[var(--nomu-primary)]`}><FileText size={20} className="text-white" /></div>
     default:
       return null
   }
@@ -1460,6 +1470,203 @@ function DockerContainerNodeConfig({
         containerId={(config.containerId as string) || null}
         isRunning={(config.status as string) === 'running'}
       />
+
+      {/* Save */}
+      <Button variant="primary" onClick={handleSave} leftIcon={<Save size={14} />} className="w-full">
+        Save Configuration
+      </Button>
+    </div>
+  )
+}
+
+// ============================================
+// DOCUMENT NODE CONFIG
+// ============================================
+function DocumentNodeConfig({
+  node,
+  onUpdate,
+}: {
+  node: Node
+  onUpdate: (data: Record<string, unknown>) => void
+}) {
+  const config = (node.data as Record<string, unknown>).config as Record<string, unknown> || {}
+  const templates = useDocumentStore((s) => s.templates)
+  const { addDocument } = useDocumentStore()
+
+  const [mode, setMode] = useState((config.mode as string) || 'summarize')
+  const [templateId, setTemplateId] = useState((config.templateId as string) || '')
+  const [chunkSize, setChunkSize] = useState((config.chunkSize as number) || 20000)
+  const [systemPromptOverride, setSystemPromptOverride] = useState((config.systemPromptOverride as string) || '')
+  const [uploadFiles, setUploadFiles] = useState<File[]>([])
+  const [uploadStatus, setUploadStatus] = useState<'idle' | 'uploading' | 'parsing' | 'parsed' | 'error'>('idle')
+  const [uploadError, setUploadError] = useState<string | undefined>()
+  const [showSaved, setShowSaved] = useState(false)
+
+  const handleFileSelect = async (files: File[]) => {
+    setUploadFiles(files)
+    setUploadStatus('uploading')
+    setUploadError(undefined)
+
+    try {
+      for (const file of files) {
+        setUploadStatus('parsing')
+        const formData = new FormData()
+        formData.append('file', file)
+
+        const response = await fetch('http://localhost:8000/api/v1/documents/parse', {
+          method: 'POST',
+          body: formData,
+        })
+
+        if (!response.ok) throw new Error('Parse failed')
+
+        const result = await response.json()
+        const docId = `doc-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
+
+        addDocument({
+          id: docId,
+          name: file.name,
+          fileType: file.name.split('.').pop() as 'pdf' | 'docx' | 'txt',
+          fileSize: file.size,
+          pageCount: result.metadata?.pages || 1,
+          extractedText: result.text,
+          uploadedAt: new Date().toISOString(),
+          status: 'parsed',
+        })
+      }
+      setUploadStatus('parsed')
+    } catch (err) {
+      setUploadStatus('error')
+      setUploadError(err instanceof Error ? err.message : 'Upload failed')
+    }
+  }
+
+  const handleFileRemove = (index: number) => {
+    setUploadFiles((prev) => prev.filter((_, i) => i !== index))
+  }
+
+  const handleSave = () => {
+    onUpdate({
+      config: {
+        ...config,
+        mode,
+        templateId: templateId || null,
+        chunkSize,
+        systemPromptOverride: systemPromptOverride || undefined,
+      },
+    })
+    setShowSaved(true)
+    setTimeout(() => setShowSaved(false), 2000)
+  }
+
+  return (
+    <div className="space-y-6">
+      {showSaved && (
+        <div className="flex items-center gap-2 text-green-400 text-sm bg-green-900/30 rounded-lg px-3 py-2">
+          <CheckCircle2 size={16} />
+          <span>Configuration saved!</span>
+        </div>
+      )}
+
+      {/* Info Box */}
+      <div className="rounded-lg bg-[var(--nomu-primary)]/10 border border-[var(--nomu-primary)]/30 p-3">
+        <p className="text-xs text-[var(--nomu-primary)]">
+          <FileText size={12} className="inline mr-1" />
+          Upload legal documents for AI-powered structured summarization, search, or batch processing.
+        </p>
+      </div>
+
+      {/* Document Upload */}
+      <div>
+        <h3 className="mb-3 text-sm font-medium text-[var(--nomu-text)]">Document Upload</h3>
+        <DocumentUploadZone
+          multiple
+          files={uploadFiles}
+          status={uploadStatus}
+          error={uploadError}
+          onFileSelect={handleFileSelect}
+          onFileRemove={handleFileRemove}
+        />
+      </div>
+
+      {/* Template Selector */}
+      <div>
+        <h3 className="mb-3 text-sm font-medium text-[var(--nomu-text)]">Extraction Template</h3>
+        <Select
+          options={[
+            { value: '', label: 'Select a template...' },
+            ...templates.map((t) => ({ value: t.id, label: t.name })),
+          ]}
+          value={templateId}
+          onChange={(e) => setTemplateId(e.target.value)}
+        />
+        {templateId && (
+          <p className="mt-1 text-xs text-[var(--nomu-text-muted)]">
+            {templates.find((t) => t.id === templateId)?.description}
+          </p>
+        )}
+      </div>
+
+      {/* Mode Toggle */}
+      <div>
+        <label className="mb-2 block text-sm font-medium text-[var(--nomu-text-muted)]">Processing Mode</label>
+        <div className="grid grid-cols-3 gap-2">
+          {(['summarize', 'search', 'batch'] as const).map((m) => (
+            <button
+              key={m}
+              onClick={() => setMode(m)}
+              className={`rounded-lg p-3 text-center transition ${
+                mode === m
+                  ? 'bg-[var(--nomu-primary)]/20 border-2 border-[var(--nomu-primary)]'
+                  : 'bg-[var(--nomu-surface)] border-2 border-transparent hover:border-[var(--nomu-border)]'
+              }`}
+            >
+              <p className="font-medium text-sm text-[var(--nomu-text)] capitalize">{m}</p>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Chunk Size (only for summarize mode) */}
+      {mode === 'summarize' && (
+        <div>
+          <label className="mb-2 block text-sm font-medium text-[var(--nomu-text-muted)]">Chunk Size (characters)</label>
+          <Input
+            type="number"
+            value={chunkSize}
+            onChange={(e) => setChunkSize(parseInt(e.target.value) || 20000)}
+            min="1000"
+            max="100000"
+            step="1000"
+          />
+          <p className="mt-1 text-xs text-[var(--nomu-text-muted)]">
+            Documents larger than this will be split into chunks for summarization
+          </p>
+        </div>
+      )}
+
+      {/* System Prompt Override */}
+      <div>
+        <label className="mb-1 block text-sm font-medium text-[var(--nomu-text-muted)]">System Prompt Override</label>
+        <textarea
+          value={systemPromptOverride}
+          onChange={(e) => setSystemPromptOverride(e.target.value)}
+          className="w-full rounded-lg border border-[var(--nomu-border)] bg-[var(--nomu-surface)] px-3 py-2 font-mono text-sm text-[var(--nomu-text)] placeholder-[var(--nomu-text-muted)]"
+          rows={3}
+          placeholder="Optional: Override the template's default system prompt..."
+        />
+      </div>
+
+      {/* Compliance Badge */}
+      <div className="rounded-lg bg-green-900/20 border border-green-600/30 p-3">
+        <div className="flex items-center gap-2 text-green-400">
+          <Shield size={16} />
+          <span className="text-sm font-medium">Privacy-First Processing</span>
+        </div>
+        <p className="mt-1 text-xs text-[var(--nomu-text-muted)]">
+          All document processing runs locally via Ollama. No data leaves your infrastructure.
+        </p>
+      </div>
 
       {/* Save */}
       <Button variant="primary" onClick={handleSave} leftIcon={<Save size={14} />} className="w-full">

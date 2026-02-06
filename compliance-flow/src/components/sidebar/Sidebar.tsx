@@ -7,6 +7,7 @@ import {
   Container,
   MessageSquare,
   FileSpreadsheet,
+  FileText,
   Mail,
   Send,
   Clock,
@@ -75,6 +76,15 @@ const nodeTemplates: NodeTemplate[] = [
     color: 'bg-[#4004DA]',
     category: 'Data Sources',
     config: { dbType: 'mongodb' },
+  },
+  // Documents
+  {
+    type: 'documentNode',
+    label: 'Legal Document',
+    icon: <FileText size={18} />,
+    color: 'bg-[#4004DA]',
+    category: 'Documents',
+    config: { mode: 'summarize', templateId: null, chunkSize: 20000, documents: [] },
   },
   // AI Models
   {
@@ -146,7 +156,7 @@ const nodeTemplates: NodeTemplate[] = [
   },
 ]
 
-const categories = ['Triggers', 'Data Sources', 'AI Models', 'Compliance', 'Outputs', 'Containers']
+const categories = ['Triggers', 'Data Sources', 'Documents', 'AI Models', 'Compliance', 'Outputs', 'Containers']
 
 export function Sidebar() {
   const dockerAvailable = useDockerStore((s) => s.dockerAvailable)
