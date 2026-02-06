@@ -3,6 +3,8 @@ import { persist } from 'zustand/middleware'
 import type { Node, Edge } from '@xyflow/react'
 import type { Workflow, DatabaseConfig, WorkflowExecution } from '../types'
 import { api } from '../services/api'
+import { dockerApi } from '../services/dockerApi'
+import { useFlowStore } from './flowStore'
 
 interface WorkflowState {
   // Workflows
@@ -217,10 +219,26 @@ export const useWorkflowStore = create<WorkflowState>()(
           })
         }
 
+        const updateDockerNodeConfig = (nodeId: string, updates: Record<string, unknown>) => {
+          const flowState = useFlowStore.getState()
+          const currentNode = flowState.nodes.find(n => n.id === nodeId)
+          if (currentNode) {
+            const currentConfig = (currentNode.data as { config?: Record<string, unknown> }).config || {}
+            flowState.updateNodeData(nodeId, { config: { ...currentConfig, ...updates } })
+          }
+        }
+
         // Store workflow context data
         let workflowData: Record<string, unknown> = {}
 
         try {
+          // Reset all Docker nodes to idle before execution
+          for (const node of workflow.nodes) {
+            if (node.type === 'dockerContainerNode') {
+              updateDockerNodeConfig(node.id, { status: 'idle', containerId: null })
+            }
+          }
+
           // Execute nodes in order based on edges (simplified - assumes linear flow)
           for (const node of workflow.nodes) {
             const nodeData = node.data as { label?: string; config?: Record<string, unknown>; type?: string }
@@ -319,14 +337,148 @@ export const useWorkflowStore = create<WorkflowState>()(
                   addLog(node.id, nodeName, 'info', 'No content to filter')
                 }
               }
+              else if (node.type === 'dockerContainerNode') {
+                const image = config.image as string
+                const tag = (config.tag as string) || 'latest'
+
+                if (!image) {
+                  addLog(node.id, nodeName, 'warn', 'Docker container not configured - skipping')
+                } else {
+                  addLog(node.id, nodeName, 'info', `Starting Docker container ${image}:${tag}...`)
+
+                  try {
+                    const result = await dockerApi.executeContainer({
+                      image,
+                      tag,
+                      command: (config.command as string[]) || [],
+                      envVars: (config.envVars as Record<string, string>) || {},
+                      cpuLimit: (config.cpuLimit as number) || 0.5,
+                      memoryLimit: (config.memoryLimit as number) || 512,
+                      timeout: (config.timeout as number) || 300,
+                      networkMode: (config.networkMode as 'none' | 'internal') || 'none',
+                      inputData: workflowData,
+                      nodeId: node.id,
+                      workflowRunId: execution.id,
+                    })
+
+                    addLog(node.id, nodeName, 'info', `Container started (${result.executionId})`)
+                    updateDockerNodeConfig(node.id, { status: 'running', containerId: result.executionId })
+
+                    // Poll for completion
+                    const timeoutMs = ((config.timeout as number) || 300) * 1000 + 10_000
+                    const deadline = Date.now() + timeoutMs
+                    let containerStatus = result.status
+
+                    while (containerStatus !== 'completed' && containerStatus !== 'error' && Date.now() < deadline) {
+                      await new Promise(r => setTimeout(r, 2000))
+                      const status = await dockerApi.getContainerStatus(result.executionId)
+                      containerStatus = status.status
+
+                      if (status.status === 'completed') {
+                        workflowData.containerOutput = status.output
+                        workflowData.containerExitCode = status.exitCode
+                        addLog(node.id, nodeName, status.exitCode === 0 ? 'info' : 'warn',
+                          `Container exited with code ${status.exitCode}`, { output: status.output })
+                        updateDockerNodeConfig(node.id, { status: status.exitCode === 0 ? 'completed' : 'error' })
+                      } else if (status.status === 'error') {
+                        addLog(node.id, nodeName, 'error', `Container error: ${status.error}`)
+                        updateDockerNodeConfig(node.id, { status: 'error' })
+                      }
+                    }
+
+                    if (Date.now() >= deadline && containerStatus !== 'completed' && containerStatus !== 'error') {
+                      addLog(node.id, nodeName, 'warn', 'Container polling timed out - execution may still be running')
+                    }
+                  } catch (err) {
+                    addLog(node.id, nodeName, 'error',
+                      `Docker execution failed: ${err instanceof Error ? err.message : 'Unknown error'}`)
+                    updateDockerNodeConfig(node.id, { status: 'error' })
+                  }
+                }
+              }
               else if (node.type === 'outputNode') {
                 const outputType = config.outputType as string || 'chat'
+                workflowData.finalOutput = workflowData.filteredResponse || workflowData.llmResponse || workflowData.dbResult
                 addLog(node.id, nodeName, 'info', `Output ready (${outputType})`, {
-                  hasData: !!workflowData.filteredResponse || !!workflowData.llmResponse || !!workflowData.dbResult
+                  hasData: !!workflowData.finalOutput
                 })
 
-                // Store final output
-                workflowData.finalOutput = workflowData.filteredResponse || workflowData.llmResponse || workflowData.dbResult
+                // Execute output based on type
+                if (outputType === 'email' && config.smtpHost && config.toEmail) {
+                  try {
+                    addLog(node.id, nodeName, 'info', 'Sending email...')
+                    const body = typeof workflowData.finalOutput === 'string'
+                      ? workflowData.finalOutput
+                      : JSON.stringify(workflowData.finalOutput, null, 2)
+                    const result = await api.sendEmail({
+                      config: {
+                        smtp_host: config.smtpHost as string,
+                        smtp_port: (config.smtpPort as number) || 587,
+                        smtp_username: (config.smtpUsername as string) || '',
+                        smtp_password: (config.smtpPassword as string) || '',
+                        use_tls: (config.useTls as boolean) ?? true,
+                      },
+                      to_email: config.toEmail as string,
+                      subject: (config.subject as string) || 'Workflow Results',
+                      body,
+                      body_type: (config.bodyType as 'html' | 'plain') || 'html',
+                      from_name: (config.fromName as string) || undefined,
+                    })
+                    addLog(node.id, nodeName, result.success ? 'info' : 'error', result.message)
+                  } catch (err) {
+                    addLog(node.id, nodeName, 'error', `Email send failed: ${err instanceof Error ? err.message : 'Unknown error'}`)
+                  }
+                }
+
+                if (outputType === 'spreadsheet' && workflowData.finalOutput) {
+                  try {
+                    const fileFormat = (config.fileFormat as string) || 'csv'
+                    const dataArray = Array.isArray(workflowData.finalOutput) ? workflowData.finalOutput : [{ result: workflowData.finalOutput }]
+                    const filenameTemplate = (config.filename as string) || 'output-{timestamp}'
+                    const fname = filenameTemplate.replace('{timestamp}', new Date().toISOString().slice(0, 19).replace(/:/g, '-'))
+                    addLog(node.id, nodeName, 'info', `Exporting as ${fileFormat.toUpperCase()}...`)
+
+                    const result = fileFormat === 'xlsx'
+                      ? await api.exportToExcel(dataArray, fname, (config.includeHeaders as boolean) ?? true)
+                      : await api.exportToCSV(dataArray, fname, (config.includeHeaders as boolean) ?? true)
+
+                    if (result.success && result.file_content) {
+                      // Trigger browser download
+                      const blob = new Blob([atob(result.file_content)], { type: result.mime_type })
+                      const url = URL.createObjectURL(blob)
+                      const a = document.createElement('a')
+                      a.href = url
+                      a.download = result.filename
+                      a.click()
+                      URL.revokeObjectURL(url)
+                      addLog(node.id, nodeName, 'info', `Exported ${result.row_count} rows to ${result.filename}`)
+                    }
+                  } catch (err) {
+                    addLog(node.id, nodeName, 'error', `Spreadsheet export failed: ${err instanceof Error ? err.message : 'Unknown error'}`)
+                  }
+                }
+
+                if (outputType === 'telegram' && config.botToken && config.chatId) {
+                  try {
+                    addLog(node.id, nodeName, 'info', 'Sending Telegram message...')
+                    const template = (config.messageTemplate as string) || '{output}'
+                    const outputText = typeof workflowData.finalOutput === 'string'
+                      ? workflowData.finalOutput
+                      : JSON.stringify(workflowData.finalOutput, null, 2)
+                    const text = template.replace('{output}', outputText)
+                    const result = await api.sendTelegramMessage({
+                      config: { bot_token: config.botToken as string },
+                      chat_id: config.chatId as string,
+                      text,
+                      parse_mode: (config.parseMode as 'Markdown' | 'HTML') || 'Markdown',
+                      disable_notification: (config.disableNotification as boolean) || false,
+                    })
+                    addLog(node.id, nodeName, result.success ? 'info' : 'error', result.message)
+                  } catch (err) {
+                    addLog(node.id, nodeName, 'error', `Telegram send failed: ${err instanceof Error ? err.message : 'Unknown error'}`)
+                  }
+                }
+                // Chat output: finalOutput is already stored for ChatInterfacePanel to consume
               }
               else {
                 addLog(node.id, nodeName, 'info', `Executed node: ${nodeName}`)
