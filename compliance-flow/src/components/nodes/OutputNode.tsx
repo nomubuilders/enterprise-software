@@ -41,7 +41,7 @@ export const OutputNode = memo(({ data, selected }: NodeProps) => {
         </div>
         <div className="mt-1 flex justify-between">
           <span className="text-[var(--nomu-text-muted)]">Status:</span>
-          <span className="text-[#FF6C1D]">● Ready</span>
+          <OutputStatusLabel outputType={outputType} config={nodeData.config || {}} />
         </div>
       </div>
       <Handle
@@ -52,5 +52,27 @@ export const OutputNode = memo(({ data, selected }: NodeProps) => {
     </div>
   )
 })
+
+function OutputStatusLabel({ outputType, config }: { outputType: string; config: Record<string, unknown> }) {
+  if (outputType === 'email') {
+    const to = config.toEmail as string
+    return to
+      ? <span className="text-green-400" title={to}>● {to.length > 18 ? to.slice(0, 18) + '...' : to}</span>
+      : <span className="text-[#FF6C1D]">● Not configured</span>
+  }
+  if (outputType === 'spreadsheet') {
+    const fmt = config.fileFormat as string
+    return fmt
+      ? <span className="text-green-400">● {fmt.toUpperCase()}</span>
+      : <span className="text-[#FF6C1D]">● Not configured</span>
+  }
+  if (outputType === 'telegram') {
+    const chatId = config.chatId as string
+    return chatId
+      ? <span className="text-green-400" title={chatId}>● {chatId.length > 14 ? chatId.slice(0, 14) + '...' : chatId}</span>
+      : <span className="text-[#FF6C1D]">● Not configured</span>
+  }
+  return <span className="text-green-400">● Ready</span>
+}
 
 OutputNode.displayName = 'OutputNode'

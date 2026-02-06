@@ -1,4 +1,4 @@
-import { useCallback, useRef, useMemo } from 'react'
+import { useCallback, useRef, useMemo, useEffect } from 'react'
 import type { DragEvent } from 'react'
 import {
   ReactFlow,
@@ -28,6 +28,10 @@ export function Canvas() {
     onConnect,
     addNode,
     setSelectedNode,
+    isEditMode,
+    selectedEdgeId,
+    setSelectedEdge,
+    deleteEdge,
   } = useFlowStore()
 
   const onInit = useCallback((instance: ReactFlowInstance) => {
@@ -72,14 +76,24 @@ export function Canvas() {
 
   const onNodeClick = useCallback(
     (_: React.MouseEvent, node: any) => {
-      setSelectedNode(node)
+      setSelectedNode(node.id)
     },
     [setSelectedNode]
   )
 
+  const onEdgeClick = useCallback(
+    (_: React.MouseEvent, edge: Edge) => {
+      if (isEditMode) {
+        setSelectedEdge(edge.id)
+      }
+    },
+    [isEditMode, setSelectedEdge]
+  )
+
   const onPaneClick = useCallback(() => {
     setSelectedNode(null)
-  }, [setSelectedNode])
+    setSelectedEdge(null)
+  }, [setSelectedNode, setSelectedEdge])
 
   // Check if a node is properly configured
   const isNodeConfigured = useCallback((nodeId: string) => {
@@ -105,24 +119,38 @@ export function Canvas() {
     }
   }, [nodes])
 
+  // Keyboard listener for edge deletion
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (isEditMode && selectedEdgeId && (e.key === 'Delete' || e.key === 'Backspace')) {
+        e.preventDefault()
+        deleteEdge(selectedEdgeId)
+      }
+    }
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [isEditMode, selectedEdgeId, deleteEdge])
+
   // Enhance edges with visual feedback based on node configuration
   const enhancedEdges = useMemo(() => {
     return edges.map((edge): Edge => {
       const sourceConfigured = isNodeConfigured(edge.source)
       const targetConfigured = isNodeConfigured(edge.target)
       const bothConfigured = sourceConfigured && targetConfigured
+      const isSelected = isEditMode && edge.id === selectedEdgeId
 
       return {
         ...edge,
-        animated: bothConfigured,
+        animated: bothConfigured && !isSelected,
         style: {
-          stroke: bothConfigured ? 'var(--nomu-primary)' : 'var(--nomu-text-muted)',
-          strokeWidth: bothConfigured ? 3 : 2,
-          opacity: bothConfigured ? 1 : 0.5,
+          stroke: isSelected ? '#ef4444' : bothConfigured ? 'var(--nomu-primary)' : 'var(--nomu-text-muted)',
+          strokeWidth: isSelected ? 4 : bothConfigured ? 3 : 2,
+          opacity: bothConfigured || isSelected ? 1 : 0.5,
+          strokeDasharray: isSelected ? '8 4' : undefined,
         },
       }
     })
-  }, [edges, isNodeConfigured])
+  }, [edges, isNodeConfigured, isEditMode, selectedEdgeId])
 
   return (
     <div ref={reactFlowWrapper} className="h-full w-full">
@@ -136,8 +164,10 @@ export function Canvas() {
         onDrop={onDrop}
         onDragOver={onDragOver}
         onNodeClick={onNodeClick}
+        onEdgeClick={onEdgeClick}
         onPaneClick={onPaneClick}
         nodeTypes={nodeTypes}
+        edgesFocusable={isEditMode}
         fitView
         snapToGrid
         snapGrid={[15, 15]}

@@ -64,8 +64,8 @@ export const useThemeStore = create<ThemeState>()(
     {
       name: 'nomu-theme',
       partialize: (state) => ({ theme: state.theme }),
-      onRehydrate: (_state) => {
-        return (rehydratedState) => {
+      onRehydrateStorage: () => {
+        return (rehydratedState?: ThemeState) => {
           if (rehydratedState) {
             applyTheme(rehydratedState.theme)
           }

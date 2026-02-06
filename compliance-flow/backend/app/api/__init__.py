@@ -1,5 +1,5 @@
 """API routers."""
 
-from app.api import health, databases, llm, workflows
+from app.api import health, databases, llm, workflows, docker
 
-__all__ = ["health", "databases", "llm", "workflows"]
+__all__ = ["health", "databases", "llm", "workflows", "docker"]

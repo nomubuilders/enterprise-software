@@ -40,6 +40,12 @@ class Settings(BaseSettings):
     # Redis
     REDIS_URL: str = "redis://localhost:6379"
 
+    # Docker
+    DOCKER_SOCKET: str = "unix:///var/run/docker.sock"
+    DOCKER_TIMEOUT: int = 300
+    APPROVED_IMAGES_PATH: str = "../config/approved-images.json"
+    AUDIT_LOG_PATH: str = "../data/audit/container-executions.jsonl"
+
     # Security
     SECRET_KEY: str = "your-secret-key-change-in-production"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30

@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect } from 'react'
 import { ReactFlowProvider } from '@xyflow/react'
+import type { Node } from '@xyflow/react'
 import {
   Play,
   Save,
@@ -9,6 +10,8 @@ import {
   Loader2,
   Square,
   Sparkles,
+  Pencil,
+  PencilOff,
 } from 'lucide-react'
 import { NomuLogo } from './components/common/NomuLogo'
 import { ThemeToggle } from './components/common/ThemeToggle'
@@ -22,9 +25,10 @@ import {
 import { NodeConfigPanel } from './components/panels'
 import { AIAssistantPanel } from './components/panels/AIAssistantPanel'
 import { ChatInterfacePanel } from './components/panels/ChatInterfacePanel'
-import { useFlowStore } from './store/flowStore'
+import { useFlowStore, useSelectedNode } from './store/flowStore'
 import { useWorkflowStore } from './store/workflowStore'
 import { useThemeStore } from './store/themeStore'
+import { useDockerStore } from './store/dockerStore'
 
 function App() {
   // Modal states
@@ -32,10 +36,11 @@ function App() {
   const [showSaveModal, setShowSaveModal] = useState(false)
   const [showExecutionPanel, setShowExecutionPanel] = useState(false)
   const [showAIAssistant, setShowAIAssistant] = useState(false)
-  const [chatInterfaceNode, setChatInterfaceNode] = useState<typeof selectedNode>(null)
+  const [chatInterfaceNode, setChatInterfaceNode] = useState<Node | null>(null)
 
   // Store hooks
-  const { nodes, edges, clearFlow, selectedNode, setSelectedNode } = useFlowStore()
+  const { nodes, edges, clearFlow, setSelectedNode, isEditMode, toggleEditMode } = useFlowStore()
+  const selectedNode = useSelectedNode()
   const {
     currentWorkflowId,
     workflows,
@@ -48,6 +53,14 @@ function App() {
 
   // Initialize theme store (ensures theme class is applied to root)
   useThemeStore()
+
+  // Poll Docker health on mount and every 30s
+  const checkDockerHealth = useDockerStore((s) => s.checkDockerHealth)
+  useEffect(() => {
+    checkDockerHealth()
+    const interval = setInterval(checkDockerHealth, 30_000)
+    return () => clearInterval(interval)
+  }, [checkDockerHealth])
 
   const currentWorkflow = workflows.find(w => w.id === currentWorkflowId)
 
@@ -89,18 +102,12 @@ function App() {
     setSelectedNode(null)
   }, [setSelectedNode])
 
-  // Handle node selection - open chat interface for output nodes
-  useEffect(() => {
-    if (selectedNode?.type === 'outputNode') {
-      const nodeData = selectedNode.data as Record<string, unknown>
-      const config = nodeData.config as Record<string, unknown>
-      if (config?.outputType === 'chat') {
-        setChatInterfaceNode(selectedNode)
-        // Close the config panel since chat uses floating window
-        setSelectedNode(null)
-      }
+  // Open chat floating window (called from chat output config panel)
+  const handleOpenChatWindow = useCallback(() => {
+    if (selectedNode) {
+      setChatInterfaceNode(selectedNode)
     }
-  }, [selectedNode, setSelectedNode])
+  }, [selectedNode])
 
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-[var(--nomu-bg)]">
@@ -185,6 +192,18 @@ function App() {
               <Sparkles size={16} />
               AI Assistant
             </button>
+            <button
+              onClick={toggleEditMode}
+              className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition ${
+                isEditMode
+                  ? 'bg-[var(--nomu-accent)] text-white hover:bg-[var(--nomu-accent)]'
+                  : 'bg-[var(--nomu-surface)] text-[var(--nomu-text)] hover:bg-[var(--nomu-surface-hover)]'
+              }`}
+              title="Edit Mode"
+            >
+              {isEditMode ? <PencilOff size={16} /> : <Pencil size={16} />}
+              Edit
+            </button>
             <ThemeToggle />
             <button
               className="flex items-center gap-2 rounded-lg bg-[var(--nomu-surface)] p-2 text-[var(--nomu-text)] transition hover:bg-[var(--nomu-surface-hover)]"
@@ -236,6 +255,7 @@ function App() {
             node={selectedNode}
             onClose={handleCloseNodePanel}
             onRunWorkflow={handleRun}
+            onOpenChat={handleOpenChatWindow}
           />
         )}
 

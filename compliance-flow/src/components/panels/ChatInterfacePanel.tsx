@@ -20,7 +20,6 @@ interface Message {
 type ResizeHandle = 'n' | 's' | 'e' | 'w' | 'ne' | 'nw' | 'se' | 'sw' | null
 
 export function ChatInterfacePanel({ node, onClose }: ChatInterfacePanelProps) {
-  const nodeData = node.data as Record<string, unknown>
   const { nodes, edges } = useFlowStore()
 
   // Chat state
@@ -442,7 +441,7 @@ export function ChatInterfacePanel({ node, onClose }: ChatInterfacePanelProps) {
           <div className="flex items-center gap-2 text-xs text-[var(--nomu-primary)]">
             <Bot size={12} />
             <span>
-              AI Agent: <strong>{((aiAgent.data as Record<string, unknown>).config as Record<string, unknown>)?.model || 'llama3.2'}</strong>
+              AI Agent: <strong>{String(((aiAgent.data as Record<string, unknown>).config as Record<string, unknown>)?.model || 'llama3.2')}</strong>
             </span>
           </div>
         ) : (
@@ -498,7 +497,7 @@ export function ChatInterfacePanel({ node, onClose }: ChatInterfacePanelProps) {
                 {msg.role === 'user' ? (
                   <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
                 ) : (
-                  <div className="text-sm prose prose-sm prose-invert max-w-none prose-p:my-1 prose-headings:my-2 prose-ul:my-1 prose-code:bg-[var(--nomu-bg)] prose-code:px-1 prose-code:rounded">
+                  <div className="text-sm prose prose-sm prose-invert max-w-none prose-p:my-1 prose-headings:my-2 prose-ul:my-1 prose-code:bg-[var(--nomu-bg)] prose-code:px-1 prose-code:rounded prose-p:text-[var(--nomu-text)] prose-li:text-[var(--nomu-text)]">
                     <ReactMarkdown>{msg.content}</ReactMarkdown>
                   </div>
                 )}

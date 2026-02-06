@@ -44,7 +44,7 @@ I'll automatically detect what you need! 🧠`,
   const [inputValue, setInputValue] = useState('')
   const [isGenerating, setIsGenerating] = useState(false)
   const [showSuggestions, setShowSuggestions] = useState(true)
-  const [currentAction, setCurrentAction] = useState<string>('')
+  const [, setCurrentAction] = useState<string>('')
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   // Floating window state
@@ -413,7 +413,7 @@ ${improvements.suggestions.map((s, i) => `${i + 1}. ${s}`).join('\n')}`,
               {message.role === 'user' ? (
                 <p className="text-sm whitespace-pre-wrap">{message.content}</p>
               ) : (
-                <div className="text-sm prose prose-sm prose-invert max-w-none prose-p:my-1 prose-headings:my-2 prose-ul:my-1 prose-ol:my-1 prose-li:my-0.5 prose-strong:text-[var(--nomu-primary)] prose-code:bg-[var(--nomu-bg)] prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-pre:bg-[var(--nomu-bg)] prose-pre:p-2 prose-pre:rounded">
+                <div className="text-sm prose prose-sm prose-invert max-w-none prose-p:my-1 prose-headings:my-2 prose-ul:my-1 prose-ol:my-1 prose-li:my-0.5 prose-strong:text-[var(--nomu-primary)] prose-code:bg-[var(--nomu-bg)] prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-pre:bg-[var(--nomu-bg)] prose-pre:p-2 prose-pre:rounded prose-p:text-[var(--nomu-text)] prose-li:text-[var(--nomu-text)]">
                   <ReactMarkdown>{message.content}</ReactMarkdown>
                 </div>
               )}

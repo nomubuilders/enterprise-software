@@ -12,14 +12,19 @@ export interface NodeData extends Record<string, unknown> {
 interface FlowState {
   nodes: Node[]
   edges: Edge[]
-  selectedNode: Node | null
+  selectedNodeId: string | null
+  isEditMode: boolean
+  selectedEdgeId: string | null
   onNodesChange: (changes: NodeChange[]) => void
   onEdgesChange: (changes: EdgeChange[]) => void
   onConnect: (connection: Connection) => void
   addNode: (node: Node) => void
   updateNodeData: (nodeId: string, data: Partial<NodeData>) => void
-  setSelectedNode: (node: Node | null) => void
+  setSelectedNode: (id: string | null) => void
   deleteNode: (nodeId: string) => void
+  toggleEditMode: () => void
+  setSelectedEdge: (id: string | null) => void
+  deleteEdge: (edgeId: string) => void
   clearFlow: () => void
 }
 
@@ -69,7 +74,9 @@ export const useFlowStore = create<FlowState>()(
     (set, get) => ({
       nodes: initialNodes,
       edges: initialEdges,
-      selectedNode: null,
+      selectedNodeId: null,
+      isEditMode: false,
+      selectedEdgeId: null,
 
       onNodesChange: (changes) => {
         set({ nodes: applyNodeChanges(changes, get().nodes) })
@@ -95,8 +102,24 @@ export const useFlowStore = create<FlowState>()(
         })
       },
 
-      setSelectedNode: (node) => {
-        set({ selectedNode: node })
+      setSelectedNode: (id) => {
+        set({ selectedNodeId: id })
+      },
+
+      toggleEditMode: () => {
+        const newMode = !get().isEditMode
+        set({ isEditMode: newMode, selectedEdgeId: newMode ? get().selectedEdgeId : null })
+      },
+
+      setSelectedEdge: (id) => {
+        set({ selectedEdgeId: id })
+      },
+
+      deleteEdge: (edgeId) => {
+        set({
+          edges: get().edges.filter((edge) => edge.id !== edgeId),
+          selectedEdgeId: get().selectedEdgeId === edgeId ? null : get().selectedEdgeId,
+        })
       },
 
       deleteNode: (nodeId) => {
@@ -105,12 +128,12 @@ export const useFlowStore = create<FlowState>()(
           edges: get().edges.filter(
             (edge) => edge.source !== nodeId && edge.target !== nodeId
           ),
-          selectedNode: get().selectedNode?.id === nodeId ? null : get().selectedNode,
+          selectedNodeId: get().selectedNodeId === nodeId ? null : get().selectedNodeId,
         })
       },
 
       clearFlow: () => {
-        set({ nodes: [], edges: [], selectedNode: null })
+        set({ nodes: [], edges: [], selectedNodeId: null })
       },
     }),
     {
@@ -119,3 +142,10 @@ export const useFlowStore = create<FlowState>()(
     }
   )
 )
+
+/** Derives selectedNode from nodes + selectedNodeId. Always fresh. */
+export const useSelectedNode = (): Node | null => {
+  return useFlowStore((state) =>
+    state.selectedNodeId ? state.nodes.find((n) => n.id === state.selectedNodeId) ?? null : null
+  )
+}

@@ -3,7 +3,7 @@
  * Frontend service for Docker container orchestration
  */
 
-import type { DockerContainerConfig, ContainerExecution, ApprovedImage } from '../types/docker'
+import type { ContainerExecution, ApprovedImage } from '../types/docker'
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1'
 

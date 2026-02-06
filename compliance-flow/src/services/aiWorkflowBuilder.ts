@@ -227,7 +227,6 @@ Now analyze this user request and respond with ONLY valid JSON:`
    */
   generateFlowElements(intent: WorkflowIntent): { nodes: Node[]; edges: Edge[] } {
     const horizontalSpacing = 280
-    const verticalSpacing = 120
     const startX = 100
     const startY = 200
 

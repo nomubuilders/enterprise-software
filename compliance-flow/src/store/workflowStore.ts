@@ -292,10 +292,26 @@ export const useWorkflowStore = create<WorkflowState>()(
                 const model = config.model as string || 'llama3.2'
                 const systemPrompt = config.systemPrompt as string || 'You are a helpful assistant.'
 
-                // Build prompt with context from previous nodes
+                // Build prompt with context from all previous nodes
                 let prompt = systemPrompt + '\n\n'
+                const contextParts: string[] = []
                 if (workflowData.dbResult) {
-                  prompt += `Data from database:\n${JSON.stringify(workflowData.dbResult, null, 2).slice(0, 2000)}\n\n`
+                  contextParts.push(`Database query results:\n${JSON.stringify(workflowData.dbResult, null, 2).slice(0, 2000)}`)
+                }
+                if (workflowData.containerOutput) {
+                  contextParts.push(`Docker container output:\n${String(workflowData.containerOutput).slice(0, 2000)}`)
+                }
+                if (workflowData.containerExitCode !== undefined) {
+                  contextParts.push(`Docker container exit code: ${workflowData.containerExitCode}`)
+                }
+                if (workflowData.filteredResponse) {
+                  contextParts.push(`PII-filtered content:\n${String(workflowData.filteredResponse).slice(0, 2000)}`)
+                }
+                if (workflowData.llmResponse) {
+                  contextParts.push(`Previous AI response:\n${String(workflowData.llmResponse).slice(0, 2000)}`)
+                }
+                if (contextParts.length > 0) {
+                  prompt += 'Context from previous workflow steps:\n\n' + contextParts.join('\n\n') + '\n\n'
                 }
                 prompt += 'Please analyze this data and provide insights.'
 
