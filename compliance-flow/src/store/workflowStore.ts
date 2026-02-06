@@ -2,9 +2,12 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import type { Node, Edge } from '@xyflow/react'
 import type { Workflow, DatabaseConfig, WorkflowExecution } from '../types'
+import type { DocumentSummary } from '../types/document'
 import { api } from '../services/api'
 import { dockerApi } from '../services/dockerApi'
 import { useFlowStore } from './flowStore'
+import { useDocumentStore } from './documentStore'
+import { summarizeDocument, summarizeBatch, searchDocuments } from '../services/summarizationService'
 
 interface WorkflowState {
   // Workflows
@@ -310,6 +313,28 @@ export const useWorkflowStore = create<WorkflowState>()(
                 if (workflowData.llmResponse) {
                   contextParts.push(`Previous AI response:\n${String(workflowData.llmResponse).slice(0, 2000)}`)
                 }
+                if (workflowData.documentText) {
+                  contextParts.push(`Document text:\n${String(workflowData.documentText).slice(0, 3000)}`)
+                }
+                if (workflowData.documentSummary) {
+                  const summary = workflowData.documentSummary as DocumentSummary
+                  const summaryText = summary.fields.map(f => `## ${f.name}\n${f.content}`).join('\n\n')
+                  contextParts.push(`Document summary:\n${summaryText.slice(0, 3000)}`)
+                }
+                if (workflowData.batchSummaries) {
+                  const batch = workflowData.batchSummaries as DocumentSummary[]
+                  const batchText = batch.map((s, i) =>
+                    `### Document ${i + 1}\n${s.fields.map(f => `${f.name}: ${f.content}`).join('\n')}`
+                  ).join('\n\n')
+                  contextParts.push(`Batch document summaries:\n${batchText.slice(0, 3000)}`)
+                }
+                if (workflowData.searchResults) {
+                  const results = workflowData.searchResults as Array<{ documentName: string; summaryText: string; score: number }>
+                  const searchText = results.map(r =>
+                    `${r.documentName} (relevance: ${(r.score * 100).toFixed(1)}%):\n${r.summaryText}`
+                  ).join('\n\n')
+                  contextParts.push(`Document search results:\n${searchText.slice(0, 3000)}`)
+                }
                 if (contextParts.length > 0) {
                   prompt += 'Context from previous workflow steps:\n\n' + contextParts.join('\n\n') + '\n\n'
                 }
@@ -412,9 +437,113 @@ export const useWorkflowStore = create<WorkflowState>()(
                   }
                 }
               }
+              else if (node.type === 'documentNode') {
+                const docMode = (config.mode as string) || 'summarize'
+                const templateId = config.templateId as string
+                const docChunkSize = (config.chunkSize as number) || 20000
+                const documentIds = (config.documents as string[]) || []
+                const docStore = useDocumentStore.getState()
+
+                addLog(node.id, nodeName, 'info', 'Processing document...')
+
+                try {
+                  if (docMode === 'summarize') {
+                    // Get the most recent document or the one specified in config
+                    const targetDocId = documentIds.length > 0
+                      ? documentIds[documentIds.length - 1]
+                      : docStore.documents.length > 0
+                        ? docStore.documents[docStore.documents.length - 1].id
+                        : null
+
+                    if (!targetDocId) {
+                      addLog(node.id, nodeName, 'warn', 'No documents available for summarization')
+                    } else if (!templateId) {
+                      addLog(node.id, nodeName, 'warn', 'No template selected - skipping summarization')
+                    } else {
+                      const template = docStore.templates.find(t => t.id === templateId)
+                      const templateName = template?.name || templateId
+                      addLog(node.id, nodeName, 'info', `Summarizing with template: ${templateName}...`)
+
+                      const doc = docStore.documents.find(d => d.id === targetDocId)
+                      if (doc) {
+                        workflowData.documentText = doc.extractedText
+                      }
+
+                      const summary = await summarizeDocument(targetDocId, templateId, 'llama3.2', docChunkSize)
+                      workflowData.documentSummary = summary
+                      addLog(node.id, nodeName, 'info', 'Summary complete', {
+                        fields: summary.fields.length,
+                        documentId: targetDocId,
+                      })
+                    }
+                  } else if (docMode === 'batch') {
+                    const batchDocIds = documentIds.length > 0
+                      ? documentIds
+                      : docStore.documents.map(d => d.id)
+
+                    if (batchDocIds.length === 0) {
+                      addLog(node.id, nodeName, 'warn', 'No documents available for batch processing')
+                    } else if (!templateId) {
+                      addLog(node.id, nodeName, 'warn', 'No template selected - skipping batch processing')
+                    } else {
+                      addLog(node.id, nodeName, 'info', `Batch processing ${batchDocIds.length} documents...`)
+
+                      const batchResult = await summarizeBatch(
+                        batchDocIds,
+                        templateId,
+                        'llama3.2',
+                        docChunkSize,
+                        (completed, total, _docId, status) => {
+                          addLog(node.id, nodeName, 'info', `Batch progress: ${completed}/${total} (${status})`)
+                        }
+                      )
+
+                      workflowData.batchSummaries = batchResult.results
+                      if (batchResult.errors.length > 0) {
+                        addLog(node.id, nodeName, 'warn', `Batch completed with ${batchResult.errors.length} error(s)`, {
+                          errors: batchResult.errors,
+                        })
+                      }
+                      addLog(node.id, nodeName, 'info', `Batch complete: ${batchResult.results.length} summaries generated`)
+                    }
+                  } else if (docMode === 'search') {
+                    const searchQuery = (config.searchQuery as string) || ''
+
+                    if (!searchQuery) {
+                      addLog(node.id, nodeName, 'warn', 'No search query provided')
+                    } else {
+                      addLog(node.id, nodeName, 'info', 'Searching documents...')
+
+                      const results = await searchDocuments(searchQuery)
+                      workflowData.searchResults = results
+                      addLog(node.id, nodeName, 'info', `Search complete: ${results.length} results found`, {
+                        topScore: results.length > 0 ? results[0].score : 0,
+                      })
+                    }
+                  }
+                } catch (err) {
+                  addLog(node.id, nodeName, 'error',
+                    `Document processing failed: ${err instanceof Error ? err.message : 'Unknown error'}`)
+                }
+              }
               else if (node.type === 'outputNode') {
                 const outputType = config.outputType as string || 'chat'
-                workflowData.finalOutput = workflowData.filteredResponse || workflowData.llmResponse || workflowData.dbResult
+
+                // Build finalOutput with document summary awareness
+                if (workflowData.documentSummary) {
+                  const summary = workflowData.documentSummary as DocumentSummary
+                  const formattedSummary = summary.fields
+                    .map(f => `## ${f.name}\n${f.content}`)
+                    .join('\n\n')
+                  workflowData.finalOutput = workflowData.filteredResponse
+                    || workflowData.llmResponse
+                    || formattedSummary
+                } else {
+                  workflowData.finalOutput = workflowData.filteredResponse
+                    || workflowData.llmResponse
+                    || workflowData.dbResult
+                }
+
                 addLog(node.id, nodeName, 'info', `Output ready (${outputType})`, {
                   hasData: !!workflowData.finalOutput
                 })
@@ -423,9 +552,17 @@ export const useWorkflowStore = create<WorkflowState>()(
                 if (outputType === 'email' && config.smtpHost && config.toEmail) {
                   try {
                     addLog(node.id, nodeName, 'info', 'Sending email...')
-                    const body = typeof workflowData.finalOutput === 'string'
-                      ? workflowData.finalOutput
-                      : JSON.stringify(workflowData.finalOutput, null, 2)
+                    let body: string
+                    if (workflowData.documentSummary && !workflowData.llmResponse && !workflowData.filteredResponse) {
+                      const summary = workflowData.documentSummary as DocumentSummary
+                      body = summary.fields
+                        .map(f => `<h2>${f.name}</h2><p>${f.content.replace(/\n/g, '<br/>')}</p>`)
+                        .join('\n')
+                    } else {
+                      body = typeof workflowData.finalOutput === 'string'
+                        ? workflowData.finalOutput
+                        : JSON.stringify(workflowData.finalOutput, null, 2)
+                    }
                     const result = await api.sendEmail({
                       config: {
                         smtp_host: config.smtpHost as string,
@@ -446,10 +583,27 @@ export const useWorkflowStore = create<WorkflowState>()(
                   }
                 }
 
-                if (outputType === 'spreadsheet' && workflowData.finalOutput) {
+                if (outputType === 'spreadsheet' && (workflowData.finalOutput || workflowData.batchSummaries)) {
                   try {
                     const fileFormat = (config.fileFormat as string) || 'csv'
-                    const dataArray = Array.isArray(workflowData.finalOutput) ? workflowData.finalOutput : [{ result: workflowData.finalOutput }]
+                    let dataArray: Record<string, unknown>[]
+
+                    if (workflowData.batchSummaries) {
+                      // Create one row per document with template field columns
+                      const batch = workflowData.batchSummaries as DocumentSummary[]
+                      dataArray = batch.map(summary => {
+                        const row: Record<string, unknown> = { documentId: summary.documentId }
+                        for (const field of summary.fields) {
+                          row[field.name] = field.content
+                        }
+                        return row
+                      })
+                    } else if (Array.isArray(workflowData.finalOutput)) {
+                      dataArray = workflowData.finalOutput
+                    } else {
+                      dataArray = [{ result: workflowData.finalOutput }]
+                    }
+
                     const filenameTemplate = (config.filename as string) || 'output-{timestamp}'
                     const fname = filenameTemplate.replace('{timestamp}', new Date().toISOString().slice(0, 19).replace(/:/g, '-'))
                     addLog(node.id, nodeName, 'info', `Exporting as ${fileFormat.toUpperCase()}...`)
