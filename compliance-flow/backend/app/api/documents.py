@@ -57,3 +57,26 @@ async def embed_text(request: dict):
             }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Embedding failed: {str(e)}")
+
+
+@router.post("/evaluate")
+async def evaluate_summary(request: dict):
+    """Evaluate a generated summary against a reference summary."""
+    from app.services.evaluation_service import calculate_rouge, calculate_bleu
+
+    generated = request.get("generated_summary", "")
+    reference = request.get("reference_summary", "")
+
+    if not generated or not reference:
+        raise HTTPException(status_code=400, detail="Both generated_summary and reference_summary are required")
+
+    rouge_scores = calculate_rouge(generated, reference)
+    bleu_score = calculate_bleu(generated, reference)
+
+    return {
+        "success": True,
+        "rouge_1": rouge_scores["rouge_1"],
+        "rouge_2": rouge_scores["rouge_2"],
+        "rouge_l": rouge_scores["rouge_l"],
+        "bleu": bleu_score,
+    }

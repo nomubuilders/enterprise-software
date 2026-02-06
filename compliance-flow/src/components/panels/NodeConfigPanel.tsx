@@ -22,9 +22,11 @@ import {
   AlertTriangle,
   FileText,
   Sparkles,
+  BarChart3,
 } from 'lucide-react'
 import { Button, Input, Select, DocumentUploadZone } from '../common'
 import { DockerTerminal } from './DockerTerminal'
+import { EvaluationPanel } from './EvaluationPanel'
 import { useFlowStore } from '../../store/flowStore'
 import { useWorkflowStore } from '../../store/workflowStore'
 import { useDockerStore } from '../../store/dockerStore'
@@ -1514,6 +1516,7 @@ function DocumentNodeConfig({
   const [searchResults, setSearchResults] = useState<Array<{ documentId: string; documentName: string; summaryText: string; score: number }>>([])
   const [isSearching, setIsSearching] = useState(false)
   const [isIndexing, setIsIndexing] = useState(false)
+  const [showEvalPanel, setShowEvalPanel] = useState(false)
 
   const handleFileSelect = async (files: File[]) => {
     setUploadFiles(files)
@@ -1852,6 +1855,21 @@ function DocumentNodeConfig({
           )}
         </div>
       )}
+
+      {/* Evaluate Quality Button */}
+      {summaryFields.length > 0 && (
+        <Button
+          variant="secondary"
+          onClick={() => setShowEvalPanel(true)}
+          leftIcon={<BarChart3 size={14} />}
+          className="w-full"
+        >
+          Evaluate Quality
+        </Button>
+      )}
+
+      {/* Evaluation Panel */}
+      <EvaluationPanel isOpen={showEvalPanel} onClose={() => setShowEvalPanel(false)} />
 
       {/* Compliance Badge */}
       <div className="rounded-lg bg-green-900/20 border border-green-600/30 p-3">
