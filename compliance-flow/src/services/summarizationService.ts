@@ -239,3 +239,78 @@ export async function summarizeDocument(
     throw error
   }
 }
+
+/**
+ * Generate an embedding vector for text via backend.
+ */
+export async function embedText(text: string): Promise<number[]> {
+  const response = await fetch('http://localhost:8000/api/v1/documents/embed', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ text }),
+  })
+  if (!response.ok) throw new Error('Embedding failed')
+  const data = await response.json()
+  return data.embedding
+}
+
+/**
+ * Compute cosine similarity between two vectors.
+ */
+export function cosineSimilarity(a: number[], b: number[]): number {
+  if (a.length !== b.length || a.length === 0) return 0
+  let dot = 0, normA = 0, normB = 0
+  for (let i = 0; i < a.length; i++) {
+    dot += a[i] * b[i]
+    normA += a[i] * a[i]
+    normB += b[i] * b[i]
+  }
+  const denom = Math.sqrt(normA) * Math.sqrt(normB)
+  return denom === 0 ? 0 : dot / denom
+}
+
+/**
+ * Index a document's summary for search by generating its embedding.
+ */
+export async function indexDocumentForSearch(documentId: string): Promise<void> {
+  const store = useDocumentStore.getState()
+  const doc = store.documents.find((d) => d.id === documentId)
+  if (!doc) return
+
+  const summary = store.getSummaryForDocument(documentId)
+  if (!summary) return
+
+  const summaryText = summary.fields.map((f) => `${f.name}: ${f.content}`).join('\n')
+  const embedding = await embedText(summaryText)
+
+  store.addSearchEntry({
+    documentId,
+    documentName: doc.name,
+    summaryText,
+    embedding,
+    indexedAt: new Date().toISOString(),
+  })
+}
+
+/**
+ * Search indexed documents by natural language query.
+ * Returns results ranked by cosine similarity.
+ */
+export async function searchDocuments(query: string): Promise<Array<{
+  documentId: string
+  documentName: string
+  summaryText: string
+  score: number
+}>> {
+  const store = useDocumentStore.getState()
+  const queryEmbedding = await embedText(query)
+
+  const results = store.searchIndex.map((entry) => ({
+    documentId: entry.documentId,
+    documentName: entry.documentName,
+    summaryText: entry.summaryText,
+    score: cosineSimilarity(queryEmbedding, entry.embedding),
+  }))
+
+  return results.sort((a, b) => b.score - a.score).slice(0, 10)
+}

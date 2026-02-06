@@ -30,7 +30,7 @@ import { useWorkflowStore } from '../../store/workflowStore'
 import { useDockerStore } from '../../store/dockerStore'
 import { useDocumentStore } from '../../store/documentStore'
 import { api } from '../../services/api'
-import { summarizeDocument } from '../../services/summarizationService'
+import { summarizeDocument, searchDocuments, indexDocumentForSearch } from '../../services/summarizationService'
 
 interface NodeConfigPanelProps {
   node: Node | null
@@ -1510,6 +1510,10 @@ function DocumentNodeConfig({
   const [progress, setProgress] = useState<{ current: number; total: number; status: string } | null>(null)
   const [showChunks, setShowChunks] = useState(false)
   const [chunkSummariesData, setChunkSummariesData] = useState<string[]>([])
+  const [searchQuery, setSearchQuery] = useState('')
+  const [searchResults, setSearchResults] = useState<Array<{ documentId: string; documentName: string; summaryText: string; score: number }>>([])
+  const [isSearching, setIsSearching] = useState(false)
+  const [isIndexing, setIsIndexing] = useState(false)
 
   const handleFileSelect = async (files: File[]) => {
     setUploadFiles(files)
@@ -1552,6 +1556,30 @@ function DocumentNodeConfig({
 
   const handleFileRemove = (index: number) => {
     setUploadFiles((prev) => prev.filter((_, i) => i !== index))
+  }
+
+  const handleSearch = async () => {
+    if (!searchQuery.trim()) return
+    setIsSearching(true)
+    try {
+      const results = await searchDocuments(searchQuery)
+      setSearchResults(results)
+    } catch (err) {
+      setSummaryError(err instanceof Error ? err.message : 'Search failed')
+    }
+    setIsSearching(false)
+  }
+
+  const handleIndexAll = async () => {
+    setIsIndexing(true)
+    try {
+      for (const doc of documents) {
+        await indexDocumentForSearch(doc.id)
+      }
+    } catch (err) {
+      setSummaryError(err instanceof Error ? err.message : 'Indexing failed')
+    }
+    setIsIndexing(false)
   }
 
   const handleSummarize = async () => {
@@ -1707,6 +1735,60 @@ function DocumentNodeConfig({
         >
           {isSummarizing ? 'Summarizing...' : 'Summarize Document'}
         </Button>
+      )}
+
+      {/* Search Mode UI */}
+      {mode === 'search' && (
+        <div className="space-y-4">
+          <div>
+            <h3 className="mb-3 text-sm font-medium text-[var(--nomu-text)]">Document Search</h3>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={handleIndexAll}
+              disabled={isIndexing || documents.length === 0}
+              isLoading={isIndexing}
+              className="w-full mb-3"
+            >
+              {isIndexing ? 'Indexing...' : `Index ${documents.length} Document(s)`}
+            </Button>
+            <div className="flex gap-2">
+              <Input
+                value={searchQuery}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
+                placeholder="Search documents..."
+                onKeyDown={(e: React.KeyboardEvent) => e.key === 'Enter' && handleSearch()}
+              />
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={handleSearch}
+                disabled={isSearching || !searchQuery.trim()}
+                isLoading={isSearching}
+              >
+                Search
+              </Button>
+            </div>
+          </div>
+
+          {/* Search Results */}
+          {searchResults.length > 0 && (
+            <div className="space-y-2">
+              <h4 className="text-xs font-medium text-[var(--nomu-text-muted)]">
+                {searchResults.length} result(s)
+              </h4>
+              {searchResults.map((result, idx) => (
+                <div key={idx} className="rounded-lg bg-[var(--nomu-surface)] p-3">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-sm font-medium text-[var(--nomu-text)]">{result.documentName}</span>
+                    <span className="text-xs text-[var(--nomu-primary)]">{(result.score * 100).toFixed(1)}%</span>
+                  </div>
+                  <p className="text-xs text-[var(--nomu-text-muted)] line-clamp-3">{result.summaryText.slice(0, 200)}...</p>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       )}
 
       {/* Progress indicator */}

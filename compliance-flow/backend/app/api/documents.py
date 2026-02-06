@@ -29,3 +29,31 @@ async def parse_document_endpoint(file: UploadFile = File(...)):
         raise HTTPException(status_code=422, detail=result.get("error", "Failed to parse document"))
 
     return result
+
+
+@router.post("/embed")
+async def embed_text(request: dict):
+    """Generate embeddings for text using Ollama."""
+    import httpx
+
+    text = request.get("text", "")
+    model = request.get("model", "nomic-embed-text")
+
+    if not text:
+        raise HTTPException(status_code=400, detail="Text is required")
+
+    try:
+        async with httpx.AsyncClient(timeout=60.0) as client:
+            response = await client.post(
+                "http://localhost:11434/api/embeddings",
+                json={"model": model, "prompt": text}
+            )
+            response.raise_for_status()
+            data = response.json()
+            return {
+                "success": True,
+                "embedding": data.get("embedding", []),
+                "model": model
+            }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Embedding failed: {str(e)}")
