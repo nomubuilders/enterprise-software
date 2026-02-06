@@ -1507,6 +1507,9 @@ function DocumentNodeConfig({
   const [isSummarizing, setIsSummarizing] = useState(false)
   const [summaryFields, setSummaryFields] = useState<Array<{ name: string; content: string }>>([])
   const [summaryError, setSummaryError] = useState<string | null>(null)
+  const [progress, setProgress] = useState<{ current: number; total: number; status: string } | null>(null)
+  const [showChunks, setShowChunks] = useState(false)
+  const [chunkSummariesData, setChunkSummariesData] = useState<string[]>([])
 
   const handleFileSelect = async (files: File[]) => {
     setUploadFiles(files)
@@ -1554,19 +1557,30 @@ function DocumentNodeConfig({
   const handleSummarize = async () => {
     if (!templateId) return
     const docIds = (config.documents as string[]) || []
-    // Find most recent document uploaded via this config, or use first document in store
     const docId = docIds[0] || documents[documents.length - 1]?.id
     if (!docId) return
 
     setIsSummarizing(true)
     setSummaryError(null)
+    setProgress(null)
+    setChunkSummariesData([])
     try {
-      const summary = await summarizeDocument(docId, templateId)
+      const summary = await summarizeDocument(
+        docId,
+        templateId,
+        'llama3.2',
+        chunkSize,
+        (current, total, status) => setProgress({ current, total, status })
+      )
       setSummaryFields(summary.fields)
+      if (summary.chunkSummaries) {
+        setChunkSummariesData(summary.chunkSummaries)
+      }
     } catch (err) {
       setSummaryError(err instanceof Error ? err.message : 'Summarization failed')
     }
     setIsSummarizing(false)
+    setProgress(null)
   }
 
   const handleSave = () => {
@@ -1695,6 +1709,22 @@ function DocumentNodeConfig({
         </Button>
       )}
 
+      {/* Progress indicator */}
+      {progress && (
+        <div className="rounded-lg bg-[var(--nomu-surface)] p-3">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs text-[var(--nomu-text-muted)]">{progress.status}</span>
+            <span className="text-xs text-[var(--nomu-primary)]">{progress.current}/{progress.total}</span>
+          </div>
+          <div className="h-1.5 w-full rounded-full bg-[var(--nomu-border)]">
+            <div
+              className="h-1.5 rounded-full bg-[var(--nomu-primary)] transition-all duration-300"
+              style={{ width: `${(progress.current / progress.total) * 100}%` }}
+            />
+          </div>
+        </div>
+      )}
+
       {/* Summary Error */}
       {summaryError && (
         <div className="flex items-center gap-2 rounded-lg bg-red-900/20 px-3 py-2 text-xs text-red-400">
@@ -1715,6 +1745,29 @@ function DocumentNodeConfig({
               </div>
             ))}
           </div>
+        </div>
+      )}
+
+      {/* Chunk Debug View */}
+      {chunkSummariesData.length > 0 && (
+        <div>
+          <button
+            onClick={() => setShowChunks(!showChunks)}
+            className="flex items-center gap-2 text-xs text-[var(--nomu-text-muted)] hover:text-[var(--nomu-text)]"
+          >
+            <span>{showChunks ? '▼' : '▶'}</span>
+            <span>Chunk Summaries ({chunkSummariesData.length} chunks)</span>
+          </button>
+          {showChunks && (
+            <div className="mt-2 space-y-2">
+              {chunkSummariesData.map((chunk, idx) => (
+                <div key={idx} className="rounded-lg bg-[var(--nomu-surface)] p-3">
+                  <h4 className="text-xs font-medium text-[var(--nomu-text-muted)] mb-1">Chunk {idx + 1}</h4>
+                  <p className="text-xs text-[var(--nomu-text)] whitespace-pre-wrap max-h-32 overflow-y-auto">{chunk}</p>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
