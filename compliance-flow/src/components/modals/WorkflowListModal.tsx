@@ -11,7 +11,7 @@ import {
   FileEdit,
   MoreVertical,
 } from 'lucide-react'
-import { Modal, Button, Input } from '../common'
+import { Modal, Button, Input, ConfirmModal } from '../common'
 import { useWorkflowStore } from '../../store/workflowStore'
 import { useFlowStore } from '../../store/flowStore'
 import type { Workflow } from '../../types'
@@ -39,6 +39,7 @@ export function WorkflowListModal({ isOpen, onClose }: WorkflowListModalProps) {
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editName, setEditName] = useState('')
   const [menuOpenId, setMenuOpenId] = useState<string | null>(null)
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null)
 
   const handleCreateWorkflow = useCallback(() => {
     if (newWorkflowName.trim()) {
@@ -57,11 +58,16 @@ export function WorkflowListModal({ isOpen, onClose }: WorkflowListModalProps) {
   }, [loadWorkflow, onClose])
 
   const handleDelete = useCallback((id: string) => {
-    if (confirm('Are you sure you want to delete this workflow?')) {
-      deleteWorkflow(id)
-    }
+    setDeleteConfirmId(id)
     setMenuOpenId(null)
-  }, [deleteWorkflow])
+  }, [])
+
+  const handleConfirmDelete = useCallback(() => {
+    if (deleteConfirmId) {
+      deleteWorkflow(deleteConfirmId)
+      setDeleteConfirmId(null)
+    }
+  }, [deleteConfirmId, deleteWorkflow])
 
   const handleDuplicate = useCallback((id: string) => {
     duplicateWorkflow(id)
@@ -237,6 +243,16 @@ export function WorkflowListModal({ isOpen, onClose }: WorkflowListModalProps) {
           )}
         </div>
       </div>
+
+      <ConfirmModal
+        isOpen={deleteConfirmId !== null}
+        onConfirm={handleConfirmDelete}
+        onCancel={() => setDeleteConfirmId(null)}
+        title="Delete Workflow"
+        message="Are you sure you want to delete this workflow? This cannot be undone."
+        confirmLabel="Delete"
+        variant="danger"
+      />
     </Modal>
   )
 }

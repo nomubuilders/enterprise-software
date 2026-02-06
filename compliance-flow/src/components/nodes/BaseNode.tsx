@@ -25,7 +25,7 @@ export const BaseNode = memo(({ data, selected, icon, color, children }: BaseNod
         <div className="text-white">{icon}</div>
         <span className="text-sm font-medium text-white">{nodeData.label}</span>
       </div>
-      <div className="p-3 text-xs text-[var(--nomu-text-muted)]">{children}</div>
+      <div className="p-3 text-xs text-[var(--nomu-text-secondary)]">{children}</div>
       <Handle
         type="target"
         position={Position.Left}

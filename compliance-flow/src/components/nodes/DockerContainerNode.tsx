@@ -20,27 +20,27 @@ export const DockerContainerNode = memo((props: NodeProps) => {
       case 'completed': return { text: 'Completed', color: 'text-green-400', dot: '\u25CF' }
       case 'error': return { text: 'Error', color: 'text-red-400', dot: '\u25CF' }
       case 'pulling': return { text: 'Pulling...', color: 'text-yellow-400', dot: '\u25CB' }
-      default: return { text: 'Idle', color: 'text-[var(--nomu-text-muted)]', dot: '\u25CB' }
+      default: return { text: 'Idle', color: 'text-[var(--nomu-text-secondary)]', dot: '\u25CB' }
     }
   }
 
   const statusDisplay = getStatusDisplay()
 
   return (
-    <BaseNode {...props} icon={<Container size={16} />} color="bg-[var(--nomu-surface)]">
+    <BaseNode {...props} icon={<Container size={16} />} color="bg-[var(--nomu-primary)]">
       <div className="space-y-1.5">
         <div className="flex justify-between items-center">
-          <span className="text-[var(--nomu-text-muted)]">Image:</span>
-          <span className="text-[var(--nomu-text)] font-medium truncate max-w-[120px]" title={`${image}:${tag}`}>
+          <span className="text-[var(--nomu-text-secondary)]">Image:</span>
+          <span className="text-[var(--nomu-text-secondary)] font-medium truncate max-w-[120px]" title={`${image}:${tag}`}>
             {image}:{tag}
           </span>
         </div>
         <div className="flex justify-between items-center">
-          <span className="text-[var(--nomu-text-muted)]">Resources:</span>
-          <span className="text-[var(--nomu-text)]">{cpuLimit} CPU / {memoryLimit}MB</span>
+          <span className="text-[var(--nomu-text-secondary)]">Resources:</span>
+          <span className="text-[var(--nomu-text-secondary)]">{cpuLimit} CPU / {memoryLimit}MB</span>
         </div>
         <div className="flex justify-between items-center">
-          <span className="text-[var(--nomu-text-muted)]">Status:</span>
+          <span className="text-[var(--nomu-text-secondary)]">Status:</span>
           <span className={statusDisplay.color}>{statusDisplay.dot} {statusDisplay.text}</span>
         </div>
         <div className="mt-1">

@@ -26,7 +26,7 @@ import {
   BarChart3,
   Square,
 } from 'lucide-react'
-import { Button, Input, Select, DocumentUploadZone } from '../common'
+import { Button, Input, Select, DocumentUploadZone, ConfirmModal } from '../common'
 import { DockerTerminal } from './DockerTerminal'
 import { EvaluationPanel } from './EvaluationPanel'
 import { useFlowStore } from '../../store/flowStore'
@@ -50,6 +50,7 @@ export function NodeConfigPanel({ node, onClose, onRunWorkflow, onOpenChat }: No
 
   // Resizable panel state
   const [panelWidth, setPanelWidth] = useState(400)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const isResizing = useRef(false)
   const panelRef = useRef<HTMLDivElement>(null)
 
@@ -79,10 +80,13 @@ export function NodeConfigPanel({ node, onClose, onRunWorkflow, onOpenChat }: No
   const nodeData = node.data as Record<string, unknown>
 
   const handleDelete = () => {
-    if (confirm('Delete this node?')) {
-      deleteNode(node.id)
-      onClose()
-    }
+    setShowDeleteConfirm(true)
+  }
+
+  const handleConfirmDelete = () => {
+    deleteNode(node.id)
+    setShowDeleteConfirm(false)
+    onClose()
   }
 
   return (
@@ -184,6 +188,16 @@ export function NodeConfigPanel({ node, onClose, onRunWorkflow, onOpenChat }: No
           Close
         </Button>
       </div>
+
+      <ConfirmModal
+        isOpen={showDeleteConfirm}
+        onConfirm={handleConfirmDelete}
+        onCancel={() => setShowDeleteConfirm(false)}
+        title="Delete Node"
+        message={`Delete "${nodeData.label}"? This cannot be undone.`}
+        confirmLabel="Delete"
+        variant="danger"
+      />
     </motion.div>
   )
 }
@@ -1672,11 +1686,6 @@ function DocumentNodeConfig({
     })
     setShowSaved(true)
     setTimeout(() => setShowSaved(false), 2000)
-  }
-
-  // Helper to get document name by ID
-  const getDocName = (docId: string) => {
-    return documents.find((d) => d.id === docId)?.name || docId
   }
 
   // Helper to get per-document batch status

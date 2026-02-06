@@ -32,14 +32,14 @@ export const TriggerNode = memo(({ data, selected }: NodeProps) => {
         <div className="text-white">{triggerIcons[triggerType]}</div>
         <span className="text-sm font-medium text-white">{nodeData.label}</span>
       </div>
-      <div className="p-3 text-xs text-[var(--nomu-text-muted)]">
+      <div className="p-3 text-xs text-[var(--nomu-text-secondary)]">
         <div className="flex justify-between">
-          <span className="text-[var(--nomu-text-muted)]">Type:</span>
+          <span className="text-[var(--nomu-text-secondary)]">Type:</span>
           <span className="capitalize text-[var(--nomu-accent)]">{triggerType}</span>
         </div>
         <div className="mt-1 flex justify-between">
-          <span className="text-[var(--nomu-text-muted)]">Info:</span>
-          <span className="text-[var(--nomu-text-muted)]">{triggerLabels[triggerType]}</span>
+          <span className="text-[var(--nomu-text-secondary)]">Info:</span>
+          <span className="text-[var(--nomu-text-secondary)]">{triggerLabels[triggerType]}</span>
         </div>
       </div>
       <Handle

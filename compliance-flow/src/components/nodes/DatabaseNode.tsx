@@ -19,7 +19,7 @@ export const DatabaseNode = memo((props: NodeProps) => {
   const getStatus = () => {
     if (isConnected) return { text: 'Connected', color: 'text-[var(--nomu-accent)]', dot: '●' }
     if (hasConfig) return { text: 'Configured', color: 'text-yellow-400', dot: '○' }
-    return { text: 'Not configured', color: 'text-[var(--nomu-text-muted)]', dot: '○' }
+    return { text: 'Not configured', color: 'text-[var(--nomu-text-secondary)]', dot: '○' }
   }
 
   const status = getStatus()
@@ -28,13 +28,13 @@ export const DatabaseNode = memo((props: NodeProps) => {
     <BaseNode {...props} icon={<Database size={16} />} color="bg-[var(--nomu-primary)]">
       <div className="space-y-1">
         <div className="flex justify-between">
-          <span className="text-[var(--nomu-text-muted)]">Type:</span>
-          <span className={dbColors[dbType] || 'text-[var(--nomu-text-muted)]'}>
+          <span className="text-[var(--nomu-text-secondary)]">Type:</span>
+          <span className={dbColors[dbType] || 'text-[var(--nomu-text-secondary)]'}>
             {dbType.toUpperCase()}
           </span>
         </div>
         <div className="flex justify-between">
-          <span className="text-[var(--nomu-text-muted)]">Status:</span>
+          <span className="text-[var(--nomu-text-secondary)]">Status:</span>
           <span className={status.color}>{status.dot} {status.text}</span>
         </div>
       </div>

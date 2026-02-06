@@ -15,13 +15,13 @@ export const PIIFilterNode = memo((props: NodeProps) => {
   }
 
   return (
-    <BaseNode {...props} icon={<Shield size={16} />} color="bg-[var(--nomu-surface)] border-l-4 border-l-[var(--nomu-accent)]">
+    <BaseNode {...props} icon={<Shield size={16} />} color="bg-[var(--nomu-accent)] border-l-4 border-l-[var(--nomu-accent)]">
       <div className="space-y-1">
         <div className="flex justify-between">
-          <span className="text-[var(--nomu-text-muted)]">Mode:</span>
+          <span className="text-[var(--nomu-text-secondary)]">Mode:</span>
           <span className="capitalize text-[var(--nomu-accent)]">{mode}</span>
         </div>
-        <div className="mt-1 text-[10px] text-[var(--nomu-text-muted)]">
+        <div className="mt-1 text-[10px] text-[var(--nomu-text-secondary)]">
           {modeDescriptions[mode]}
         </div>
         <div className="mt-2 rounded bg-[var(--nomu-accent)]/10 px-2 py-1 text-[10px] text-[var(--nomu-accent)]">

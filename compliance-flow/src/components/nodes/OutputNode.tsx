@@ -16,9 +16,9 @@ export const OutputNode = memo(({ data, selected }: NodeProps) => {
 
   const outputColors: Record<string, string> = {
     chat: 'bg-[var(--nomu-primary)]',
-    spreadsheet: 'bg-[var(--nomu-text-muted)]',
+    spreadsheet: 'bg-[var(--nomu-primary)]',
     email: 'bg-[var(--nomu-accent)]',
-    telegram: 'bg-[var(--nomu-text-muted)]',
+    telegram: 'bg-[var(--nomu-primary)]',
   }
 
   return (
@@ -34,13 +34,13 @@ export const OutputNode = memo(({ data, selected }: NodeProps) => {
         <div className="text-white">{outputIcons[outputType]}</div>
         <span className="text-sm font-medium text-white">{nodeData.label}</span>
       </div>
-      <div className="p-3 text-xs text-[var(--nomu-text-muted)]">
+      <div className="p-3 text-xs text-[var(--nomu-text-secondary)]">
         <div className="flex justify-between">
-          <span className="text-[var(--nomu-text-muted)]">Output:</span>
+          <span className="text-[var(--nomu-text-secondary)]">Output:</span>
           <span className="capitalize text-[var(--nomu-primary)]">{outputType}</span>
         </div>
         <div className="mt-1 flex justify-between">
-          <span className="text-[var(--nomu-text-muted)]">Status:</span>
+          <span className="text-[var(--nomu-text-secondary)]">Status:</span>
           <OutputStatusLabel outputType={outputType} config={nodeData.config || {}} />
         </div>
       </div>

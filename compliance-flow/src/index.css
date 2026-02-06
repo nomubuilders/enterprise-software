@@ -47,9 +47,11 @@
   --nomu-bg: #000000;
   --nomu-bg-secondary: #0A0A0A;
   --nomu-surface: #36312E;
+  --nomu-surface-elevated: #4A443F;
   --nomu-surface-hover: #433D39;
   --nomu-text: #FEFCFD;
-  --nomu-text-muted: #4D4D4D;
+  --nomu-text-secondary: #D1D1D1;
+  --nomu-text-muted: #8A8A8A;
   --nomu-border: #4D4D4D;
   --nomu-border-light: #36312E;
   --nomu-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
@@ -61,8 +63,10 @@
   --nomu-bg: #FEFCFD;
   --nomu-bg-secondary: #F5F5F5;
   --nomu-surface: #FFFFFF;
+  --nomu-surface-elevated: #F0F0F0;
   --nomu-surface-hover: #F0F0F0;
   --nomu-text: #000000;
+  --nomu-text-secondary: #4B5563;
   --nomu-text-muted: #4D4D4D;
   --nomu-border: #E5E5E5;
   --nomu-border-light: #F0F0F0;

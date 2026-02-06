@@ -192,15 +192,14 @@ export function Canvas() {
           nodeColor={(node) => {
             switch (node.type) {
               case 'llmNode':
-                return '#4004DA'
               case 'databaseNode':
-                return '#2563eb'
-              case 'triggerNode':
-                return '#FF6C1D'
-              case 'piiFilterNode':
-                return '#d97706'
+              case 'dockerContainerNode':
+              case 'documentNode':
               case 'outputNode':
-                return '#0891b2'
+                return '#4004DA'
+              case 'triggerNode':
+              case 'piiFilterNode':
+                return '#FF6C1D'
               default:
                 return '#4D4D4D'
             }

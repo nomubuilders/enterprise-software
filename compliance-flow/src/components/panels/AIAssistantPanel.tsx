@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
-import { X, Send, Sparkles, Loader2, Lightbulb, Trash2, Wand2, Eraser, GripHorizontal, Minimize2, Maximize2 } from 'lucide-react'
+import { X, Send, Sparkles, Loader2, Lightbulb, Trash2, Wand2, GripHorizontal, Minimize2, Maximize2 } from 'lucide-react'
 import { Button } from '../common'
 import { aiWorkflowBuilder } from '../../services/aiWorkflowBuilder'
 import { aiIntentDetector } from '../../services/aiAssistantIntentDetector'
@@ -24,26 +24,12 @@ export function AIAssistantPanel({ isOpen, onClose }: AIAssistantPanelProps) {
   const [messages, setMessages] = useState<Message[]>([
     {
       role: 'system',
-      content: `👋 Hi! I'm your AI Workflow Assistant. I can help you in two ways:
-
-**Build Workflows:**
-- "Analyze customer feedback from database"
-- "Send daily email reports"
-- "Filter PII before AI analysis"
-
-**Get Help & Info:**
-- "What does this workflow do?"
-- "How can I improve this?"
-- "Tips for building workflows"
-- "Explain the PII filter node"
-
-I'll automatically detect what you need! 🧠`,
+      content: `Hi! I'm your **AI Workflow Assistant**. Describe what you want to build and I'll create the workflow for you. I can also answer questions about your existing workflow.`,
       timestamp: new Date(),
     },
   ])
   const [inputValue, setInputValue] = useState('')
   const [isGenerating, setIsGenerating] = useState(false)
-  const [showSuggestions, setShowSuggestions] = useState(true)
   const [, setCurrentAction] = useState<string>('')
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
@@ -58,13 +44,6 @@ I'll automatically detect what you need! 🧠`,
   const panelRef = useRef<HTMLDivElement>(null)
 
   const { addNode, nodes, edges, clearFlow } = useFlowStore()
-
-  const suggestions = [
-    'Analyze customer feedback from database',
-    'Send daily email with new user signups',
-    'Filter PII and summarize support tickets',
-    'Create webhook for processing orders',
-  ]
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -87,7 +66,6 @@ I'll automatically detect what you need! 🧠`,
     setMessages((prev) => [...prev, newMessage])
     setInputValue('')
     setIsGenerating(true)
-    setShowSuggestions(false)
 
     try {
       // Detect user intent
@@ -230,35 +208,11 @@ ${improvements.suggestions.map((s, i) => `${i + 1}. ${s}`).join('\n')}`,
     setMessages([
       {
         role: 'system',
-        content: `👋 Chat cleared! Ready to build more workflows.`,
+        content: `Chat cleared! Ready to build more workflows.`,
         timestamp: new Date(),
       },
     ])
-    setShowSuggestions(true)
   }
-
-  const handleClearCanvas = () => {
-    if (nodes.length === 0) {
-      const message: Message = {
-        role: 'assistant',
-        content: 'Canvas is already empty!',
-        timestamp: new Date(),
-      }
-      setMessages((prev) => [...prev, message])
-      return
-    }
-
-    if (confirm(`Clear ${nodes.length} nodes from canvas?`)) {
-      clearFlow()
-      const message: Message = {
-        role: 'assistant',
-        content: '✅ Canvas cleared! You can now create a new workflow.',
-        timestamp: new Date(),
-      }
-      setMessages((prev) => [...prev, message])
-    }
-  }
-
 
   // Drag and resize handlers
   const handleMouseDown = (e: React.MouseEvent) => {
@@ -433,55 +387,25 @@ ${improvements.suggestions.map((s, i) => `${i + 1}. ${s}`).join('\n')}`,
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Suggestions */}
-      {showSuggestions && messages.length === 1 && (
-        <div className="border-t border-[var(--nomu-border)] bg-[var(--nomu-surface)]/50 p-3">
-          <p className="text-xs text-[var(--nomu-text-muted)] mb-2">Quick start:</p>
-          <div className="space-y-1">
-            {suggestions.map((suggestion, index) => (
-              <button
-                key={index}
-                onClick={() => handleSendMessage(suggestion)}
-                className="w-full text-left rounded-lg bg-[var(--nomu-surface)] px-3 py-2 text-xs text-[var(--nomu-text-muted)] hover:bg-[var(--nomu-surface-hover)] hover:text-[var(--nomu-text)] transition"
-              >
-                {suggestion}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-
       {/* Action Buttons */}
-      <div className="border-t border-[var(--nomu-border)] bg-[var(--nomu-surface)] px-4 py-2 space-y-2">
-        <div className="flex gap-2">
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={handleSuggestImprovements}
-            disabled={isGenerating || nodes.length === 0}
-            leftIcon={<Lightbulb size={14} />}
-            className="flex-1"
-          >
-            Improve
-          </Button>
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={handleClearCanvas}
-            disabled={isGenerating || nodes.length === 0}
-            leftIcon={<Eraser size={14} />}
-            className="flex-1"
-          >
-            Clear Canvas
-          </Button>
-        </div>
+      <div className="border-t border-[var(--nomu-border)] bg-[var(--nomu-surface)] px-3 py-2 flex gap-2">
         <Button
-          variant="secondary"
+          variant="ghost"
+          size="sm"
+          onClick={handleSuggestImprovements}
+          disabled={isGenerating || nodes.length === 0}
+          leftIcon={<Lightbulb size={12} />}
+          className="flex-1 text-xs"
+        >
+          Improve
+        </Button>
+        <Button
+          variant="ghost"
           size="sm"
           onClick={handleClearChat}
           disabled={isGenerating}
-          leftIcon={<Trash2 size={14} />}
-          className="w-full"
+          leftIcon={<Trash2 size={12} />}
+          className="flex-1 text-xs"
         >
           Clear Chat
         </Button>

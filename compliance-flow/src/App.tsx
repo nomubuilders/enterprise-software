@@ -14,6 +14,7 @@ import {
   Sparkles,
   Pencil,
   PencilOff,
+  Eraser,
 } from 'lucide-react'
 import { NomuLogo } from './components/common/NomuLogo'
 import { ThemeToggle } from './components/common/ThemeToggle'
@@ -24,6 +25,7 @@ import {
   SaveWorkflowModal,
   ExecutionPanel,
 } from './components/modals'
+import { ConfirmModal } from './components/common'
 import { NodeConfigPanel } from './components/panels'
 import { AIAssistantPanel } from './components/panels/AIAssistantPanel'
 import { ChatInterfacePanel } from './components/panels/ChatInterfacePanel'
@@ -39,6 +41,8 @@ function App() {
   const [showExecutionPanel, setShowExecutionPanel] = useState(false)
   const [showAIAssistant, setShowAIAssistant] = useState(false)
   const [chatInterfaceNode, setChatInterfaceNode] = useState<Node | null>(null)
+  const [showNewFlowConfirm, setShowNewFlowConfirm] = useState(false)
+  const [showClearCanvasConfirm, setShowClearCanvasConfirm] = useState(false)
 
   // Store hooks
   const { nodes, edges, clearFlow, setSelectedNode, isEditMode, toggleEditMode } = useFlowStore()
@@ -69,15 +73,29 @@ function App() {
   // Handlers
   const handleNewFlow = useCallback(() => {
     if (nodes.length > 0) {
-      if (confirm('Create a new flow? Unsaved changes will be lost.')) {
-        clearFlow()
-        useWorkflowStore.getState().setCurrentWorkflow(null)
-      }
+      setShowNewFlowConfirm(true)
     } else {
       clearFlow()
       useWorkflowStore.getState().setCurrentWorkflow(null)
     }
   }, [nodes, clearFlow])
+
+  const handleConfirmNewFlow = useCallback(() => {
+    clearFlow()
+    useWorkflowStore.getState().setCurrentWorkflow(null)
+    setShowNewFlowConfirm(false)
+  }, [clearFlow])
+
+  const handleClearCanvas = useCallback(() => {
+    if (nodes.length > 0) {
+      setShowClearCanvasConfirm(true)
+    }
+  }, [nodes])
+
+  const handleConfirmClearCanvas = useCallback(() => {
+    clearFlow()
+    setShowClearCanvasConfirm(false)
+  }, [clearFlow])
 
   const handleRun = useCallback(async () => {
     setShowExecutionPanel(true)
@@ -206,6 +224,14 @@ function App() {
               {isEditMode ? <PencilOff size={16} /> : <Pencil size={16} />}
               Edit
             </button>
+            <button
+              onClick={handleClearCanvas}
+              disabled={nodes.length === 0}
+              className="flex items-center gap-2 rounded-lg bg-[var(--nomu-surface)] px-3 py-2 text-sm font-medium text-[var(--nomu-text)] transition hover:bg-[var(--nomu-surface-hover)] disabled:opacity-50 disabled:cursor-not-allowed"
+              title="Clear Canvas"
+            >
+              <Eraser size={16} />
+            </button>
             <ThemeToggle />
             <button
               className="flex items-center gap-2 rounded-lg bg-[var(--nomu-surface)] p-2 text-[var(--nomu-text)] transition hover:bg-[var(--nomu-surface-hover)]"
@@ -283,6 +309,26 @@ function App() {
         <ExecutionPanel
           isOpen={showExecutionPanel}
           onClose={() => setShowExecutionPanel(false)}
+        />
+
+        {/* Confirm Modals */}
+        <ConfirmModal
+          isOpen={showNewFlowConfirm}
+          onConfirm={handleConfirmNewFlow}
+          onCancel={() => setShowNewFlowConfirm(false)}
+          title="Create New Flow"
+          message="Unsaved changes will be lost. Are you sure you want to create a new flow?"
+          confirmLabel="Create New"
+          variant="warning"
+        />
+        <ConfirmModal
+          isOpen={showClearCanvasConfirm}
+          onConfirm={handleConfirmClearCanvas}
+          onCancel={() => setShowClearCanvasConfirm(false)}
+          title="Clear Canvas"
+          message={`Clear ${nodes.length} node${nodes.length !== 1 ? 's' : ''} from canvas? This cannot be undone.`}
+          confirmLabel="Clear"
+          variant="danger"
         />
       </ReactFlowProvider>
       <Toaster
