@@ -21,6 +21,7 @@ import {
   Minus,
   AlertTriangle,
   FileText,
+  Sparkles,
 } from 'lucide-react'
 import { Button, Input, Select, DocumentUploadZone } from '../common'
 import { DockerTerminal } from './DockerTerminal'
@@ -29,6 +30,7 @@ import { useWorkflowStore } from '../../store/workflowStore'
 import { useDockerStore } from '../../store/dockerStore'
 import { useDocumentStore } from '../../store/documentStore'
 import { api } from '../../services/api'
+import { summarizeDocument } from '../../services/summarizationService'
 
 interface NodeConfigPanelProps {
   node: Node | null
@@ -1491,6 +1493,7 @@ function DocumentNodeConfig({
 }) {
   const config = (node.data as Record<string, unknown>).config as Record<string, unknown> || {}
   const templates = useDocumentStore((s) => s.templates)
+  const documents = useDocumentStore((s) => s.documents)
   const { addDocument } = useDocumentStore()
 
   const [mode, setMode] = useState((config.mode as string) || 'summarize')
@@ -1501,6 +1504,9 @@ function DocumentNodeConfig({
   const [uploadStatus, setUploadStatus] = useState<'idle' | 'uploading' | 'parsing' | 'parsed' | 'error'>('idle')
   const [uploadError, setUploadError] = useState<string | undefined>()
   const [showSaved, setShowSaved] = useState(false)
+  const [isSummarizing, setIsSummarizing] = useState(false)
+  const [summaryFields, setSummaryFields] = useState<Array<{ name: string; content: string }>>([])
+  const [summaryError, setSummaryError] = useState<string | null>(null)
 
   const handleFileSelect = async (files: File[]) => {
     setUploadFiles(files)
@@ -1543,6 +1549,24 @@ function DocumentNodeConfig({
 
   const handleFileRemove = (index: number) => {
     setUploadFiles((prev) => prev.filter((_, i) => i !== index))
+  }
+
+  const handleSummarize = async () => {
+    if (!templateId) return
+    const docIds = (config.documents as string[]) || []
+    // Find most recent document uploaded via this config, or use first document in store
+    const docId = docIds[0] || documents[documents.length - 1]?.id
+    if (!docId) return
+
+    setIsSummarizing(true)
+    setSummaryError(null)
+    try {
+      const summary = await summarizeDocument(docId, templateId)
+      setSummaryFields(summary.fields)
+    } catch (err) {
+      setSummaryError(err instanceof Error ? err.message : 'Summarization failed')
+    }
+    setIsSummarizing(false)
   }
 
   const handleSave = () => {
@@ -1656,6 +1680,43 @@ function DocumentNodeConfig({
           placeholder="Optional: Override the template's default system prompt..."
         />
       </div>
+
+      {/* Summarize Button (only in summarize mode with template selected) */}
+      {mode === 'summarize' && templateId && (
+        <Button
+          variant="primary"
+          onClick={handleSummarize}
+          disabled={isSummarizing || documents.length === 0}
+          isLoading={isSummarizing}
+          leftIcon={isSummarizing ? undefined : <Sparkles size={14} />}
+          className="w-full"
+        >
+          {isSummarizing ? 'Summarizing...' : 'Summarize Document'}
+        </Button>
+      )}
+
+      {/* Summary Error */}
+      {summaryError && (
+        <div className="flex items-center gap-2 rounded-lg bg-red-900/20 px-3 py-2 text-xs text-red-400">
+          <XCircle size={14} />
+          <span>{summaryError}</span>
+        </div>
+      )}
+
+      {/* Summary Preview */}
+      {summaryFields.length > 0 && (
+        <div>
+          <h3 className="mb-3 text-sm font-medium text-[var(--nomu-text)]">Summary Results</h3>
+          <div className="space-y-3">
+            {summaryFields.map((field, idx) => (
+              <div key={idx} className="rounded-lg bg-[var(--nomu-surface)] p-3">
+                <h4 className="text-xs font-medium text-[var(--nomu-primary)] mb-1">{field.name}</h4>
+                <p className="text-sm text-[var(--nomu-text)] whitespace-pre-wrap">{field.content}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Compliance Badge */}
       <div className="rounded-lg bg-green-900/20 border border-green-600/30 p-3">
