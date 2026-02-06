@@ -23,6 +23,7 @@ import {
   FileText,
   Sparkles,
   BarChart3,
+  Square,
 } from 'lucide-react'
 import { Button, Input, Select, DocumentUploadZone } from '../common'
 import { DockerTerminal } from './DockerTerminal'
@@ -32,7 +33,8 @@ import { useWorkflowStore } from '../../store/workflowStore'
 import { useDockerStore } from '../../store/dockerStore'
 import { useDocumentStore } from '../../store/documentStore'
 import { api } from '../../services/api'
-import { summarizeDocument, searchDocuments, indexDocumentForSearch } from '../../services/summarizationService'
+import { summarizeDocument, summarizeBatch, searchDocuments, indexDocumentForSearch } from '../../services/summarizationService'
+import type { DocumentSummary } from '../../types/document'
 
 interface NodeConfigPanelProps {
   node: Node | null
@@ -1518,6 +1520,13 @@ function DocumentNodeConfig({
   const [isIndexing, setIsIndexing] = useState(false)
   const [showEvalPanel, setShowEvalPanel] = useState(false)
 
+  // Batch mode state
+  const [batchResults, setBatchResults] = useState<DocumentSummary[]>([])
+  const [batchErrors, setBatchErrors] = useState<Array<{ documentId: string; error: string }>>([])
+  const [batchProgress, setBatchProgress] = useState<{ completed: number; total: number; currentDocId: string } | null>(null)
+  const [isBatchProcessing, setIsBatchProcessing] = useState(false)
+  const cancelRef = useRef({ current: false })
+
   const handleFileSelect = async (files: File[]) => {
     setUploadFiles(files)
     setUploadStatus('uploading')
@@ -1614,6 +1623,38 @@ function DocumentNodeConfig({
     setProgress(null)
   }
 
+  const handleStartBatch = async () => {
+    if (!templateId || documents.length === 0) return
+
+    setIsBatchProcessing(true)
+    setBatchResults([])
+    setBatchErrors([])
+    setBatchProgress(null)
+    cancelRef.current = { current: false }
+
+    const docIds = documents.map((d) => d.id)
+
+    const { results, errors } = await summarizeBatch(
+      docIds,
+      templateId,
+      'llama3.2',
+      chunkSize,
+      (completed, total, documentId) => {
+        setBatchProgress({ completed, total, currentDocId: documentId })
+      },
+      cancelRef.current
+    )
+
+    setBatchResults(results)
+    setBatchErrors(errors)
+    setIsBatchProcessing(false)
+    setBatchProgress(null)
+  }
+
+  const handleCancelBatch = () => {
+    cancelRef.current.current = true
+  }
+
   const handleSave = () => {
     onUpdate({
       config: {
@@ -1626,6 +1667,19 @@ function DocumentNodeConfig({
     })
     setShowSaved(true)
     setTimeout(() => setShowSaved(false), 2000)
+  }
+
+  // Helper to get document name by ID
+  const getDocName = (docId: string) => {
+    return documents.find((d) => d.id === docId)?.name || docId
+  }
+
+  // Helper to get per-document batch status
+  const getDocBatchStatus = (docId: string): 'pending' | 'processing' | 'complete' | 'error' => {
+    if (batchErrors.some((e) => e.documentId === docId)) return 'error'
+    if (batchResults.some((r) => r.documentId === docId)) return 'complete'
+    if (batchProgress?.currentDocId === docId) return 'processing'
+    return 'pending'
   }
 
   return (
@@ -1789,6 +1843,106 @@ function DocumentNodeConfig({
                   <p className="text-xs text-[var(--nomu-text-muted)] line-clamp-3">{result.summaryText.slice(0, 200)}...</p>
                 </div>
               ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Batch Mode UI */}
+      {mode === 'batch' && templateId && (
+        <div className="space-y-4">
+          <div className="rounded-lg bg-[var(--nomu-surface)] p-3">
+            <p className="text-xs text-[var(--nomu-text-muted)]">
+              {documents.length} document(s) ready for batch processing
+            </p>
+          </div>
+
+          {/* Start / Cancel Batch */}
+          {!isBatchProcessing ? (
+            <Button
+              variant="primary"
+              onClick={handleStartBatch}
+              disabled={documents.length === 0}
+              leftIcon={<Sparkles size={14} />}
+              className="w-full"
+            >
+              Start Batch ({documents.length} documents)
+            </Button>
+          ) : (
+            <Button
+              variant="danger"
+              onClick={handleCancelBatch}
+              leftIcon={<Square size={14} />}
+              className="w-full"
+            >
+              Cancel Batch
+            </Button>
+          )}
+
+          {/* Batch Progress Bar */}
+          {batchProgress && (
+            <div className="rounded-lg bg-[var(--nomu-surface)] p-3">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs text-[var(--nomu-text-muted)]">
+                  Processing {batchProgress.completed}/{batchProgress.total}...
+                </span>
+                <span className="text-xs text-[var(--nomu-primary)]">
+                  {Math.round((batchProgress.completed / batchProgress.total) * 100)}%
+                </span>
+              </div>
+              <div className="h-2 w-full rounded-full bg-[var(--nomu-border)]">
+                <div
+                  className="h-2 rounded-full bg-[var(--nomu-primary)] transition-all duration-300"
+                  style={{ width: `${(batchProgress.completed / batchProgress.total) * 100}%` }}
+                />
+              </div>
+            </div>
+          )}
+
+          {/* Per-Document Status List */}
+          {(isBatchProcessing || batchResults.length > 0 || batchErrors.length > 0) && (
+            <div>
+              <h4 className="mb-2 text-xs font-medium text-[var(--nomu-text-muted)]">Document Status</h4>
+              <div className="space-y-1 max-h-48 overflow-y-auto">
+                {documents.map((doc) => {
+                  const st = getDocBatchStatus(doc.id)
+                  const errEntry = batchErrors.find((e) => e.documentId === doc.id)
+                  return (
+                    <div key={doc.id} className="flex items-center gap-2 rounded-lg bg-[var(--nomu-surface)] px-3 py-2">
+                      {st === 'complete' && <CheckCircle2 size={14} className="text-green-400 shrink-0" />}
+                      {st === 'error' && <XCircle size={14} className="text-red-400 shrink-0" />}
+                      {st === 'processing' && <Loader2 size={14} className="text-[var(--nomu-primary)] animate-spin shrink-0" />}
+                      {st === 'pending' && <Clock size={14} className="text-[var(--nomu-text-muted)] shrink-0" />}
+                      <div className="min-w-0 flex-1">
+                        <span className="text-xs text-[var(--nomu-text)] truncate block">{doc.name}</span>
+                        {errEntry && (
+                          <span className="text-xs text-red-400 truncate block">{errEntry.error}</span>
+                        )}
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Batch Completion Summary */}
+          {!isBatchProcessing && (batchResults.length > 0 || batchErrors.length > 0) && (
+            <div className="rounded-lg bg-[var(--nomu-surface)] p-3">
+              <h4 className="text-xs font-medium text-[var(--nomu-text)] mb-2">Batch Complete</h4>
+              <div className="flex items-center gap-4 text-xs">
+                <span className="text-green-400">
+                  <CheckCircle2 size={12} className="inline mr-1" />
+                  {batchResults.length} succeeded
+                </span>
+                <span className="text-red-400">
+                  <XCircle size={12} className="inline mr-1" />
+                  {batchErrors.length} failed
+                </span>
+                <span className="text-[var(--nomu-text-muted)]">
+                  {batchResults.length + batchErrors.length} total
+                </span>
+              </div>
             </div>
           )}
         </div>

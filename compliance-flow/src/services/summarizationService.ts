@@ -241,6 +241,45 @@ export async function summarizeDocument(
 }
 
 /**
+ * Batch-process multiple documents sequentially with progress tracking and error isolation.
+ * Failed documents are logged and skipped so the batch continues.
+ * Supports cancellation via a mutable cancel flag.
+ */
+export async function summarizeBatch(
+  documentIds: string[],
+  templateId: string,
+  model: string = 'llama3.2',
+  chunkSize: number = 20000,
+  onProgress?: (completed: number, total: number, documentId: string, status: string) => void,
+  cancelRef?: { current: boolean }
+): Promise<{ results: DocumentSummary[]; errors: Array<{ documentId: string; error: string }> }> {
+  const results: DocumentSummary[] = []
+  const errors: Array<{ documentId: string; error: string }> = []
+  const total = documentIds.length
+
+  for (let i = 0; i < documentIds.length; i++) {
+    if (cancelRef?.current) break
+
+    const docId = documentIds[i]
+    onProgress?.(i, total, docId, 'processing')
+
+    try {
+      const summary = await summarizeDocument(docId, templateId, model, chunkSize)
+      results.push(summary)
+    } catch (err) {
+      errors.push({
+        documentId: docId,
+        error: err instanceof Error ? err.message : 'Unknown error',
+      })
+    }
+
+    onProgress?.(i + 1, total, docId, 'done')
+  }
+
+  return { results, errors }
+}
+
+/**
  * Generate an embedding vector for text via backend.
  */
 export async function embedText(text: string): Promise<number[]> {
