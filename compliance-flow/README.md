@@ -121,7 +121,7 @@ compliance-flow/
 │   │   └── resources/       # App icons, production docker-compose, entitlements
 │   ├── src/                 # React renderer
 │   │   ├── components/
-│   │   │   ├── nodes/       # Workflow nodes (Trigger, Database, LLM, PII, Output)
+│   │   │   ├── nodes/       # 38 workflow node types
 │   │   │   ├── canvas/      # React Flow canvas
 │   │   │   ├── panels/      # Chat interface, AI assistant
 │   │   │   ├── electron/    # Setup wizard, service dashboard, update notification
@@ -137,7 +137,7 @@ compliance-flow/
 ├── backend/                 # FastAPI Python backend
 │   ├── app/
 │   │   ├── api/             # Route handlers (health, databases, llm, workflows, docker, documents)
-│   │   ├── services/        # Ollama, Docker, database connectors
+│   │   ├── services/        # Ollama, Docker, database connectors, enterprise integrations
 │   │   ├── models/          # Pydantic models
 │   │   └── core/            # Settings, config
 │   └── requirements.txt
@@ -178,15 +178,29 @@ Click the AI Assistant button to open the floating assistant window. Describe wh
 - *"What does this workflow do?"* — explains the current workflow
 - *"How do I connect to PostgreSQL?"* — provides help without modifying anything
 
-### Node Types
+### Node Types (38 total)
 
 | Category | Nodes |
 |----------|-------|
 | Triggers | Manual, Schedule (cron), Webhook |
-| Data Sources | PostgreSQL, MySQL, MongoDB |
+| Data Sources | PostgreSQL, MySQL, MongoDB, Database Creator, Local Folder, Cloud Documents |
+| Documents | Legal Document |
 | AI Models | Ollama LLM (Llama 3.2, Mistral, CodeLlama) |
 | Compliance | PII Redact, PII Mask (GDPR Article 17) |
 | Outputs | Chat Interface, Spreadsheet, Email, Telegram |
+| Containers | Docker Container |
+| Data Processing | Spreadsheet, Email Inbox, Web Search |
+| AI Configuration | AI Personality, Code Review, MCP Context |
+| Audit & Compliance | Audit Trail, Jira Compliance |
+| Workflow Control | Conditional Logic, Approval Gate |
+| Compliance Frameworks | Compliance Report, Model Registry, Evidence Collection |
+| AI Testing | Bias & Fairness, Explainability (XAI), Red Teaming, Drift Detection |
+| Team Collaboration | Slack Compliance, MS Teams DORA |
+| Communication | Notification, API Gateway, Sub-Workflow |
+| Security | Encryption |
+| Healthcare | PHI Classification, Consent Check |
+| Fintech | Fair Lending, SAP ERP |
+| Insurance | Claims Audit |
 
 ### Docker Service Dashboard (Desktop)
 
@@ -232,7 +246,10 @@ Backend configuration via environment variables or `.env`:
 - **100% Local Processing** — no data leaves your infrastructure
 - **GDPR Article 17** — PII redaction and masking built into workflow nodes
 - **EU AI Act Ready** — audit logging and transparency controls
-- **SOC 2 Compatible** — enterprise security architecture
+- **EU DORA** — ICT incident monitoring and 4-hour reporting window (MS Teams DORA node)
+- **SOX / IFRS** — financial reporting via SAP ERP OData v4 integration
+- **SOC 2 / ISO 27001** — SLA tracking and audit trails via Jira Compliance node
+- **HIPAA** — PHI classification and consent management nodes
 
 ## Troubleshooting
 

@@ -106,6 +106,9 @@ Open your browser to:
    - **PostgreSQL Node:** Add your database credentials
    - **LLM Node:** Model is already selected (llama3.2)
    - **Output Node:** Ready to display results
+   - **Slack Compliance Node:** Connect workspace for PII scanning
+   - **Jira Compliance Node:** Enter Jira URL and JQL query for SLA tracking
+   - **SAP ERP Node:** Configure SAP connection and report type
 
 5. **Run the workflow:**
    - Click the **"Run"** button (top-left, purple)
@@ -243,10 +246,11 @@ Open your browser to:
 
 ## What Makes ComplianceFlow Different?
 
-✅ **100% Local** - Zero cloud dependencies, all processing on your machine
-✅ **AI-Powered** - Natural language workflow generation
-✅ **Compliance-First** - Built-in PII filtering (GDPR Article 17)
-✅ **Enterprise Ready** - For regulated industries (healthcare, finance, legal)
+- **100% Local** - Zero cloud dependencies, all processing on your machine
+- **AI-Powered** - Natural language workflow generation
+- **38 Node Types** - From PII filtering to SAP ERP financial reports
+- **Compliance-First** - Built-in PII filtering (GDPR Article 17), DORA monitoring, SOX reporting
+- **Enterprise Ready** - Slack, MS Teams, Jira, SAP integrations for regulated industries
 
 ---
 

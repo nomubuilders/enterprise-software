@@ -144,7 +144,7 @@ uvicorn app.main:app --reload --port 8001
 **Solution:**
 1. Refresh the page
 2. Check browser console for errors
-3. Verify node type is supported (triggerNode, databaseNode, llmNode, piiFilterNode, outputNode)
+3. Verify node type is supported (38 types including triggerNode, databaseNode, llmNode, piiFilterNode, outputNode, slackComplianceNode, jiraComplianceNode, sapERPNode, and more)
 
 ---
 
@@ -458,4 +458,4 @@ If you're still stuck:
 
 ---
 
-*Last updated: February 3, 2026*
+*Last updated: February 7, 2026*

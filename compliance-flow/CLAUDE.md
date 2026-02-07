@@ -8,7 +8,7 @@
 
 - **Company**: Nomu - AI implementation consulting for privacy-sensitive organizations
 - **Tagline**: "We Make Data Speak."
-- **Product**: Drag-and-drop workflow builder with compliance nodes (PII filtering, local LLM, database connectors)
+- **Product**: Drag-and-drop workflow builder with 38 compliance node types (PII filtering, local LLM, database connectors, enterprise integrations)
 
 ## Architecture
 
@@ -46,6 +46,9 @@ compliance-flow/
 - **PII Detection**: Presidio (analyzer + anonymizer) + spaCy
 - **Documents**: PyPDF2, python-docx
 - **Containers**: Docker SDK
+- **Enterprise Integrations**: Slack SDK, Microsoft Graph (MSAL), Google APIs, Dropbox, Jira, SAP OData v4
+- **Cloud Storage**: Google Drive, Dropbox, OneDrive, MEGA
+- **Database Creation**: SQLite (SQLCipher encryption), Docker-managed provisioning
 
 ### Infrastructure (Docker Compose)
 - PostgreSQL 16, Redis 7, MongoDB 7, Ollama (with GPU support)
@@ -92,6 +95,7 @@ All scripts run from `frontend/`.
 - Keep node types visually distinct from each other
 - Electron main process code lives in `frontend/electron/main/`
 - IPC communication uses `contextBridge.exposeInMainWorld('electronAPI', ...)` pattern
+- Electron IPC namespaces: `docker`, `app`, `filesystem`, `updater`
 
 ## Electron Architecture
 
@@ -101,9 +105,10 @@ All scripts run from `frontend/`.
 - `docker-manager.ts` - Docker Compose orchestration (start/stop/health/logs)
 - `ipc-handlers.ts` - IPC bridge between renderer and main process
 - `auto-updater.ts` - GitHub release auto-updater (manual download approval)
+- `fs-handlers.ts` - Filesystem IPC (folder picker, file listing, read/write, database path selection)
 
 ### Preload (`electron/preload/`)
-- Exposes `window.electronAPI` with namespaces: `docker`, `app`, `updater`
+- Exposes `window.electronAPI` with namespaces: `docker`, `app`, `filesystem`, `updater`
 - Type-safe bridge with `contextIsolation: true`, `nodeIntegration: false`
 
 ### Packaging
@@ -132,6 +137,15 @@ All scripts run from `frontend/`.
 ### Visual Feedback
 - **Smart Edge Styling** - Edges change appearance based on node configuration state
 - Configured: Cyan, 3px, animated | Unconfigured: Gray, 2px, static
+
+### Enterprise Integrations
+- **Team Collaboration**: Slack Compliance (PII scanning), MS Teams DORA (ICT monitoring)
+- **Cloud Storage**: Google Drive, Dropbox, OneDrive, MEGA via unified CloudDocumentNode
+- **Database Creator**: SQLite (SQLCipher encryption) and Docker-managed DB provisioning
+- **Local Folder Storage**: Air-gapped file operations via Electron IPC (`filesystem` namespace)
+- **Jira Compliance**: SLA tracking, audit trails, JQL-based analysis (REST API v3)
+- **SAP ERP**: Financial reports via OData v4 (balance sheet, P&L, cost center, GL)
+- Custom config panel: `SAPERPConfig.tsx` (too complex for GenericNodeConfig)
 
 ### Docker Service Management
 - Desktop app manages backend services via Docker Compose
