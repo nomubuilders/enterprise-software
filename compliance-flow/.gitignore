@@ -18,4 +18,5 @@ dist/
 # Agent/tool directories
 .agent/
 .agents/
+.claude/
 .cursor/
