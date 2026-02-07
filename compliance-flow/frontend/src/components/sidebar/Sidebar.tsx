@@ -14,6 +14,11 @@ import {
   Clock,
   Webhook,
   Search,
+  Globe,
+  UserCircle,
+  ScrollText,
+  FileCode,
+  Plug,
 } from 'lucide-react'
 import { useDockerStore } from '../../store/dockerStore'
 
@@ -154,9 +159,68 @@ const nodeTemplates: NodeTemplate[] = [
     category: 'Containers',
     config: { image: '', tag: 'latest', command: [], envVars: {}, cpuLimit: 0.5, memoryLimit: 512, timeout: 300, networkMode: 'none' },
   },
+  // Data Processing
+  {
+    type: 'spreadsheetNode',
+    label: 'Spreadsheet',
+    icon: <FileSpreadsheet size={18} />,
+    color: 'bg-[var(--nomu-primary)]',
+    category: 'Data Processing',
+    config: { format: 'csv', operation: 'import' },
+  },
+  {
+    type: 'emailInboxNode',
+    label: 'Email Inbox',
+    icon: <Mail size={18} />,
+    color: 'bg-[var(--nomu-accent)]',
+    category: 'Data Processing',
+    config: { protocol: 'imap' },
+  },
+  {
+    type: 'webSearchNode',
+    label: 'Web Search',
+    icon: <Globe size={18} />,
+    color: 'bg-[var(--nomu-primary)]',
+    category: 'Data Processing',
+    config: { engine: 'searxng', maxResults: 10 },
+  },
+  // AI Configuration
+  {
+    type: 'personalityNode',
+    label: 'AI Personality',
+    icon: <UserCircle size={18} />,
+    color: 'bg-[var(--nomu-primary)]',
+    category: 'AI Configuration',
+    config: { persona: 'professional', tone: 'formal', language: 'en' },
+  },
+  {
+    type: 'codeReviewNode',
+    label: 'Code Review',
+    icon: <FileCode size={18} />,
+    color: 'bg-[var(--nomu-primary)]',
+    category: 'AI Configuration',
+    config: { reviewType: 'security', language: 'auto', minSeverity: 'medium' },
+  },
+  {
+    type: 'mcpContextNode',
+    label: 'MCP Context',
+    icon: <Plug size={18} />,
+    color: 'bg-[var(--nomu-primary)]',
+    category: 'AI Configuration',
+    config: { protocol: 'stdio' },
+  },
+  // Audit & Compliance
+  {
+    type: 'auditNode',
+    label: 'Audit Trail',
+    icon: <ScrollText size={18} />,
+    color: 'bg-[var(--nomu-accent)]',
+    category: 'Audit & Compliance',
+    config: { auditLevel: 'full', retentionDays: 90, logFormat: 'json', enabled: true },
+  },
 ]
 
-const categories = ['Triggers', 'Data Sources', 'Documents', 'AI Models', 'Compliance', 'Outputs', 'Containers']
+const categories = ['Triggers', 'Data Sources', 'Documents', 'AI Models', 'Compliance', 'Outputs', 'Containers', 'Data Processing', 'AI Configuration', 'Audit & Compliance']
 
 export function Sidebar() {
   const dockerAvailable = useDockerStore((s) => s.dockerAvailable)

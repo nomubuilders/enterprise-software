@@ -25,6 +25,13 @@ import {
   Sparkles,
   BarChart3,
   Square,
+  FileSpreadsheet,
+  Mail,
+  Globe,
+  UserCircle,
+  ScrollText,
+  FileCode,
+  Plug,
 } from 'lucide-react'
 import { Button, Input, Select, DocumentUploadZone, ConfirmModal } from '../common'
 import { DockerTerminal } from './DockerTerminal'
@@ -172,6 +179,91 @@ export function NodeConfigPanel({ node, onClose, onRunWorkflow, onOpenChat }: No
             onUpdate={(data) => updateNodeData(node.id, data)}
           />
         )}
+        {nodeType === 'spreadsheetNode' && (
+          <GenericNodeConfig
+            node={node}
+            onUpdate={(data) => updateNodeData(node.id, data)}
+            fields={[
+              { key: 'format', label: 'Format', type: 'select', options: [{ value: 'csv', label: 'CSV' }, { value: 'xlsx', label: 'Excel (XLSX)' }, { value: 'google_sheets', label: 'Google Sheets' }] },
+              { key: 'operation', label: 'Operation', type: 'select', options: [{ value: 'import', label: 'Import' }, { value: 'export', label: 'Export' }, { value: 'transform', label: 'Transform' }] },
+              { key: 'filePath', label: 'File Path', type: 'text', placeholder: '/path/to/file.csv' },
+              { key: 'sheetName', label: 'Sheet Name', type: 'text', placeholder: 'Sheet1' },
+            ]}
+          />
+        )}
+        {nodeType === 'emailInboxNode' && (
+          <GenericNodeConfig
+            node={node}
+            onUpdate={(data) => updateNodeData(node.id, data)}
+            fields={[
+              { key: 'protocol', label: 'Protocol', type: 'select', options: [{ value: 'imap', label: 'IMAP' }, { value: 'pop3', label: 'POP3' }] },
+              { key: 'host', label: 'Host', type: 'text', placeholder: 'imap.gmail.com' },
+              { key: 'port', label: 'Port', type: 'number', placeholder: '993' },
+              { key: 'email', label: 'Email', type: 'text', placeholder: 'user@example.com' },
+              { key: 'password', label: 'Password', type: 'password', placeholder: 'App password' },
+              { key: 'filterUnread', label: 'Unread Only', type: 'checkbox' },
+            ]}
+          />
+        )}
+        {nodeType === 'webSearchNode' && (
+          <GenericNodeConfig
+            node={node}
+            onUpdate={(data) => updateNodeData(node.id, data)}
+            fields={[
+              { key: 'engine', label: 'Engine', type: 'select', options: [{ value: 'searxng', label: 'SearXNG' }, { value: 'duckduckgo', label: 'DuckDuckGo' }] },
+              { key: 'engineUrl', label: 'Engine URL', type: 'text', placeholder: 'http://localhost:8888' },
+              { key: 'maxResults', label: 'Max Results', type: 'number', placeholder: '10' },
+            ]}
+          />
+        )}
+        {nodeType === 'personalityNode' && (
+          <GenericNodeConfig
+            node={node}
+            onUpdate={(data) => updateNodeData(node.id, data)}
+            fields={[
+              { key: 'persona', label: 'Persona', type: 'select', options: [{ value: 'professional', label: 'Professional' }, { value: 'technical', label: 'Technical' }, { value: 'friendly', label: 'Friendly' }, { value: 'legal', label: 'Legal Expert' }] },
+              { key: 'tone', label: 'Tone', type: 'select', options: [{ value: 'formal', label: 'Formal' }, { value: 'casual', label: 'Casual' }, { value: 'concise', label: 'Concise' }, { value: 'detailed', label: 'Detailed' }] },
+              { key: 'language', label: 'Language', type: 'select', options: [{ value: 'en', label: 'English' }, { value: 'es', label: 'Spanish' }, { value: 'fr', label: 'French' }, { value: 'de', label: 'German' }, { value: 'it', label: 'Italian' }, { value: 'nl', label: 'Dutch' }] },
+              { key: 'customPrompt', label: 'Custom Instructions', type: 'textarea', placeholder: 'Additional instructions for the AI personality...' },
+            ]}
+          />
+        )}
+        {nodeType === 'auditNode' && (
+          <GenericNodeConfig
+            node={node}
+            onUpdate={(data) => updateNodeData(node.id, data)}
+            fields={[
+              { key: 'auditLevel', label: 'Audit Level', type: 'select', options: [{ value: 'full', label: 'Full' }, { value: 'summary', label: 'Summary' }, { value: 'errors', label: 'Errors Only' }] },
+              { key: 'retentionDays', label: 'Retention (days)', type: 'number', placeholder: '90' },
+              { key: 'logFormat', label: 'Log Format', type: 'select', options: [{ value: 'json', label: 'JSON' }, { value: 'csv', label: 'CSV' }, { value: 'syslog', label: 'Syslog' }] },
+              { key: 'enabled', label: 'Enabled', type: 'checkbox' },
+            ]}
+          />
+        )}
+        {nodeType === 'codeReviewNode' && (
+          <GenericNodeConfig
+            node={node}
+            onUpdate={(data) => updateNodeData(node.id, data)}
+            fields={[
+              { key: 'reviewType', label: 'Review Type', type: 'select', options: [{ value: 'security', label: 'Security' }, { value: 'style', label: 'Style' }, { value: 'bugs', label: 'Bug Detection' }, { value: 'performance', label: 'Performance' }, { value: 'all', label: 'Full Review' }] },
+              { key: 'language', label: 'Language', type: 'select', options: [{ value: 'auto', label: 'Auto-detect' }, { value: 'python', label: 'Python' }, { value: 'javascript', label: 'JavaScript' }, { value: 'typescript', label: 'TypeScript' }, { value: 'go', label: 'Go' }, { value: 'rust', label: 'Rust' }] },
+              { key: 'minSeverity', label: 'Min Severity', type: 'select', options: [{ value: 'low', label: 'Low' }, { value: 'medium', label: 'Medium' }, { value: 'high', label: 'High' }, { value: 'critical', label: 'Critical' }] },
+              { key: 'sourceUrl', label: 'Source URL', type: 'text', placeholder: 'https://github.com/repo/...' },
+            ]}
+          />
+        )}
+        {nodeType === 'mcpContextNode' && (
+          <GenericNodeConfig
+            node={node}
+            onUpdate={(data) => updateNodeData(node.id, data)}
+            fields={[
+              { key: 'protocol', label: 'Protocol', type: 'select', options: [{ value: 'stdio', label: 'STDIO' }, { value: 'sse', label: 'SSE' }, { value: 'streamable-http', label: 'Streamable HTTP' }] },
+              { key: 'serverUrl', label: 'Server URL', type: 'text', placeholder: 'http://localhost:3000/mcp' },
+              { key: 'serverCommand', label: 'Server Command', type: 'text', placeholder: 'npx -y @modelcontextprotocol/server-...' },
+              { key: 'toolCount', label: 'Available Tools', type: 'number', placeholder: '0' },
+            ]}
+          />
+        )}
       </div>
 
       {/* Footer */}
@@ -221,6 +313,20 @@ function NodeIcon({ type }: { type: string }) {
       return <div className={`${iconClass} bg-[var(--nomu-surface)]`}><Container size={20} className="text-white" /></div>
     case 'documentNode':
       return <div className={`${iconClass} bg-[var(--nomu-primary)]`}><FileText size={20} className="text-white" /></div>
+    case 'spreadsheetNode':
+      return <div className={`${iconClass} bg-[var(--nomu-primary)]`}><FileSpreadsheet size={20} className="text-white" /></div>
+    case 'emailInboxNode':
+      return <div className={`${iconClass} bg-[var(--nomu-accent)]`}><Mail size={20} className="text-white" /></div>
+    case 'webSearchNode':
+      return <div className={`${iconClass} bg-[var(--nomu-primary)]`}><Globe size={20} className="text-white" /></div>
+    case 'personalityNode':
+      return <div className={`${iconClass} bg-[var(--nomu-primary)]`}><UserCircle size={20} className="text-white" /></div>
+    case 'auditNode':
+      return <div className={`${iconClass} bg-[var(--nomu-accent)]`}><ScrollText size={20} className="text-white" /></div>
+    case 'codeReviewNode':
+      return <div className={`${iconClass} bg-[var(--nomu-primary)]`}><FileCode size={20} className="text-white" /></div>
+    case 'mcpContextNode':
+      return <div className={`${iconClass} bg-[var(--nomu-primary)]`}><Plug size={20} className="text-white" /></div>
     default:
       return null
   }
@@ -2051,6 +2157,115 @@ function DocumentNodeConfig({
       </div>
 
       {/* Save */}
+      <Button variant="primary" onClick={handleSave} leftIcon={<Save size={14} />} className="w-full">
+        Save Configuration
+      </Button>
+    </div>
+  )
+}
+
+// ============================================
+// GENERIC NODE CONFIG (for new node types)
+// ============================================
+interface FieldDef {
+  key: string
+  label: string
+  type: 'text' | 'number' | 'password' | 'select' | 'checkbox' | 'textarea'
+  placeholder?: string
+  options?: Array<{ value: string; label: string }>
+}
+
+function GenericNodeConfig({
+  node,
+  onUpdate,
+  fields,
+}: {
+  node: Node
+  onUpdate: (data: Record<string, unknown>) => void
+  fields: FieldDef[]
+}) {
+  const config = (node.data as Record<string, unknown>).config as Record<string, unknown> || {}
+  const [values, setValues] = useState<Record<string, unknown>>(() => {
+    const initial: Record<string, unknown> = {}
+    for (const field of fields) {
+      initial[field.key] = config[field.key] ?? (field.type === 'checkbox' ? false : field.type === 'number' ? 0 : '')
+    }
+    return initial
+  })
+  const [showSaved, setShowSaved] = useState(false)
+
+  const updateField = (key: string, value: unknown) => {
+    setValues((prev) => ({ ...prev, [key]: value }))
+  }
+
+  const handleSave = () => {
+    onUpdate({ config: { ...config, ...values } })
+    setShowSaved(true)
+    setTimeout(() => setShowSaved(false), 2000)
+  }
+
+  return (
+    <div className="space-y-6">
+      {showSaved && (
+        <div className="flex items-center gap-2 text-green-400 text-sm bg-green-900/30 rounded-lg px-3 py-2">
+          <CheckCircle2 size={16} />
+          <span>Configuration saved!</span>
+        </div>
+      )}
+
+      <div className="space-y-4">
+        {fields.map((field) => {
+          if (field.type === 'select' && field.options) {
+            return (
+              <Select
+                key={field.key}
+                label={field.label}
+                options={field.options}
+                value={(values[field.key] as string) || ''}
+                onChange={(e) => updateField(field.key, e.target.value)}
+              />
+            )
+          }
+          if (field.type === 'checkbox') {
+            return (
+              <label key={field.key} className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={!!values[field.key]}
+                  onChange={(e) => updateField(field.key, e.target.checked)}
+                  className="h-4 w-4 rounded border-[var(--nomu-border)] bg-[var(--nomu-bg)] text-[var(--nomu-primary)]"
+                />
+                <span className="text-sm text-[var(--nomu-text-muted)]">{field.label}</span>
+              </label>
+            )
+          }
+          if (field.type === 'textarea') {
+            return (
+              <div key={field.key}>
+                <label className="mb-1 block text-sm font-medium text-[var(--nomu-text-muted)]">{field.label}</label>
+                <textarea
+                  value={(values[field.key] as string) || ''}
+                  onChange={(e) => updateField(field.key, e.target.value)}
+                  className="w-full rounded-lg border border-[var(--nomu-border)] bg-[var(--nomu-surface)] px-3 py-2 font-mono text-sm text-[var(--nomu-text)] placeholder-[var(--nomu-text-muted)]"
+                  rows={3}
+                  placeholder={field.placeholder}
+                />
+              </div>
+            )
+          }
+          return (
+            <Input
+              key={field.key}
+              label={field.label}
+              type={field.type}
+              value={values[field.key] as string | number}
+              onChange={(e) => updateField(field.key, field.type === 'number' ? parseInt(e.target.value) || 0 : e.target.value)}
+              placeholder={field.placeholder}
+            />
+          )
+        })}
+      </div>
+
       <Button variant="primary" onClick={handleSave} leftIcon={<Save size={14} />} className="w-full">
         Save Configuration
       </Button>
