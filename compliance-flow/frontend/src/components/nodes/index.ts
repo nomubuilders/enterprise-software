@@ -25,6 +25,10 @@ export { NotificationNode } from './NotificationNode'
 export { EncryptionNode } from './EncryptionNode'
 export { WebhookGatewayNode } from './WebhookGatewayNode'
 export { SubWorkflowNode } from './SubWorkflowNode'
+export { PHIClassificationNode } from './PHIClassificationNode'
+export { FairLendingNode } from './FairLendingNode'
+export { ClaimsAuditNode } from './ClaimsAuditNode'
+export { ConsentManagementNode } from './ConsentManagementNode'
 
 import { LLMNode } from './LLMNode'
 import { DatabaseNode } from './DatabaseNode'
@@ -53,6 +57,10 @@ import { NotificationNode } from './NotificationNode'
 import { EncryptionNode } from './EncryptionNode'
 import { WebhookGatewayNode } from './WebhookGatewayNode'
 import { SubWorkflowNode } from './SubWorkflowNode'
+import { PHIClassificationNode } from './PHIClassificationNode'
+import { FairLendingNode } from './FairLendingNode'
+import { ClaimsAuditNode } from './ClaimsAuditNode'
+import { ConsentManagementNode } from './ConsentManagementNode'
 
 export const nodeTypes = {
   llmNode: LLMNode,
@@ -82,4 +90,8 @@ export const nodeTypes = {
   encryptionNode: EncryptionNode,
   webhookGatewayNode: WebhookGatewayNode,
   subWorkflowNode: SubWorkflowNode,
+  phiClassificationNode: PHIClassificationNode,
+  fairLendingNode: FairLendingNode,
+  claimsAuditNode: ClaimsAuditNode,
+  consentManagementNode: ConsentManagementNode,
 }

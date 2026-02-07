@@ -32,6 +32,10 @@ import {
   Lock,
   Radio,
   Layers,
+  HeartPulse,
+  Landmark,
+  FileCheck,
+  UserCheck,
 } from 'lucide-react'
 import { useDockerStore } from '../../store/dockerStore'
 
@@ -340,9 +344,44 @@ const nodeTemplates: NodeTemplate[] = [
     category: 'Security',
     config: { algorithm: 'aes-256-gcm', operation: 'encrypt' },
   },
+  // Healthcare
+  {
+    type: 'phiClassificationNode',
+    label: 'PHI Classification',
+    icon: <HeartPulse size={18} />,
+    color: 'bg-pink-700',
+    category: 'Healthcare',
+    config: { deidentMethod: 'safe_harbor', identifiers: [] },
+  },
+  {
+    type: 'consentManagementNode',
+    label: 'Consent Check',
+    icon: <UserCheck size={18} />,
+    color: 'bg-lime-700',
+    category: 'Healthcare',
+    config: { regulation: 'hipaa', consentType: 'explicit', blockOnMissing: true },
+  },
+  // Fintech
+  {
+    type: 'fairLendingNode',
+    label: 'Fair Lending',
+    icon: <Landmark size={18} />,
+    color: 'bg-green-700',
+    category: 'Fintech',
+    config: { regulation: 'ecoa', analysisType: 'disparate_impact', protectedClasses: [] },
+  },
+  // Insurance
+  {
+    type: 'claimsAuditNode',
+    label: 'Claims Audit',
+    icon: <FileCheck size={18} />,
+    color: 'bg-orange-700',
+    category: 'Insurance',
+    config: { auditType: 'full', flagAutoDenials: true, generateExplanation: true },
+  },
 ]
 
-const categories = ['Triggers', 'Data Sources', 'Documents', 'AI Models', 'Compliance', 'Outputs', 'Containers', 'Data Processing', 'AI Configuration', 'Audit & Compliance', 'Workflow Control', 'Compliance Frameworks', 'AI Testing', 'Communication', 'Security']
+const categories = ['Triggers', 'Data Sources', 'Documents', 'AI Models', 'Compliance', 'Outputs', 'Containers', 'Data Processing', 'AI Configuration', 'Audit & Compliance', 'Workflow Control', 'Compliance Frameworks', 'AI Testing', 'Communication', 'Security', 'Healthcare', 'Fintech', 'Insurance']
 
 export function Sidebar() {
   const dockerAvailable = useDockerStore((s) => s.dockerAvailable)

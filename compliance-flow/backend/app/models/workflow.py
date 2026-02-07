@@ -43,6 +43,10 @@ class NodeType(str, Enum):
     ENCRYPTION = "encryptionNode"
     WEBHOOK_GATEWAY = "webhookGatewayNode"
     SUB_WORKFLOW = "subWorkflowNode"
+    PHI_CLASSIFICATION = "phiClassificationNode"
+    FAIR_LENDING = "fairLendingNode"
+    CLAIMS_AUDIT = "claimsAuditNode"
+    CONSENT_MANAGEMENT = "consentManagementNode"
 
 
 class TriggerType(str, Enum):

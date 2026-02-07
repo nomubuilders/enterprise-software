@@ -45,6 +45,10 @@ import {
   Lock,
   Radio,
   Layers,
+  HeartPulse,
+  Landmark,
+  FileCheck,
+  UserCheck,
 } from 'lucide-react'
 import { Button, Input, Select, DocumentUploadZone, ConfirmModal } from '../common'
 import { DockerTerminal } from './DockerTerminal'
@@ -430,6 +434,53 @@ export function NodeConfigPanel({ node, onClose, onRunWorkflow, onOpenChat }: No
             ]}
           />
         )}
+        {nodeType === 'phiClassificationNode' && (
+          <GenericNodeConfig
+            node={node}
+            onUpdate={(data) => updateNodeData(node.id, data)}
+            fields={[
+              { key: 'deidentMethod', label: 'De-identification Method', type: 'select', options: [{ value: 'safe_harbor', label: 'Safe Harbor (18 IDs)' }, { value: 'expert_determination', label: 'Expert Determination' }, { value: 'limited_dataset', label: 'Limited Dataset' }] },
+              { key: 'replacementStrategy', label: 'Replacement', type: 'select', options: [{ value: 'redact', label: 'Redact [PHI]' }, { value: 'pseudonymize', label: 'Pseudonymize' }, { value: 'generalize', label: 'Generalize' }] },
+              { key: 'customPatterns', label: 'Custom PHI Patterns', type: 'textarea', placeholder: 'Additional regex patterns, one per line' },
+            ]}
+          />
+        )}
+        {nodeType === 'fairLendingNode' && (
+          <GenericNodeConfig
+            node={node}
+            onUpdate={(data) => updateNodeData(node.id, data)}
+            fields={[
+              { key: 'regulation', label: 'Regulation', type: 'select', options: [{ value: 'ecoa', label: 'ECOA' }, { value: 'reg_b', label: 'Regulation B' }, { value: 'hmda', label: 'HMDA' }, { value: 'cra', label: 'CRA' }] },
+              { key: 'analysisType', label: 'Analysis Type', type: 'select', options: [{ value: 'disparate_impact', label: 'Disparate Impact' }, { value: 'disparate_treatment', label: 'Disparate Treatment' }, { value: 'regression', label: 'Regression Analysis' }] },
+              { key: 'decisionField', label: 'Decision Field', type: 'text', placeholder: 'e.g. approved, denied' },
+              { key: 'threshold', label: 'Impact Threshold', type: 'number', placeholder: '0.8' },
+            ]}
+          />
+        )}
+        {nodeType === 'claimsAuditNode' && (
+          <GenericNodeConfig
+            node={node}
+            onUpdate={(data) => updateNodeData(node.id, data)}
+            fields={[
+              { key: 'auditType', label: 'Audit Type', type: 'select', options: [{ value: 'full', label: 'Full Audit' }, { value: 'denial_review', label: 'Denial Review' }, { value: 'sample', label: 'Random Sample' }] },
+              { key: 'flagAutoDenials', label: 'Flag Auto-Denials', type: 'checkbox' },
+              { key: 'generateExplanation', label: 'Generate Policyholder Explanation', type: 'checkbox' },
+              { key: 'model', label: 'Explanation Model', type: 'select', options: [{ value: 'llama3.2', label: 'Llama 3.2' }, { value: 'mistral', label: 'Mistral' }] },
+            ]}
+          />
+        )}
+        {nodeType === 'consentManagementNode' && (
+          <GenericNodeConfig
+            node={node}
+            onUpdate={(data) => updateNodeData(node.id, data)}
+            fields={[
+              { key: 'regulation', label: 'Regulation', type: 'select', options: [{ value: 'gdpr', label: 'GDPR Article 7' }, { value: 'hipaa', label: 'HIPAA Authorization' }, { value: 'ccpa', label: 'CCPA' }, { value: 'lgpd', label: 'LGPD' }] },
+              { key: 'consentType', label: 'Consent Type', type: 'select', options: [{ value: 'explicit', label: 'Explicit Opt-in' }, { value: 'implied', label: 'Implied' }, { value: 'opt_out', label: 'Opt-out' }] },
+              { key: 'blockOnMissing', label: 'Block Processing if No Consent', type: 'checkbox' },
+              { key: 'consentField', label: 'Consent Record Field', type: 'text', placeholder: 'e.g. consent_given, authorized' },
+            ]}
+          />
+        )}
       </div>
 
       {/* Footer */}
@@ -519,6 +570,14 @@ function NodeIcon({ type }: { type: string }) {
       return <div className={`${iconClass} bg-sky-600`}><Radio size={20} className="text-white" /></div>
     case 'subWorkflowNode':
       return <div className={`${iconClass} bg-purple-700`}><Layers size={20} className="text-white" /></div>
+    case 'phiClassificationNode':
+      return <div className={`${iconClass} bg-pink-700`}><HeartPulse size={20} className="text-white" /></div>
+    case 'fairLendingNode':
+      return <div className={`${iconClass} bg-green-700`}><Landmark size={20} className="text-white" /></div>
+    case 'claimsAuditNode':
+      return <div className={`${iconClass} bg-orange-700`}><FileCheck size={20} className="text-white" /></div>
+    case 'consentManagementNode':
+      return <div className={`${iconClass} bg-lime-700`}><UserCheck size={20} className="text-white" /></div>
     default:
       return null
   }
