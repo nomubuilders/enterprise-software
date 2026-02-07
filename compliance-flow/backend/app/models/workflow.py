@@ -39,6 +39,10 @@ class NodeType(str, Enum):
     EXPLAINABILITY = "explainabilityNode"
     RED_TEAMING = "redTeamingNode"
     DRIFT_DETECTION = "driftDetectionNode"
+    NOTIFICATION = "notificationNode"
+    ENCRYPTION = "encryptionNode"
+    WEBHOOK_GATEWAY = "webhookGatewayNode"
+    SUB_WORKFLOW = "subWorkflowNode"
 
 
 class TriggerType(str, Enum):

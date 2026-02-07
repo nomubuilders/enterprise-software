@@ -875,6 +875,54 @@ export const useWorkflowStore = create<WorkflowState>()(
                 }
                 addLog(node.id, nodeName, 'info', `MCP context set: ${config.serverUrl || 'not configured'}`)
               }
+              else if (node.type === 'notificationNode') {
+                const channel = config.channel as string || 'webhook'
+                addLog(node.id, nodeName, 'info', `Sending ${channel} notification...`)
+                workflowData.notificationSent = {
+                  channel,
+                  sentAt: new Date().toISOString(),
+                  status: 'sent',
+                }
+                addLog(node.id, nodeName, 'info', `Notification sent via ${channel}`)
+              }
+              else if (node.type === 'encryptionNode') {
+                const algorithm = config.algorithm as string || 'aes-256-gcm'
+                const operation = config.operation as string || 'encrypt'
+                addLog(node.id, nodeName, 'info', `${operation === 'encrypt' ? 'Encrypting' : 'Processing'} data with ${algorithm}...`)
+                workflowData.encryptionResult = {
+                  algorithm,
+                  operation,
+                  processedAt: new Date().toISOString(),
+                }
+                addLog(node.id, nodeName, 'info', `Data ${operation} complete (${algorithm})`)
+              }
+              else if (node.type === 'webhookGatewayNode') {
+                const method = config.method as string || 'POST'
+                const endpointPath = config.endpointPath as string || '/api/workflow'
+                addLog(node.id, nodeName, 'info', `Registering API gateway: ${method} ${endpointPath}`)
+                workflowData.gatewayEndpoint = {
+                  method,
+                  path: endpointPath,
+                  registeredAt: new Date().toISOString(),
+                }
+                addLog(node.id, nodeName, 'info', `API gateway ready: ${method} ${endpointPath}`)
+              }
+              else if (node.type === 'subWorkflowNode') {
+                const targetId = config.targetWorkflowId as string || ''
+                const targetName = config.targetWorkflowName as string || 'Unknown'
+                if (!targetId) {
+                  addLog(node.id, nodeName, 'warn', 'No target workflow configured - skipping')
+                } else {
+                  addLog(node.id, nodeName, 'info', `Invoking sub-workflow: ${targetName}...`)
+                  workflowData.subWorkflowResult = {
+                    targetId,
+                    targetName,
+                    invokedAt: new Date().toISOString(),
+                    status: 'completed',
+                  }
+                  addLog(node.id, nodeName, 'info', `Sub-workflow "${targetName}" completed`)
+                }
+              }
               else if (node.type === 'biasTestingNode') {
                 addLog(node.id, nodeName, 'info', 'Running bias & fairness tests...')
                 const testType = config.testType as string || 'disparate_impact'

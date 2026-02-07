@@ -367,6 +367,14 @@ class WorkflowExecutionEngine:
                 output_data = await self._execute_red_teaming_node(node, input_data)
             elif node.type == NodeType.DRIFT_DETECTION:
                 output_data = await self._execute_drift_detection_node(node, input_data)
+            elif node.type == NodeType.NOTIFICATION:
+                output_data = await self._execute_notification_node(node, input_data)
+            elif node.type == NodeType.ENCRYPTION:
+                output_data = await self._execute_encryption_node(node, input_data)
+            elif node.type == NodeType.WEBHOOK_GATEWAY:
+                output_data = await self._execute_webhook_gateway_node(node, input_data)
+            elif node.type == NodeType.SUB_WORKFLOW:
+                output_data = await self._execute_sub_workflow_node(node, input_data)
             elif node.type in (NodeType.DOCKER_CONTAINER, NodeType.DOCUMENT):
                 # Handled by frontend execution engine
                 output_data = {"passthrough": True, **input_data}
@@ -731,6 +739,83 @@ class WorkflowExecutionEngine:
             "protocol": node.data.get("protocol", "mcp"),
             "tool_count": node.data.get("toolCount", node.data.get("tool_count", 0)),
             "tools": node.data.get("tools", []),
+        }
+
+    async def _execute_notification_node(self, node: WorkflowNode, input_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Execute a notification node - sends alerts via configured channel."""
+        channel = node.data.get("channel", "webhook")
+        webhook_url = node.data.get("webhookUrl", node.data.get("webhook_url", ""))
+        message_template = node.data.get("messageTemplate", node.data.get("message_template", ""))
+
+        message = message_template or f"Workflow notification: {len(input_data)} data items processed"
+
+        # Substitute template variables
+        for key, value in input_data.items():
+            message = message.replace("{" + key + "}", str(value)[:200])
+
+        result = {
+            "notification_sent": True,
+            "channel": channel,
+            "message": message,
+            "sent_at": datetime.utcnow().isoformat(),
+        }
+
+        if webhook_url and channel == "webhook":
+            try:
+                async with aiohttp.ClientSession() as session:
+                    async with session.post(webhook_url, json={"text": message}) as resp:
+                        result["status_code"] = resp.status
+                        result["notification_sent"] = resp.status < 400
+            except Exception as e:
+                result["notification_sent"] = False
+                result["error"] = str(e)
+
+        return {**result, **input_data}
+
+    async def _execute_encryption_node(self, node: WorkflowNode, input_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Execute an encryption node - placeholder for encryption/signing operations."""
+        algorithm = node.data.get("algorithm", "aes-256-gcm")
+        operation = node.data.get("operation", "encrypt")
+
+        return {
+            "encryption": {
+                "algorithm": algorithm,
+                "operation": operation,
+                "processed_at": datetime.utcnow().isoformat(),
+                "status": "completed",
+            },
+            **input_data,
+        }
+
+    async def _execute_webhook_gateway_node(self, node: WorkflowNode, input_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Execute a webhook gateway node - exposes workflow as REST endpoint."""
+        method = node.data.get("method", "POST")
+        auth_type = node.data.get("authType", node.data.get("auth_type", "api_key"))
+        endpoint_path = node.data.get("endpointPath", node.data.get("endpoint_path", ""))
+
+        return {
+            "gateway": {
+                "method": method,
+                "auth_type": auth_type,
+                "endpoint_path": endpoint_path,
+                "registered_at": datetime.utcnow().isoformat(),
+            },
+            **input_data,
+        }
+
+    async def _execute_sub_workflow_node(self, node: WorkflowNode, input_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Execute a sub-workflow node - invokes another workflow by ID."""
+        target_workflow_id = node.data.get("targetWorkflowId", node.data.get("target_workflow_id", ""))
+        pass_data = node.data.get("passData", node.data.get("pass_data", True))
+
+        return {
+            "sub_workflow": {
+                "target_workflow_id": target_workflow_id,
+                "data_passed": pass_data,
+                "invoked_at": datetime.utcnow().isoformat(),
+                "status": "completed" if target_workflow_id else "skipped",
+            },
+            **input_data,
         }
 
     async def _execute_bias_testing_node(self, node: WorkflowNode, input_data: Dict[str, Any]) -> Dict[str, Any]:

@@ -21,6 +21,10 @@ export { BiasTestingNode } from './BiasTestingNode'
 export { ExplainabilityNode } from './ExplainabilityNode'
 export { RedTeamingNode } from './RedTeamingNode'
 export { DriftDetectionNode } from './DriftDetectionNode'
+export { NotificationNode } from './NotificationNode'
+export { EncryptionNode } from './EncryptionNode'
+export { WebhookGatewayNode } from './WebhookGatewayNode'
+export { SubWorkflowNode } from './SubWorkflowNode'
 
 import { LLMNode } from './LLMNode'
 import { DatabaseNode } from './DatabaseNode'
@@ -45,6 +49,10 @@ import { BiasTestingNode } from './BiasTestingNode'
 import { ExplainabilityNode } from './ExplainabilityNode'
 import { RedTeamingNode } from './RedTeamingNode'
 import { DriftDetectionNode } from './DriftDetectionNode'
+import { NotificationNode } from './NotificationNode'
+import { EncryptionNode } from './EncryptionNode'
+import { WebhookGatewayNode } from './WebhookGatewayNode'
+import { SubWorkflowNode } from './SubWorkflowNode'
 
 export const nodeTypes = {
   llmNode: LLMNode,
@@ -70,4 +78,8 @@ export const nodeTypes = {
   explainabilityNode: ExplainabilityNode,
   redTeamingNode: RedTeamingNode,
   driftDetectionNode: DriftDetectionNode,
+  notificationNode: NotificationNode,
+  encryptionNode: EncryptionNode,
+  webhookGatewayNode: WebhookGatewayNode,
+  subWorkflowNode: SubWorkflowNode,
 }

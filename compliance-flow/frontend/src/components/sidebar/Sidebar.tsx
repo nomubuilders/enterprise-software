@@ -28,6 +28,10 @@ import {
   Lightbulb,
   Bug,
   Activity,
+  Bell,
+  Lock,
+  Radio,
+  Layers,
 } from 'lucide-react'
 import { useDockerStore } from '../../store/dockerStore'
 
@@ -302,9 +306,43 @@ const nodeTemplates: NodeTemplate[] = [
     category: 'AI Testing',
     config: { metric: 'output_similarity', driftThreshold: 0.15, schedule: 'daily' },
   },
+  // Communication
+  {
+    type: 'notificationNode',
+    label: 'Notification',
+    icon: <Bell size={18} />,
+    color: 'bg-blue-600',
+    category: 'Communication',
+    config: { channel: 'webhook', messageTemplate: '' },
+  },
+  {
+    type: 'webhookGatewayNode',
+    label: 'API Gateway',
+    icon: <Radio size={18} />,
+    color: 'bg-sky-600',
+    category: 'Communication',
+    config: { method: 'POST', authType: 'api_key', endpointPath: '/api/workflow' },
+  },
+  {
+    type: 'subWorkflowNode',
+    label: 'Sub-Workflow',
+    icon: <Layers size={18} />,
+    color: 'bg-purple-700',
+    category: 'Communication',
+    config: { targetWorkflowId: '', targetWorkflowName: '', passData: true },
+  },
+  // Security
+  {
+    type: 'encryptionNode',
+    label: 'Encryption',
+    icon: <Lock size={18} />,
+    color: 'bg-emerald-700',
+    category: 'Security',
+    config: { algorithm: 'aes-256-gcm', operation: 'encrypt' },
+  },
 ]
 
-const categories = ['Triggers', 'Data Sources', 'Documents', 'AI Models', 'Compliance', 'Outputs', 'Containers', 'Data Processing', 'AI Configuration', 'Audit & Compliance', 'Workflow Control', 'Compliance Frameworks', 'AI Testing']
+const categories = ['Triggers', 'Data Sources', 'Documents', 'AI Models', 'Compliance', 'Outputs', 'Containers', 'Data Processing', 'AI Configuration', 'Audit & Compliance', 'Workflow Control', 'Compliance Frameworks', 'AI Testing', 'Communication', 'Security']
 
 export function Sidebar() {
   const dockerAvailable = useDockerStore((s) => s.dockerAvailable)

@@ -41,6 +41,10 @@ import {
   Lightbulb,
   Bug,
   Activity,
+  Bell,
+  Lock,
+  Radio,
+  Layers,
 } from 'lucide-react'
 import { Button, Input, Select, DocumentUploadZone, ConfirmModal } from '../common'
 import { DockerTerminal } from './DockerTerminal'
@@ -379,6 +383,53 @@ export function NodeConfigPanel({ node, onClose, onRunWorkflow, onOpenChat }: No
             ]}
           />
         )}
+        {nodeType === 'notificationNode' && (
+          <GenericNodeConfig
+            node={node}
+            onUpdate={(data) => updateNodeData(node.id, data)}
+            fields={[
+              { key: 'channel', label: 'Channel', type: 'select', options: [{ value: 'slack', label: 'Slack' }, { value: 'teams', label: 'MS Teams' }, { value: 'sms', label: 'SMS (Twilio)' }, { value: 'webhook', label: 'Webhook' }, { value: 'email', label: 'Email' }] },
+              { key: 'webhookUrl', label: 'Webhook / API URL', type: 'text', placeholder: 'https://hooks.slack.com/...' },
+              { key: 'messageTemplate', label: 'Message Template', type: 'textarea', placeholder: 'Workflow {workflowName} completed: {result}' },
+              { key: 'onFailureOnly', label: 'Only On Failure', type: 'checkbox' },
+            ]}
+          />
+        )}
+        {nodeType === 'encryptionNode' && (
+          <GenericNodeConfig
+            node={node}
+            onUpdate={(data) => updateNodeData(node.id, data)}
+            fields={[
+              { key: 'algorithm', label: 'Algorithm', type: 'select', options: [{ value: 'aes-256-gcm', label: 'AES-256-GCM' }, { value: 'aes-256-cbc', label: 'AES-256-CBC' }, { value: 'rsa-oaep', label: 'RSA-OAEP' }, { value: 'chacha20', label: 'ChaCha20-Poly1305' }] },
+              { key: 'operation', label: 'Operation', type: 'select', options: [{ value: 'encrypt', label: 'Encrypt' }, { value: 'decrypt', label: 'Decrypt' }, { value: 'sign', label: 'Digital Sign' }, { value: 'verify', label: 'Verify Signature' }] },
+              { key: 'keyId', label: 'Key ID / Reference', type: 'text', placeholder: 'key-001 or path to key file' },
+            ]}
+          />
+        )}
+        {nodeType === 'webhookGatewayNode' && (
+          <GenericNodeConfig
+            node={node}
+            onUpdate={(data) => updateNodeData(node.id, data)}
+            fields={[
+              { key: 'method', label: 'HTTP Method', type: 'select', options: [{ value: 'GET', label: 'GET' }, { value: 'POST', label: 'POST' }, { value: 'PUT', label: 'PUT' }, { value: 'DELETE', label: 'DELETE' }] },
+              { key: 'authType', label: 'Auth Type', type: 'select', options: [{ value: 'none', label: 'None' }, { value: 'api_key', label: 'API Key' }, { value: 'bearer', label: 'Bearer Token' }, { value: 'basic', label: 'Basic Auth' }] },
+              { key: 'endpointPath', label: 'Endpoint Path', type: 'text', placeholder: '/api/workflow/execute' },
+              { key: 'rateLimit', label: 'Rate Limit (req/min)', type: 'number', placeholder: '60' },
+            ]}
+          />
+        )}
+        {nodeType === 'subWorkflowNode' && (
+          <GenericNodeConfig
+            node={node}
+            onUpdate={(data) => updateNodeData(node.id, data)}
+            fields={[
+              { key: 'targetWorkflowId', label: 'Target Workflow ID', type: 'text', placeholder: 'Workflow ID to invoke' },
+              { key: 'targetWorkflowName', label: 'Workflow Name', type: 'text', placeholder: 'Sub-workflow name' },
+              { key: 'passData', label: 'Pass Data to Sub-Workflow', type: 'checkbox' },
+              { key: 'waitForCompletion', label: 'Wait for Completion', type: 'checkbox' },
+            ]}
+          />
+        )}
       </div>
 
       {/* Footer */}
@@ -460,6 +511,14 @@ function NodeIcon({ type }: { type: string }) {
       return <div className={`${iconClass} bg-red-700`}><Bug size={20} className="text-white" /></div>
     case 'driftDetectionNode':
       return <div className={`${iconClass} bg-cyan-700`}><Activity size={20} className="text-white" /></div>
+    case 'notificationNode':
+      return <div className={`${iconClass} bg-blue-600`}><Bell size={20} className="text-white" /></div>
+    case 'encryptionNode':
+      return <div className={`${iconClass} bg-emerald-700`}><Lock size={20} className="text-white" /></div>
+    case 'webhookGatewayNode':
+      return <div className={`${iconClass} bg-sky-600`}><Radio size={20} className="text-white" /></div>
+    case 'subWorkflowNode':
+      return <div className={`${iconClass} bg-purple-700`}><Layers size={20} className="text-white" /></div>
     default:
       return null
   }
