@@ -349,6 +349,10 @@ class WorkflowExecutionEngine:
                 output_data = await self._execute_code_review_node(node, input_data)
             elif node.type == NodeType.MCP_CONTEXT:
                 output_data = await self._execute_mcp_context_node(node, input_data)
+            elif node.type == NodeType.CONDITIONAL:
+                output_data = await self._execute_conditional_node(node, input_data)
+            elif node.type == NodeType.APPROVAL_GATE:
+                output_data = await self._execute_approval_gate_node(node, input_data)
             elif node.type in (NodeType.DOCKER_CONTAINER, NodeType.DOCUMENT):
                 # Handled by frontend execution engine
                 output_data = {"passthrough": True, **input_data}
@@ -713,6 +717,89 @@ class WorkflowExecutionEngine:
             "protocol": node.data.get("protocol", "mcp"),
             "tool_count": node.data.get("toolCount", node.data.get("tool_count", 0)),
             "tools": node.data.get("tools", []),
+        }
+
+    async def _execute_conditional_node(self, node: WorkflowNode, input_data: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Execute a conditional node - evaluates condition and returns branch result.
+
+        The branch (true/false) is stored in output so downstream routing can use it.
+        """
+        field = node.data.get("field", "")
+        operator = node.data.get("operator", "equals")
+        value = node.data.get("value", "")
+
+        # Get the actual value from input data
+        actual_value = input_data.get(field, None)
+        actual_str = str(actual_value) if actual_value is not None else ""
+
+        # Evaluate condition
+        result = False
+        if operator == "equals":
+            result = actual_str == value
+        elif operator == "not_equals":
+            result = actual_str != value
+        elif operator == "contains":
+            result = value in actual_str
+        elif operator == "greater_than":
+            try:
+                result = float(actual_str) > float(value)
+            except (ValueError, TypeError):
+                result = False
+        elif operator == "less_than":
+            try:
+                result = float(actual_str) < float(value)
+            except (ValueError, TypeError):
+                result = False
+        elif operator == "is_empty":
+            result = not actual_str
+        elif operator == "is_not_empty":
+            result = bool(actual_str)
+        elif operator == "regex":
+            try:
+                result = bool(re.search(value, actual_str))
+            except re.error:
+                result = False
+
+        return {
+            "condition_result": result,
+            "branch": "true" if result else "false",
+            "field": field,
+            "operator": operator,
+            "expected": value,
+            "actual": actual_str,
+            **input_data,
+        }
+
+    async def _execute_approval_gate_node(self, node: WorkflowNode, input_data: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Execute an approval gate node - pauses workflow for human sign-off.
+
+        In the backend, this returns a paused status. The frontend handles the UI
+        for approval/rejection and workflow resume.
+        """
+        approval_type = node.data.get("approvalType", node.data.get("approval_type", "single"))
+        approvers = node.data.get("approvers", [])
+        approval_status = node.data.get("approvalStatus", node.data.get("approval_status", "pending"))
+        timeout_hours = node.data.get("timeoutHours", node.data.get("timeout_hours", 24))
+
+        if approval_status == "approved":
+            return {
+                "approval_status": "approved",
+                "approval_type": approval_type,
+                **input_data,
+            }
+        elif approval_status == "rejected":
+            raise ValueError("Workflow rejected at approval gate")
+
+        # Workflow is paused - waiting for approval
+        return {
+            "approval_status": "waiting",
+            "approval_type": approval_type,
+            "approvers": approvers,
+            "timeout_hours": timeout_hours,
+            "paused": True,
+            **input_data,
         }
 
     @staticmethod

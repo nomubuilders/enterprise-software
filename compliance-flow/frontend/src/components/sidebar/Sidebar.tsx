@@ -19,6 +19,8 @@ import {
   ScrollText,
   FileCode,
   Plug,
+  GitBranch,
+  ShieldCheck,
 } from 'lucide-react'
 import { useDockerStore } from '../../store/dockerStore'
 
@@ -218,9 +220,26 @@ const nodeTemplates: NodeTemplate[] = [
     category: 'Audit & Compliance',
     config: { auditLevel: 'full', retentionDays: 90, logFormat: 'json', enabled: true },
   },
+  // Workflow Control
+  {
+    type: 'conditionalNode',
+    label: 'Conditional Logic',
+    icon: <GitBranch size={18} />,
+    color: 'bg-yellow-600',
+    category: 'Workflow Control',
+    config: { field: '', operator: 'equals', value: '' },
+  },
+  {
+    type: 'approvalGateNode',
+    label: 'Approval Gate',
+    icon: <ShieldCheck size={18} />,
+    color: 'bg-orange-600',
+    category: 'Workflow Control',
+    config: { approvalType: 'single', approvers: [], requireAll: true, approvalStatus: 'pending' },
+  },
 ]
 
-const categories = ['Triggers', 'Data Sources', 'Documents', 'AI Models', 'Compliance', 'Outputs', 'Containers', 'Data Processing', 'AI Configuration', 'Audit & Compliance']
+const categories = ['Triggers', 'Data Sources', 'Documents', 'AI Models', 'Compliance', 'Outputs', 'Containers', 'Data Processing', 'AI Configuration', 'Audit & Compliance', 'Workflow Control']
 
 export function Sidebar() {
   const dockerAvailable = useDockerStore((s) => s.dockerAvailable)

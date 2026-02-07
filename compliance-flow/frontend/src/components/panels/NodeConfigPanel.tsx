@@ -32,6 +32,8 @@ import {
   ScrollText,
   FileCode,
   Plug,
+  GitBranch,
+  ShieldCheck,
 } from 'lucide-react'
 import { Button, Input, Select, DocumentUploadZone, ConfirmModal } from '../common'
 import { DockerTerminal } from './DockerTerminal'
@@ -264,6 +266,29 @@ export function NodeConfigPanel({ node, onClose, onRunWorkflow, onOpenChat }: No
             ]}
           />
         )}
+        {nodeType === 'conditionalNode' && (
+          <GenericNodeConfig
+            node={node}
+            onUpdate={(data) => updateNodeData(node.id, data)}
+            fields={[
+              { key: 'field', label: 'Field / Key', type: 'text', placeholder: 'e.g. status, score, result' },
+              { key: 'operator', label: 'Operator', type: 'select', options: [{ value: 'equals', label: 'Equals' }, { value: 'not_equals', label: 'Not Equals' }, { value: 'contains', label: 'Contains' }, { value: 'greater_than', label: 'Greater Than' }, { value: 'less_than', label: 'Less Than' }, { value: 'is_empty', label: 'Is Empty' }, { value: 'is_not_empty', label: 'Is Not Empty' }, { value: 'regex', label: 'Regex Match' }] },
+              { key: 'value', label: 'Value', type: 'text', placeholder: 'Comparison value' },
+            ]}
+          />
+        )}
+        {nodeType === 'approvalGateNode' && (
+          <GenericNodeConfig
+            node={node}
+            onUpdate={(data) => updateNodeData(node.id, data)}
+            fields={[
+              { key: 'approvalType', label: 'Approval Type', type: 'select', options: [{ value: 'single', label: 'Single Approver' }, { value: 'multi', label: 'Multi-Level Chain' }, { value: 'quorum', label: 'Quorum (Majority)' }] },
+              { key: 'requireAll', label: 'Require All Approvers', type: 'checkbox' },
+              { key: 'timeoutHours', label: 'Timeout (hours)', type: 'number', placeholder: '24' },
+              { key: 'escalationEmail', label: 'Escalation Email', type: 'text', placeholder: 'manager@company.com' },
+            ]}
+          />
+        )}
       </div>
 
       {/* Footer */}
@@ -327,6 +352,10 @@ function NodeIcon({ type }: { type: string }) {
       return <div className={`${iconClass} bg-[var(--nomu-primary)]`}><FileCode size={20} className="text-white" /></div>
     case 'mcpContextNode':
       return <div className={`${iconClass} bg-[var(--nomu-primary)]`}><Plug size={20} className="text-white" /></div>
+    case 'conditionalNode':
+      return <div className={`${iconClass} bg-yellow-600`}><GitBranch size={20} className="text-white" /></div>
+    case 'approvalGateNode':
+      return <div className={`${iconClass} bg-orange-600`}><ShieldCheck size={20} className="text-white" /></div>
     default:
       return null
   }

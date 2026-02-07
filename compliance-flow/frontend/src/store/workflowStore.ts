@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import type { Node, Edge } from '@xyflow/react'
-import type { Workflow, DatabaseConfig, WorkflowExecution } from '../types'
+import type { Workflow, DatabaseConfig, WorkflowExecution, WorkflowVersion } from '../types'
 import type { DocumentSummary } from '../types/document'
 import { toast } from 'sonner'
 import { api } from '../services/api'
@@ -40,6 +40,10 @@ interface WorkflowState {
   updateDatabaseConfig: (id: string, config: Partial<DatabaseConfig>) => void
   deleteDatabaseConfig: (id: string) => void
   testDatabaseConnection: (id: string) => Promise<boolean>
+
+  // Version Control
+  getVersionHistory: (workflowId: string) => WorkflowVersion[]
+  restoreVersion: (workflowId: string, version: number) => void
 
   // Execution Actions
   runWorkflow: (workflowId: string) => Promise<void>
@@ -80,14 +84,8 @@ export const useWorkflowStore = create<WorkflowState>()(
 
       saveWorkflow: (id, nodes, edges) => {
         set({ isSaving: true })
-        const workflows = get().workflows.map((w) =>
-          w.id === id
-            ? { ...w, nodes, edges, updatedAt: new Date().toISOString(), status: 'saved' as const }
-            : w
-        )
-
-        // If workflow doesn't exist, create it
         const exists = get().workflows.find(w => w.id === id)
+
         if (!exists) {
           const newWorkflow: Workflow = {
             id,
@@ -97,9 +95,34 @@ export const useWorkflowStore = create<WorkflowState>()(
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),
             status: 'saved',
+            version: 1,
+            versionHistory: [{
+              version: 1,
+              nodes: JSON.parse(JSON.stringify(nodes)),
+              edges: JSON.parse(JSON.stringify(edges)),
+              savedAt: new Date().toISOString(),
+            }],
           }
           set({ workflows: [...get().workflows, newWorkflow], isSaving: false })
         } else {
+          const currentVersion = exists.version || 0
+          const newVersion = currentVersion + 1
+          const history = exists.versionHistory || []
+          const newHistory = [
+            ...history,
+            {
+              version: newVersion,
+              nodes: JSON.parse(JSON.stringify(nodes)),
+              edges: JSON.parse(JSON.stringify(edges)),
+              savedAt: new Date().toISOString(),
+            },
+          ].slice(-50) // Keep last 50 versions
+
+          const workflows = get().workflows.map((w) =>
+            w.id === id
+              ? { ...w, nodes, edges, updatedAt: new Date().toISOString(), status: 'saved' as const, version: newVersion, versionHistory: newHistory }
+              : w
+          )
           set({ workflows, isSaving: false })
         }
         toast.success('Workflow saved')
@@ -184,6 +207,26 @@ export const useWorkflowStore = create<WorkflowState>()(
         get().updateDatabaseConfig(id, { status: success ? 'connected' : 'error' })
 
         return success
+      },
+
+      // Version Control
+      getVersionHistory: (workflowId) => {
+        const workflow = get().workflows.find((w) => w.id === workflowId)
+        return workflow?.versionHistory || []
+      },
+
+      restoreVersion: (workflowId, version) => {
+        const workflow = get().workflows.find((w) => w.id === workflowId)
+        if (!workflow) return
+        const snapshot = workflow.versionHistory?.find((v) => v.version === version)
+        if (!snapshot) return
+        const workflows = get().workflows.map((w) =>
+          w.id === workflowId
+            ? { ...w, nodes: JSON.parse(JSON.stringify(snapshot.nodes)), edges: JSON.parse(JSON.stringify(snapshot.edges)), updatedAt: new Date().toISOString() }
+            : w
+        )
+        set({ workflows })
+        toast.success(`Restored to version ${version}`)
       },
 
       // Execution Actions
@@ -831,6 +874,41 @@ export const useWorkflowStore = create<WorkflowState>()(
                   tools: config.tools as string[] || [],
                 }
                 addLog(node.id, nodeName, 'info', `MCP context set: ${config.serverUrl || 'not configured'}`)
+              }
+              else if (node.type === 'conditionalNode') {
+                const field = config.field as string || ''
+                const operator = config.operator as string || 'equals'
+                const value = config.value as string || ''
+
+                addLog(node.id, nodeName, 'info', `Evaluating condition: ${field} ${operator} ${value}`)
+
+                const actualValue = String(workflowData[field] ?? '')
+                let result = false
+                if (operator === 'equals') result = actualValue === value
+                else if (operator === 'not_equals') result = actualValue !== value
+                else if (operator === 'contains') result = actualValue.includes(value)
+                else if (operator === 'greater_than') result = parseFloat(actualValue) > parseFloat(value)
+                else if (operator === 'less_than') result = parseFloat(actualValue) < parseFloat(value)
+                else if (operator === 'is_empty') result = !actualValue
+                else if (operator === 'is_not_empty') result = !!actualValue
+
+                workflowData.conditionResult = result
+                workflowData.conditionBranch = result ? 'true' : 'false'
+                addLog(node.id, nodeName, 'info', `Condition result: ${result} (branch: ${result ? 'true' : 'false'})`)
+              }
+              else if (node.type === 'approvalGateNode') {
+                const approvalStatus = config.approvalStatus as string || 'pending'
+
+                if (approvalStatus === 'approved') {
+                  addLog(node.id, nodeName, 'info', 'Approval gate: Approved - continuing workflow')
+                } else if (approvalStatus === 'rejected') {
+                  addLog(node.id, nodeName, 'error', 'Approval gate: Rejected - workflow halted')
+                  throw new Error('Workflow rejected at approval gate')
+                } else {
+                  addLog(node.id, nodeName, 'warn', 'Approval gate: Waiting for approval - workflow paused')
+                  workflowData.approvalPending = true
+                  workflowData.approvalNodeId = node.id
+                }
               }
               else {
                 addLog(node.id, nodeName, 'info', `Executed node: ${nodeName}`)

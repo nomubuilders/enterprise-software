@@ -12,6 +12,8 @@ export { PersonalityNode } from './PersonalityNode'
 export { AuditNode } from './AuditNode'
 export { CodeReviewNode } from './CodeReviewNode'
 export { MCPContextNode } from './MCPContextNode'
+export { ConditionalNode } from './ConditionalNode'
+export { ApprovalGateNode } from './ApprovalGateNode'
 
 import { LLMNode } from './LLMNode'
 import { DatabaseNode } from './DatabaseNode'
@@ -27,6 +29,8 @@ import { PersonalityNode } from './PersonalityNode'
 import { AuditNode } from './AuditNode'
 import { CodeReviewNode } from './CodeReviewNode'
 import { MCPContextNode } from './MCPContextNode'
+import { ConditionalNode } from './ConditionalNode'
+import { ApprovalGateNode } from './ApprovalGateNode'
 
 export const nodeTypes = {
   llmNode: LLMNode,
@@ -43,4 +47,6 @@ export const nodeTypes = {
   auditNode: AuditNode,
   codeReviewNode: CodeReviewNode,
   mcpContextNode: MCPContextNode,
+  conditionalNode: ConditionalNode,
+  approvalGateNode: ApprovalGateNode,
 }

@@ -8,7 +8,17 @@ export interface Workflow {
   edges: Edge[]
   createdAt: string
   updatedAt: string
-  status: 'draft' | 'saved' | 'running' | 'completed' | 'error'
+  status: 'draft' | 'saved' | 'running' | 'completed' | 'error' | 'paused'
+  version?: number
+  versionHistory?: WorkflowVersion[]
+}
+
+export interface WorkflowVersion {
+  version: number
+  nodes: import('@xyflow/react').Node[]
+  edges: import('@xyflow/react').Edge[]
+  savedAt: string
+  description?: string
 }
 
 export interface DatabaseConfig {

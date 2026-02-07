@@ -30,6 +30,8 @@ class NodeType(str, Enum):
     AUDIT = "auditNode"
     CODE_REVIEW = "codeReviewNode"
     MCP_CONTEXT = "mcpContextNode"
+    CONDITIONAL = "conditionalNode"
+    APPROVAL_GATE = "approvalGateNode"
 
 
 class TriggerType(str, Enum):
@@ -169,7 +171,7 @@ class NodeExecutionLog(BaseModel):
     execution_id: str = Field(description="Execution ID this log belongs to")
     node_id: str = Field(description="Node that was executed")
     node_type: NodeType = Field(description="Type of node")
-    status: Literal["pending", "running", "completed", "failed", "skipped"] = Field(description="Execution status")
+    status: Literal["pending", "running", "completed", "failed", "skipped", "paused"] = Field(description="Execution status")
     started_at: Optional[datetime] = Field(default=None, description="When node execution started")
     completed_at: Optional[datetime] = Field(default=None, description="When node execution completed")
     duration_ms: Optional[int] = Field(default=None, description="Execution duration in milliseconds")
@@ -188,7 +190,7 @@ class ExecutionResult(BaseModel):
 
     execution_id: str = Field(description="Unique execution identifier")
     workflow_id: str = Field(description="ID of executed workflow")
-    status: Literal["success", "failed", "partial"] = Field(description="Overall execution status")
+    status: Literal["success", "failed", "partial", "paused"] = Field(description="Overall execution status")
     started_at: datetime = Field(description="Execution start time")
     completed_at: datetime = Field(description="Execution completion time")
     duration_ms: int = Field(description="Total execution duration in milliseconds")
