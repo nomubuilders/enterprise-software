@@ -27,7 +27,7 @@ import {
   SaveWorkflowModal,
   ExecutionPanel,
 } from './components/modals'
-import { ConfirmModal } from './components/common'
+import { ConfirmModal, Modal } from './components/common'
 import { NodeConfigPanel } from './components/panels'
 import { AIAssistantPanel } from './components/panels/AIAssistantPanel'
 import { ChatInterfacePanel } from './components/panels/ChatInterfacePanel'
@@ -53,6 +53,7 @@ function App() {
   const [showNewFlowConfirm, setShowNewFlowConfirm] = useState(false)
   const [showClearCanvasConfirm, setShowClearCanvasConfirm] = useState(false)
   const [showSettingsMenu, setShowSettingsMenu] = useState(false)
+  const [showAboutModal, setShowAboutModal] = useState(false)
 
   // Setup wizard state
   const { setIsFirstRun } = useElectronStore()
@@ -90,13 +91,26 @@ function App() {
   // Initialize theme store (ensures theme class is applied to root)
   useThemeStore()
 
-  // Poll Docker health on mount and every 30s
+  // Close settings dropdown on Escape
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && showSettingsMenu) {
+        setShowSettingsMenu(false)
+      }
+    }
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [showSettingsMenu])
+
+  // Poll Docker health on mount, then with backoff when unreachable
   const checkDockerHealth = useDockerStore((s) => s.checkDockerHealth)
+  const dockerAvailable = useDockerStore((s) => s.dockerAvailable)
   useEffect(() => {
     checkDockerHealth()
-    const interval = setInterval(checkDockerHealth, 30_000)
+    // Poll every 30s when healthy, every 2min when backend is down
+    const interval = setInterval(checkDockerHealth, dockerAvailable ? 30_000 : 120_000)
     return () => clearInterval(interval)
-  }, [checkDockerHealth])
+  }, [checkDockerHealth, dockerAvailable])
 
   const currentWorkflow = workflows.find(w => w.id === currentWorkflowId)
 
@@ -195,7 +209,7 @@ function App() {
               title="New Flow"
             >
               <Plus size={16} />
-              New
+              <span className="hidden lg:inline">New</span>
             </button>
 
             {/* Save */}
@@ -205,7 +219,7 @@ function App() {
               title="Save Workflow"
             >
               <Save size={16} />
-              Save
+              <span className="hidden lg:inline">Save</span>
             </button>
 
             {/* Run / Stop */}
@@ -243,7 +257,7 @@ function App() {
               title="AI Workflow Assistant"
             >
               <Sparkles size={16} />
-              AI Assistant
+              <span className="hidden lg:inline">AI Assistant</span>
             </button>
             <button
               onClick={toggleEditMode}
@@ -255,7 +269,7 @@ function App() {
               title="Edit Mode"
             >
               {isEditMode ? <PencilOff size={16} /> : <Pencil size={16} />}
-              Edit
+              <span className="hidden lg:inline">Edit</span>
             </button>
             <button
               onClick={handleClearCanvas}
@@ -290,6 +304,10 @@ function App() {
                       Start Tutorial
                     </button>
                     <button
+                      onClick={() => {
+                        setShowAboutModal(true)
+                        setShowSettingsMenu(false)
+                      }}
                       className="flex w-full items-center gap-2 px-3 py-2 text-sm text-[var(--nomu-text)] transition hover:bg-[var(--nomu-surface-hover)]"
                     >
                       <Info size={16} />
@@ -326,7 +344,7 @@ function App() {
               </div>
               <div className="h-4 w-px bg-[var(--nomu-border)]" />
               <div className="text-xs text-[var(--nomu-text-muted)]">
-                {nodes.length} nodes · {edges.length} connections
+                {nodes.length} {nodes.length === 1 ? 'node' : 'nodes'} · {edges.length} {edges.length === 1 ? 'connection' : 'connections'}
               </div>
             </div>
           )}
@@ -400,6 +418,22 @@ function App() {
           confirmLabel="Clear"
           variant="danger"
         />
+        {/* About Modal */}
+        <Modal isOpen={showAboutModal} onClose={() => setShowAboutModal(false)} title="About Nomu">
+          <div className="flex flex-col items-center gap-4 py-4">
+            <NomuLogo />
+            <div className="text-center">
+              <h3 className="font-['Barlow'] text-lg font-bold text-[var(--nomu-text)]">Compliance Ready AI</h3>
+              <p className="text-sm text-[var(--nomu-text-muted)]">Version 1.0.0</p>
+            </div>
+            <p className="text-center text-sm text-[var(--nomu-text-muted)]">
+              Local AI workflow builder for regulated industries. 100% on-premises processing with GDPR and EU AI Act compliance.
+            </p>
+            <div className="text-xs text-[var(--nomu-text-muted)]">
+              &copy; {new Date().getFullYear()} Nomu. All rights reserved.
+            </div>
+          </div>
+        </Modal>
       </ReactFlowProvider>
       <Toaster
         theme="dark"

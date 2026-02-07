@@ -1,146 +1,261 @@
-# ComplianceFlow
+# Compliance Ready AI
 
-**Local AI Workflow Builder** - A compliance-first, fully local alternative to N8N/Flowise for regulated industries.
+A desktop application for building visual AI compliance workflows. Process sensitive data entirely on-premises using local LLMs, with built-in PII filtering and audit logging for regulated industries.
 
-## 🎯 Unique Selling Point
+Built by [Nomu](https://nomu.com) — "We Make Data Speak."
 
-**Compliance-First Local AI Platform** targeting enterprises in regulated industries (healthcare, finance, legal, government) who need AI automation without data leaving their infrastructure.
+## Prerequisites
 
-## 🚀 Quick Start
+- **Node.js** 18+
+- **Python** 3.10+
+- **Docker Desktop** (manages backend services)
+- **Ollama** (local LLM inference)
+
+## Quick Start
+
+### 1. Install Dependencies
 
 ```bash
-# Install dependencies
+# Frontend
+cd frontend
 npm install
 
-# Start development server
-npm run dev
-
-# Build for production
-npm run build
-
-# Preview production build
-npm run preview
+# Backend
+cd ../backend
+pip install -r requirements.txt
 ```
 
-## 📁 Project Structure
+### 2. Pull an Ollama Model
+
+```bash
+ollama pull llama3.2
+```
+
+### 3. Run in Development
+
+**Option A: Electron desktop app (recommended)**
+
+```bash
+cd frontend
+npm run dev:electron
+```
+
+This opens the native desktop window. The app manages Docker services (backend, databases, Ollama) through the built-in Service Dashboard.
+
+**Option B: Browser only**
+
+Run three terminals:
+
+```bash
+# Terminal 1 - Backend services
+docker compose up
+
+# Terminal 2 - Backend API
+cd backend
+python -m uvicorn app.main:app --reload
+
+# Terminal 3 - Frontend
+cd frontend
+npm run dev
+```
+
+Then open http://localhost:5173.
+
+## Building for Production
+
+### Package the Desktop App
+
+```bash
+cd frontend
+
+# macOS (universal DMG)
+npm run package:mac
+
+# Windows (NSIS installer)
+npm run package:win
+
+# Linux (AppImage + .deb)
+npm run package:linux
+```
+
+Built artifacts go to `frontend/dist-electron/`.
+
+### Build Web Version Only
+
+```bash
+cd frontend
+npm run build
+```
+
+Output goes to `frontend/dist/`.
+
+## Updating the Application
+
+### Auto-Updates (Desktop)
+
+The desktop app checks for updates from GitHub Releases automatically on launch. When an update is available, a notification appears. Updates require manual approval before downloading — no automatic downloads for enterprise environments.
+
+To publish an update:
+
+1. Bump `version` in `frontend/package.json`
+2. Build and package: `npm run package:mac` (or win/linux)
+3. Create a GitHub Release on `nomubuilders/enterprise-software` with the packaged artifacts
+4. Users receive the update notification on next launch
+
+### Manual Update
+
+```bash
+git pull origin main
+cd frontend && npm install
+cd ../backend && pip install -r requirements.txt
+```
+
+## Project Structure
 
 ```
 compliance-flow/
-├── docs/                          # Documentation
-│   ├── architecture/              # System design & planning
-│   │   ├── Enterprise_AI_Platform_Implementation_Plan.md
-│   │   ├── Technology_Decision_Matrix.md
-│   │   ├── Project_Timeline_Milestones.md
-│   │   └── DEPLOYMENT_CONFIGURATIONS.md
-│   ├── research/                  # Technical research
-│   │   ├── ENTERPRISE_VECTOR_DATABASE_RESEARCH.md
-│   │   └── VECTOR_DB_IMPLEMENTATION_EXAMPLES.md
-│   ├── guides/                    # Setup & development guides
-│   │   ├── Development_Environment_Setup.md
-│   │   ├── Testing_Strategy.md
-│   │   └── Cost_Estimation_Resource_Planning.md
-│   └── api/                       # API documentation (coming soon)
-│
-├── src/                           # Source code
-│   ├── components/                # React components
-│   │   ├── nodes/                 # Flow node components
-│   │   │   ├── BaseNode.tsx       # Base wrapper for all nodes
-│   │   │   ├── TriggerNode.tsx    # Manual/Schedule/Webhook triggers
-│   │   │   ├── DatabaseNode.tsx   # PostgreSQL/MySQL/MongoDB
-│   │   │   ├── LLMNode.tsx        # Ollama LLM integration
-│   │   │   ├── PIIFilterNode.tsx  # GDPR compliance (redact/mask)
-│   │   │   ├── OutputNode.tsx     # Chat/Spreadsheet/Email/Telegram
-│   │   │   └── index.ts           # Node type registry
-│   │   ├── canvas/                # Flow canvas components
-│   │   │   └── Canvas.tsx         # React Flow canvas wrapper
-│   │   ├── sidebar/               # Sidebar components
-│   │   │   └── Sidebar.tsx        # Draggable node palette
-│   │   └── common/                # Shared UI components
-│   │
-│   ├── store/                     # State management (Zustand)
-│   │   └── flowStore.ts           # Flow state with persistence
-│   │
-│   ├── hooks/                     # Custom React hooks
-│   ├── utils/                     # Utility functions
-│   ├── types/                     # TypeScript type definitions
-│   ├── services/                  # API & external services
-│   ├── config/                    # App configuration
-│   │
-│   ├── App.tsx                    # Main application component
-│   ├── main.tsx                   # Entry point
-│   └── index.css                  # Global styles (Tailwind)
-│
-├── public/                        # Static assets
-│   └── icons/                     # PWA icons
-│
-├── tests/                         # Test suites
-│   ├── unit/                      # Unit tests
-│   ├── integration/               # Integration tests
-│   └── e2e/                       # End-to-end tests
-│
-├── scripts/                       # Build & utility scripts
-├── dist/                          # Production build output
-│
-├── vite.config.ts                 # Vite + PWA configuration
-├── tsconfig.json                  # TypeScript configuration
-├── package.json                   # Dependencies & scripts
-└── index.html                     # HTML entry point
+├── frontend/                # Electron + React application
+│   ├── electron/            # Electron main process
+│   │   ├── main/            # Window management, Docker, IPC, auto-updater
+│   │   ├── preload/         # Secure context bridge (electronAPI)
+│   │   └── resources/       # App icons, production docker-compose, entitlements
+│   ├── src/                 # React renderer
+│   │   ├── components/
+│   │   │   ├── nodes/       # Workflow nodes (Trigger, Database, LLM, PII, Output)
+│   │   │   ├── canvas/      # React Flow canvas
+│   │   │   ├── panels/      # Chat interface, AI assistant
+│   │   │   ├── electron/    # Setup wizard, service dashboard, update notification
+│   │   │   ├── sidebar/     # Node palette
+│   │   │   ├── modals/      # Dialog windows
+│   │   │   └── common/      # Shared UI (Button, Input, Modal, Select)
+│   │   ├── store/           # Zustand state management
+│   │   ├── services/        # AI workflow builder, intent detection
+│   │   └── types/           # TypeScript interfaces
+│   ├── electron-builder.yml # Desktop packaging config
+│   ├── electron.vite.config.ts
+│   └── vite.config.ts
+├── backend/                 # FastAPI Python backend
+│   ├── app/
+│   │   ├── api/             # Route handlers (health, databases, llm, workflows, docker, documents)
+│   │   ├── services/        # Ollama, Docker, database connectors
+│   │   ├── models/          # Pydantic models
+│   │   └── core/            # Settings, config
+│   └── requirements.txt
+├── config/                  # App configuration
+├── docker-compose.yml       # Development services
+└── docs/                    # Architecture and planning documentation
 ```
 
-## 🛠️ Tech Stack
+## Tech Stack
 
-| Category | Technology |
-|----------|------------|
-| Framework | React 19 + TypeScript |
-| Build Tool | Vite 7 |
-| Flow Canvas | React Flow (@xyflow/react) |
-| State | Zustand (with persistence) |
-| Styling | Tailwind CSS v4 |
-| Icons | Lucide React |
-| PWA | vite-plugin-pwa |
+| Layer | Technology |
+|-------|-----------|
+| Desktop Shell | Electron 40, electron-vite, electron-builder |
+| Frontend | React 19, TypeScript, Vite 7 |
+| Workflow Canvas | @xyflow/react 12 (React Flow) |
+| State Management | Zustand 5 |
+| Styling | Tailwind CSS 4.1 |
+| Backend | FastAPI, Uvicorn, Python 3.10+ |
+| LLM | Ollama (Llama 3.2, Mistral, CodeLlama) |
+| PII Detection | Presidio + spaCy |
+| Databases | PostgreSQL 16, MySQL, MongoDB 7, Redis 7 |
+| Containers | Docker Compose |
 
-## 🔒 Compliance Features
+## Usage
 
-- **100% Local Processing** - No data leaves your infrastructure
-- **GDPR Article 17** - Right to erasure with PII redaction/masking
-- **EU AI Act Ready** - Audit logging & transparency
-- **SOC 2 Compatible** - Enterprise security controls
+### Building Workflows
 
-## 📊 Node Types
+1. **Drag nodes** from the sidebar onto the canvas
+2. **Connect nodes** by dragging from output handles to input handles
+3. **Configure nodes** by clicking them to open the settings panel
+4. **Run the workflow** with the Run button
 
-### Triggers
-- **Manual Trigger** - Start flows manually
-- **Schedule** - Cron-based automation
-- **Webhook** - HTTP endpoint triggers
+### AI Assistant
 
-### Data Sources
-- **PostgreSQL** - Enterprise relational DB
-- **MySQL** - Popular open-source DB
-- **MongoDB** - Document database
+Click the AI Assistant button to open the floating assistant window. Describe what you want in natural language:
 
-### AI Models (via Ollama)
-- **Llama 3.2** - Meta's latest open model
-- **Mistral** - Efficient European LLM
-- **CodeLlama** - Code-specialized model
+- *"Analyze customer feedback from our database"* — generates a full workflow
+- *"What does this workflow do?"* — explains the current workflow
+- *"How do I connect to PostgreSQL?"* — provides help without modifying anything
 
-### Compliance
-- **PII Redact** - Remove sensitive data
-- **PII Mask** - Anonymize data patterns
+### Node Types
 
-### Outputs
-- **Chat Interface** - Interactive AI chat
-- **Spreadsheet** - Data export/analysis
-- **Email** - Automated notifications
-- **Telegram Bot** - Messaging integration
+| Category | Nodes |
+|----------|-------|
+| Triggers | Manual, Schedule (cron), Webhook |
+| Data Sources | PostgreSQL, MySQL, MongoDB |
+| AI Models | Ollama LLM (Llama 3.2, Mistral, CodeLlama) |
+| Compliance | PII Redact, PII Mask (GDPR Article 17) |
+| Outputs | Chat Interface, Spreadsheet, Email, Telegram |
 
-## 🗺️ Roadmap
+### Docker Service Dashboard (Desktop)
 
-- [x] Phase 1: POC Frontend (Current)
-- [ ] Phase 2: Backend API + Ollama Integration
-- [ ] Phase 3: Database Connectors
-- [ ] Phase 4: Compliance Engine
-- [ ] Phase 5: Production Packaging
+The desktop app includes a service dashboard that manages:
+- **Backend API** (FastAPI on port 8000)
+- **PostgreSQL** (port 5432)
+- **Redis** (port 6379)
+- **MongoDB** (port 27017)
+- **Ollama** (port 11434)
 
-## 📄 License
+Services start automatically via Docker Compose. Health status is polled every 10 seconds.
+
+## Configuration
+
+### Database Connections
+
+Configure in the Database node settings panel:
+
+| Field | Example |
+|-------|---------|
+| Host | `localhost` |
+| Port | `5432` |
+| Database | `my_database` |
+| Username | `postgres` |
+| Password | `your_password` |
+
+### Environment Variables
+
+Backend configuration via environment variables or `.env`:
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `DEBUG` | `true` | Enable debug logging |
+| `OLLAMA_BASE_URL` | `http://localhost:11434` | Ollama server URL |
+| `POSTGRES_HOST` | `localhost` | PostgreSQL host |
+| `POSTGRES_PORT` | `5432` | PostgreSQL port |
+| `POSTGRES_DB` | `compliance_flow` | Database name |
+| `REDIS_URL` | `redis://localhost:6379` | Redis connection URL |
+| `MONGODB_URL` | `mongodb://localhost:27017` | MongoDB connection URL |
+
+## Compliance
+
+- **100% Local Processing** — no data leaves your infrastructure
+- **GDPR Article 17** — PII redaction and masking built into workflow nodes
+- **EU AI Act Ready** — audit logging and transparency controls
+- **SOC 2 Compatible** — enterprise security architecture
+
+## Troubleshooting
+
+### Docker services won't start
+- Verify Docker Desktop is running: `docker info`
+- Check for port conflicts: `lsof -i :8000` (or 5432, 6379, etc.)
+- View logs: use the Service Dashboard or `docker compose logs`
+
+### Ollama not responding
+- Ensure Ollama is running: `ollama serve`
+- Check available models: `ollama list`
+- Pull a model if needed: `ollama pull llama3.2`
+
+### Electron app won't launch
+- Rebuild: `cd frontend && npm run build:electron`
+- Check Node version: `node -v` (must be 18+)
+- Clear build cache: `rm -rf frontend/out frontend/dist-electron`
+
+### Backend API errors
+- Check API docs at http://localhost:8000/docs
+- View health status: http://localhost:8000/api/v1/health
+- Check backend logs: `cd backend && python -m uvicorn app.main:app --reload --log-level debug`
+
+## License
 
 Proprietary - All rights reserved.

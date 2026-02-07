@@ -60,6 +60,7 @@ export default defineConfig({
   server: {
     port: 5173,
     host: true,
+    allowedHosts: ['localhost', 'host.docker.internal'],
     hmr: {
       protocol: 'ws',
       host: 'localhost',

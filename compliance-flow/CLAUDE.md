@@ -4,20 +4,65 @@
 
 ## Project Overview
 
-**Nomu Compliance Flow** - A visual workflow builder for AI compliance pipelines. Built for enterprise clients who need to process sensitive data on-premises using local AI models.
+**Compliance Ready AI** - A desktop application and visual workflow builder for AI compliance pipelines. Built for enterprise clients who need to process sensitive data on-premises using local AI models. Packaged as an Electron desktop app with a FastAPI backend and Docker-managed services.
 
 - **Company**: Nomu - AI implementation consulting for privacy-sensitive organizations
 - **Tagline**: "We Make Data Speak."
 - **Product**: Drag-and-drop workflow builder with compliance nodes (PII filtering, local LLM, database connectors)
 
+## Architecture
+
+```
+compliance-flow/
+├── frontend/          # Electron + React app
+│   ├── electron/      # Electron main/preload processes
+│   │   ├── main/      # Main process (window, Docker, IPC, auto-updater)
+│   │   ├── preload/   # Context bridge (electronAPI)
+│   │   └── resources/ # Icons, docker-compose.prod.yml, entitlements
+│   ├── src/           # React renderer (components, store, services)
+│   └── out/           # Build output (main, preload, renderer)
+├── backend/           # FastAPI Python backend
+│   └── app/           # API routes, services, models
+├── config/            # App config (approved-images.json)
+└── docker-compose.yml # Dev services (backend, postgres, redis, mongo, ollama)
+```
+
 ## Tech Stack
 
+### Frontend (Electron + React)
+- **Desktop**: Electron 40 + electron-vite 5 + electron-builder 26
 - **Framework**: React 19 + TypeScript + Vite 7
 - **Styling**: Tailwind CSS 4.1 (utility-first, no CSS modules)
 - **State**: Zustand 5
 - **Canvas**: @xyflow/react 12 (React Flow)
 - **Icons**: lucide-react
-- **PWA**: vite-plugin-pwa
+- **Auto-update**: electron-updater (GitHub releases)
+- **PWA**: vite-plugin-pwa (for browser fallback)
+
+### Backend (FastAPI)
+- **Framework**: FastAPI + Uvicorn
+- **LLM**: Ollama (local inference)
+- **Databases**: PostgreSQL (asyncpg), MySQL (aiomysql), MongoDB (motor), Redis
+- **PII Detection**: Presidio (analyzer + anonymizer) + spaCy
+- **Documents**: PyPDF2, python-docx
+- **Containers**: Docker SDK
+
+### Infrastructure (Docker Compose)
+- PostgreSQL 16, Redis 7, MongoDB 7, Ollama (with GPU support)
+
+## Scripts
+
+| Command | Description |
+|---------|-------------|
+| `npm run dev` | Vite dev server (browser only, no Electron) |
+| `npm run dev:electron` | Electron dev mode with hot reload |
+| `npm run build` | Build React for production (browser) |
+| `npm run build:electron` | Build Electron app |
+| `npm run package:mac` | Package macOS DMG (universal) |
+| `npm run package:win` | Package Windows NSIS installer |
+| `npm run package:linux` | Package Linux AppImage + deb |
+
+All scripts run from `frontend/`.
 
 ## Nomu Brand Guidelines
 
@@ -36,19 +81,36 @@
 - **Subtitles**: Work Sans Bold
 - **Body Text**: Work Sans Regular
 
-### Logo
-- Horizontal: "NOMU" wordmark + circular logomark (mountain/wave icon)
-- Standalone: Circular logomark only
-- White version for dark backgrounds, dark version for light backgrounds
-
 ## Project-Specific Instructions
 
 - Use Tailwind utility classes for all styling (no inline styles, no CSS modules)
 - Use Zustand for any new state management needs
-- All components are in `src/components/` organized by type (nodes, panels, modals, common, sidebar, canvas)
-- Reusable UI components (Button, Input, Modal, Select) are in `src/components/common/`
-- Follow the existing pattern of TypeScript interfaces in `src/types/`
+- All components are in `frontend/src/components/` organized by type (nodes, panels, modals, common, sidebar, canvas, electron)
+- Reusable UI components (Button, Input, Modal, Select) are in `frontend/src/components/common/`
+- Electron components (SetupWizard, ServiceDashboard, UpdateNotification, TutorialOverlay) are in `frontend/src/components/electron/`
+- Follow the existing pattern of TypeScript interfaces in `frontend/src/types/`
 - Keep node types visually distinct from each other
+- Electron main process code lives in `frontend/electron/main/`
+- IPC communication uses `contextBridge.exposeInMainWorld('electronAPI', ...)` pattern
+
+## Electron Architecture
+
+### Main Process (`electron/main/`)
+- `index.ts` - App entry: window creation, IPC registration, Docker lifecycle
+- `window-manager.ts` - BrowserWindow setup (1400x900, preload, context isolation)
+- `docker-manager.ts` - Docker Compose orchestration (start/stop/health/logs)
+- `ipc-handlers.ts` - IPC bridge between renderer and main process
+- `auto-updater.ts` - GitHub release auto-updater (manual download approval)
+
+### Preload (`electron/preload/`)
+- Exposes `window.electronAPI` with namespaces: `docker`, `app`, `updater`
+- Type-safe bridge with `contextIsolation: true`, `nodeIntegration: false`
+
+### Packaging
+- `electron-builder.yml` configures macOS (DMG universal), Windows (NSIS x64), Linux (AppImage + deb)
+- App ID: `com.nomu.complianceflow`
+- Auto-update publishes to GitHub releases (`nomubuilders/enterprise-software`)
+- Docker compose file bundled as `extraResources` for production
 
 ## Key Features
 
@@ -56,106 +118,45 @@
 - **Chat Interface** (`ChatInterfacePanel.tsx`) - Floating, resizable, minimizable chat window for data queries
 - **AI Assistant** (`AIAssistantPanel.tsx`) - Floating, resizable, minimizable AI helper for workflow building
 - Both support 8-directional resizing (N, S, E, W, NE, NW, SE, SW)
-- Minimum size: 320×400px
-- Include resize handles with hover effects
-- Draggable via header with `drag-handle` class and `cursor-move`
+- Minimum size: 320x400px
 
 ### Smart AI Assistant
-- **Intent Detection** (`aiAssistantIntentDetector.ts`) - Automatically detects user intent:
-  - `build_workflow` - Creates/modifies workflows
-  - `explain_workflow` - Explains current workflow
-  - `get_help` - Provides tips and guidance
-  - `analyze_workflow` - Analyzes and suggests improvements
-  - `general_question` - Answers general questions
-- Shows contextual loading messages based on detected intent
+- **Intent Detection** (`aiAssistantIntentDetector.ts`) - Detects user intent: build_workflow, explain_workflow, get_help, analyze_workflow, general_question
 - Only builds workflows when user actually wants them (not for questions)
 
 ### Database Integration
-- **Recursive Node Detection** - Chat interface finds database nodes anywhere in upstream workflow chain
-- **Enhanced Logging** - Console logs with ✅⚠️❌ emojis for easy debugging
+- Recursive upstream node detection for finding database nodes in workflow chains
 - Supports PostgreSQL, MySQL, MongoDB
 - Auto-loads table schema and sample data
-- Saves `dbType` in configuration for proper connection handling
 
 ### Visual Feedback
-- **Smart Edge Styling** (`Canvas.tsx`) - Edges change appearance based on node configuration:
-  - Properly configured: Cyan (#06b6d4), 3px width, animated, 100% opacity
-  - Not configured: Gray (#64748b), 2px width, no animation, 50% opacity
-- Provides instant visual feedback for workflow validity
+- **Smart Edge Styling** - Edges change appearance based on node configuration state
+- Configured: Cyan, 3px, animated | Unconfigured: Gray, 2px, static
 
-### Node Configuration
-- Chat Output nodes auto-open floating chat interface (no sidebar panel)
-- Database nodes save connection details and query configuration
-- All nodes follow consistent configuration patterns
+### Docker Service Management
+- Desktop app manages backend services via Docker Compose
+- Health polling every 10s with status broadcast to renderer
+- Port conflict detection before starting services
+- Log streaming per service
+
+## Distribution & Updates
+
+See [DISTRIBUTION.md](./DISTRIBUTION.md) for the full guide. Summary:
+
+- **Initial download**: Host `.dmg` / `.exe` / `.AppImage` from `frontend/dist-electron/` on your website as static files
+- **Auto-updates**: Configured via GitHub Releases (`nomubuilders/enterprise-software`). electron-builder generates `latest-mac.yml` / `latest.yml` automatically
+- **Publish flow**: Bump version in `frontend/package.json` → `npm run package:mac` (or win/linux) → `gh release create v{version}` with artifacts
+- **Alternative**: Switch `publish.provider` in `electron-builder.yml` from `github` to `generic` with your own URL
 
 ## Testing
 
-Always run tests before committing:
-- `npm test` or equivalent for your stack
+- `npm test` from `frontend/`
 - Check browser console for `[ChatInterface]` logs when debugging database connections
 - Verify edge colors change when nodes are properly configured
 
 ## Code Style
 
-- Follow existing patterns in the codebase
 - TypeScript strict mode
 - Functional components with hooks
 - Tailwind for all styling
 - Use console.log with prefixes like `[ChatInterface]` or `[AI Assistant]` for debugging
-
-## Common Patterns
-
-### Floating Window Implementation
-```typescript
-// State
-const [position, setPosition] = useState({ x: 20, y: 100 })
-const [size, setSize] = useState({ width: 420, height: 600 })
-const [isMinimized, setIsMinimized] = useState(false)
-const isDragging = useRef(false)
-const isResizing = useRef(false)
-const resizeHandle = useRef<ResizeHandle>(null)
-
-// Include resize handles (8 directions)
-<div data-resize-handle="n" className="absolute top-0 left-0 right-0 h-1 cursor-n-resize hover:bg-purple-500/50 transition-colors" />
-// ... 7 more handles
-
-// Draggable header
-<div className="drag-handle ... cursor-move">
-  <GripHorizontal size={16} className="text-slate-500" />
-  // ... header content
-</div>
-```
-
-### Intent Detection Pattern
-```typescript
-const intentAnalysis = aiIntentDetector.detectIntentQuick(userMessage, hasWorkflow)
-
-if (!intentAnalysis.shouldBuildWorkflow) {
-  // Provide helpful response without building
-  const response = await aiIntentDetector.generateHelpfulResponse(...)
-} else {
-  // Build the workflow
-  await aiWorkflowBuilder.buildWorkflow(...)
-}
-```
-
-### Recursive Node Traversal
-```typescript
-const findUpstreamNodes = (nodeId: string, visited = new Set<string>()): Node[] => {
-  if (visited.has(nodeId)) return []
-  visited.add(nodeId)
-
-  const upstreamEdges = edges.filter((e) => e.target === nodeId)
-  const upstreamNodes: Node[] = []
-
-  for (const edge of upstreamEdges) {
-    const sourceNode = nodes.find((n) => n.id === edge.source)
-    if (sourceNode) {
-      upstreamNodes.push(sourceNode)
-      upstreamNodes.push(...findUpstreamNodes(sourceNode.id, visited))
-    }
-  }
-
-  return upstreamNodes
-}
-```

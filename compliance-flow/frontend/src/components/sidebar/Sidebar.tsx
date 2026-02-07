@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import type { DragEvent, ReactNode } from 'react'
 import {
   Bot,
@@ -159,6 +160,7 @@ const categories = ['Triggers', 'Data Sources', 'Documents', 'AI Models', 'Compl
 
 export function Sidebar() {
   const dockerAvailable = useDockerStore((s) => s.dockerAvailable)
+  const [searchQuery, setSearchQuery] = useState('')
 
   const onDragStart = (event: DragEvent, template: NodeTemplate) => {
     event.dataTransfer.setData('application/reactflow', JSON.stringify(template))
@@ -180,6 +182,8 @@ export function Sidebar() {
           <input
             type="text"
             placeholder="Search nodes..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full bg-transparent text-sm text-[var(--nomu-text)] placeholder-[var(--nomu-text-muted)] outline-none"
           />
         </div>
@@ -187,7 +191,12 @@ export function Sidebar() {
 
       {/* Node Palette */}
       <div className="flex-1 overflow-y-auto p-3">
-        {categories.map((category) => (
+        {categories.map((category) => {
+          const filtered = nodeTemplates.filter(
+            (t) => t.category === category && t.label.toLowerCase().includes(searchQuery.toLowerCase())
+          )
+          if (filtered.length === 0) return null
+          return (
           <div key={category} className="mb-4" data-tutorial={`category-${category.toLowerCase().replace(/\s+/g, '-')}`}>
             <h3 className="mb-2 font-['Barlow'] text-xs font-semibold uppercase tracking-wider text-[var(--nomu-text-muted)]">
               {category}
@@ -196,8 +205,7 @@ export function Sidebar() {
               )}
             </h3>
             <div className="space-y-1">
-              {nodeTemplates
-                .filter((t) => t.category === category)
+              {filtered
                 .map((template, index) => (
                   <div
                     key={`${template.type}-${index}`}
@@ -217,7 +225,8 @@ export function Sidebar() {
                 ))}
             </div>
           </div>
-        ))}
+          )
+        })}
       </div>
 
       {/* Footer */}

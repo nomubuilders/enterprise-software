@@ -18,6 +18,7 @@
     "package:linux": "electron-vite build && electron-builder --linux"
   },
   "dependencies": {
+    "@emotion/is-prop-valid": "^1.4.0",
     "@tailwindcss/typography": "^0.5.19",
     "@tailwindcss/vite": "^4.1.18",
     "@xyflow/react": "^12.10.0",

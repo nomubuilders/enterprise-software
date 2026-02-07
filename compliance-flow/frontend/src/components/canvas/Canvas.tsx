@@ -51,11 +51,10 @@ export function Canvas() {
       if (!data || !reactFlowInstance.current || !reactFlowWrapper.current) return
 
       const template = JSON.parse(data)
-      const bounds = reactFlowWrapper.current.getBoundingClientRect()
 
       const position = reactFlowInstance.current.screenToFlowPosition({
-        x: event.clientX - bounds.left,
-        y: event.clientY - bounds.top,
+        x: event.clientX,
+        y: event.clientY,
       })
 
       const newNode = {
@@ -171,6 +170,8 @@ export function Canvas() {
         fitView
         snapToGrid
         snapGrid={[15, 15]}
+        minZoom={0.1}
+        maxZoom={2}
         defaultEdgeOptions={{
           animated: true,
           style: { stroke: 'var(--nomu-text-muted)', strokeWidth: 2 },
@@ -207,7 +208,7 @@ export function Canvas() {
           maskColor="rgba(0, 0, 0, 0.8)"
           className="!bg-[var(--nomu-surface)] !border-[var(--nomu-border)] !rounded-lg"
           position="bottom-left"
-          style={{ left: 60, bottom: 10 }}
+          style={{ left: 10, bottom: 50 }}
         />
       </ReactFlow>
 
