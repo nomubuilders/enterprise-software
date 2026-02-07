@@ -337,6 +337,41 @@ export const useWorkflowStore = create<WorkflowState>()(
                   ).join('\n\n')
                   contextParts.push(`Document search results:\n${searchText.slice(0, 3000)}`)
                 }
+                if (workflowData.spreadsheetData) {
+                  const sd = workflowData.spreadsheetData as { columns: string[]; rows: Record<string, unknown>[]; totalRows: number }
+                  contextParts.push(`Spreadsheet data (${sd.totalRows} rows, columns: ${sd.columns.join(', ')}):\n${JSON.stringify(sd.rows.slice(0, 20), null, 2).slice(0, 2000)}`)
+                }
+                if (workflowData.emailMessages) {
+                  const emails = workflowData.emailMessages as Array<{ subject?: string; sender?: string; body_text?: string; date?: string }>
+                  const emailText = emails.slice(0, 10).map(e =>
+                    `Subject: ${e.subject || '(none)'}\nFrom: ${e.sender || 'unknown'}\nDate: ${e.date || ''}\nBody: ${(e.body_text || '').slice(0, 500)}`
+                  ).join('\n---\n')
+                  contextParts.push(`Email messages (${emails.length} emails):\n${emailText.slice(0, 3000)}`)
+                }
+                if (workflowData.webSearchResults) {
+                  const results = workflowData.webSearchResults as Array<{ title: string; url: string; snippet: string }>
+                  const searchText = results.map(r => `${r.title} - ${r.url}\n${r.snippet}`).join('\n\n')
+                  contextParts.push(`Web search results:\n${searchText.slice(0, 3000)}`)
+                }
+                if (workflowData.codeReviewResults) {
+                  contextParts.push(`Code review findings:\n${String(workflowData.codeReviewResults).slice(0, 3000)}`)
+                }
+                if (workflowData.mcpContext) {
+                  const mcp = workflowData.mcpContext as { serverUrl: string; protocol: string; toolCount: number; tools?: string[] }
+                  contextParts.push(`Available MCP tools from ${mcp.serverUrl}: ${mcp.tools?.join(', ') || `${mcp.toolCount} tools available`}`)
+                }
+                // Apply personality config to system prompt if present
+                if (workflowData.personalityConfig) {
+                  const pc = workflowData.personalityConfig as { persona: string; tone: string; language: string; customPrompt: string }
+                  const personalityParts: string[] = []
+                  if (pc.persona) personalityParts.push(`You are ${pc.persona}.`)
+                  if (pc.tone) personalityParts.push(`Use a ${pc.tone} tone.`)
+                  if (pc.language && pc.language !== 'en') personalityParts.push(`Respond in ${pc.language}.`)
+                  if (pc.customPrompt) personalityParts.push(pc.customPrompt)
+                  if (personalityParts.length > 0) {
+                    prompt = personalityParts.join(' ') + '\n\n' + prompt
+                  }
+                }
                 if (contextParts.length > 0) {
                   prompt += 'Context from previous workflow steps:\n\n' + contextParts.join('\n\n') + '\n\n'
                 }
@@ -543,7 +578,11 @@ export const useWorkflowStore = create<WorkflowState>()(
                 } else {
                   workflowData.finalOutput = workflowData.filteredResponse
                     || workflowData.llmResponse
+                    || workflowData.codeReviewResults
                     || workflowData.dbResult
+                    || workflowData.webSearchResults
+                    || workflowData.emailMessages
+                    || workflowData.spreadsheetData
                 }
 
                 addLog(node.id, nodeName, 'info', `Output ready (${outputType})`, {
@@ -651,6 +690,147 @@ export const useWorkflowStore = create<WorkflowState>()(
                   }
                 }
                 // Chat output: finalOutput is already stored for ChatInterfacePanel to consume
+              }
+              else if (node.type === 'spreadsheetNode') {
+                addLog(node.id, nodeName, 'info', 'Parsing spreadsheet...')
+                const filePath = config.filePath as string
+                if (!filePath) {
+                  addLog(node.id, nodeName, 'warn', 'Spreadsheet not configured - skipping')
+                } else {
+                  try {
+                    const result = await api.parseSpreadsheet(filePath, config.sheetName as string | undefined)
+                    if (result.success) {
+                      workflowData.spreadsheetData = { columns: result.columns, rows: result.preview_rows, totalRows: result.total_rows }
+                      addLog(node.id, nodeName, 'info', `Parsed ${result.total_rows} rows, ${result.columns.length} columns`)
+                    } else {
+                      addLog(node.id, nodeName, 'error', `Spreadsheet parse failed: ${result.error}`)
+                    }
+                  } catch (err) {
+                    addLog(node.id, nodeName, 'warn', `Spreadsheet parsing failed: ${err instanceof Error ? err.message : 'Unknown error'}`)
+                  }
+                }
+              }
+              else if (node.type === 'emailInboxNode') {
+                addLog(node.id, nodeName, 'info', 'Fetching emails...')
+                const host = config.host as string
+                if (!host) {
+                  addLog(node.id, nodeName, 'warn', 'Email inbox not configured - skipping')
+                } else {
+                  try {
+                    const result = await api.fetchEmails(
+                      {
+                        protocol: (config.protocol as string) || 'imap',
+                        host,
+                        port: (config.port as number) || 993,
+                        email: config.email as string,
+                        password: config.password as string,
+                        ssl: (config.ssl as boolean) ?? true,
+                      },
+                      {
+                        folder: (config.folder as string) || 'INBOX',
+                        filter_unread: (config.filterUnread as boolean) || false,
+                        filter_from: config.filterFrom as string | undefined,
+                        filter_since: config.filterSince as string | undefined,
+                        limit: (config.limit as number) || 50,
+                      }
+                    )
+                    if (result.success) {
+                      workflowData.emailMessages = result.emails
+                      addLog(node.id, nodeName, 'info', `Fetched ${result.count} emails`)
+                    } else {
+                      addLog(node.id, nodeName, 'error', `Email fetch failed: ${result.error}`)
+                    }
+                  } catch (err) {
+                    addLog(node.id, nodeName, 'warn', `Email fetch failed: ${err instanceof Error ? err.message : 'Unknown error'}`)
+                  }
+                }
+              }
+              else if (node.type === 'webSearchNode') {
+                addLog(node.id, nodeName, 'info', 'Executing web search...')
+                const engineUrl = config.engineUrl as string
+                const query = (config.query as string) || (workflowData.llmResponse ? String(workflowData.llmResponse).slice(0, 200) : '')
+                if (!engineUrl || !query) {
+                  addLog(node.id, nodeName, 'warn', 'Web search not configured - skipping')
+                } else {
+                  try {
+                    const result = await api.webSearch({
+                      engine: (config.engine as string) || 'searxng',
+                      engine_url: engineUrl,
+                      query,
+                      max_results: (config.maxResults as number) || 10,
+                      categories: (config.categories as string[]) || [],
+                      language: (config.language as string) || 'en',
+                      safe_search: (config.safeSearch as boolean) ?? true,
+                    })
+                    if (result.success) {
+                      workflowData.webSearchResults = result.results
+                      addLog(node.id, nodeName, 'info', `Found ${result.result_count} results for "${result.query}"`)
+                    } else {
+                      addLog(node.id, nodeName, 'error', `Web search failed: ${result.error}`)
+                    }
+                  } catch (err) {
+                    addLog(node.id, nodeName, 'warn', `Web search failed: ${err instanceof Error ? err.message : 'Unknown error'}`)
+                  }
+                }
+              }
+              else if (node.type === 'personalityNode') {
+                addLog(node.id, nodeName, 'info', 'Applying personality configuration...')
+                workflowData.personalityConfig = {
+                  persona: config.persona as string || '',
+                  tone: config.tone as string || 'professional',
+                  language: config.language as string || 'en',
+                  customPrompt: config.customPrompt as string || '',
+                }
+                addLog(node.id, nodeName, 'info', `Personality set: ${config.persona || 'default'} (${config.tone || 'professional'})`)
+              }
+              else if (node.type === 'auditNode') {
+                addLog(node.id, nodeName, 'info', 'Capturing audit snapshot...')
+                workflowData.auditSnapshot = {
+                  timestamp: new Date().toISOString(),
+                  dataKeys: Object.keys(workflowData),
+                  snapshot: JSON.parse(JSON.stringify(workflowData)),
+                }
+                addLog(node.id, nodeName, 'info', `Audit snapshot captured (${Object.keys(workflowData).length} data keys)`)
+              }
+              else if (node.type === 'codeReviewNode') {
+                addLog(node.id, nodeName, 'info', 'Running code review...')
+                const reviewType = (config.reviewType as string) || 'general'
+                const codeLanguage = (config.language as string) || 'auto'
+                const minSeverity = (config.minSeverity as string) || 'medium'
+
+                // Gather code from upstream data
+                const codeContent = (workflowData.llmResponse as string)
+                  || (workflowData.filteredResponse as string)
+                  || (workflowData.containerOutput ? String(workflowData.containerOutput) : '')
+
+                if (!codeContent) {
+                  addLog(node.id, nodeName, 'warn', 'No code content available for review - skipping')
+                } else {
+                  try {
+                    const model = (config.model as string) || 'llama3.2'
+                    const systemPrompt = `You are a code review assistant. Perform a ${reviewType} review of the following ${codeLanguage} code. Focus on issues of ${minSeverity} severity or higher. Report bugs, security issues, performance problems, and style violations.`
+                    const result = await api.generate({
+                      model,
+                      prompt: `${systemPrompt}\n\nCode to review:\n\`\`\`\n${codeContent.slice(0, 4000)}\n\`\`\`\n\nProvide a structured review with severity levels.`,
+                      temperature: 0.3,
+                      max_tokens: 2048,
+                    })
+                    workflowData.codeReviewResults = result.response
+                    addLog(node.id, nodeName, 'info', 'Code review complete', { responseLength: result.response?.length || 0 })
+                  } catch (err) {
+                    addLog(node.id, nodeName, 'warn', `Code review failed: ${err instanceof Error ? err.message : 'Unknown error'}`)
+                  }
+                }
+              }
+              else if (node.type === 'mcpContextNode') {
+                addLog(node.id, nodeName, 'info', 'Setting MCP context...')
+                workflowData.mcpContext = {
+                  serverUrl: config.serverUrl as string || '',
+                  protocol: config.protocol as string || 'mcp',
+                  toolCount: config.toolCount as number || 0,
+                  tools: config.tools as string[] || [],
+                }
+                addLog(node.id, nodeName, 'info', `MCP context set: ${config.serverUrl || 'not configured'}`)
               }
               else {
                 addLog(node.id, nodeName, 'info', `Executed node: ${nodeName}`)

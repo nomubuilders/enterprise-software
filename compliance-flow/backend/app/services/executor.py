@@ -335,6 +335,23 @@ class WorkflowExecutionEngine:
                 output_data = await self._execute_pii_filter_node(node, input_data)
             elif node.type == NodeType.OUTPUT:
                 output_data = await self._execute_output_node(node, input_data)
+            elif node.type == NodeType.SPREADSHEET:
+                output_data = await self._execute_spreadsheet_node(node, input_data)
+            elif node.type == NodeType.EMAIL_INBOX:
+                output_data = await self._execute_email_inbox_node(node, input_data)
+            elif node.type == NodeType.WEB_SEARCH:
+                output_data = await self._execute_websearch_node(node, input_data)
+            elif node.type == NodeType.PERSONALITY:
+                output_data = await self._execute_personality_node(node, input_data)
+            elif node.type == NodeType.AUDIT:
+                output_data = await self._execute_audit_node(node, input_data)
+            elif node.type == NodeType.CODE_REVIEW:
+                output_data = await self._execute_code_review_node(node, input_data)
+            elif node.type == NodeType.MCP_CONTEXT:
+                output_data = await self._execute_mcp_context_node(node, input_data)
+            elif node.type in (NodeType.DOCKER_CONTAINER, NodeType.DOCUMENT):
+                # Handled by frontend execution engine
+                output_data = {"passthrough": True, **input_data}
             else:
                 raise ValueError(f"Unknown node type: {node.type}")
 
@@ -568,6 +585,134 @@ class WorkflowExecutionEngine:
             "format": node_data.format,
             "output": formatted_output,
             "type": type(formatted_output).__name__,
+        }
+
+    async def _execute_spreadsheet_node(self, node: WorkflowNode, input_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Execute a spreadsheet node - parse spreadsheet file."""
+        from app.services.spreadsheet_service import SpreadsheetService
+
+        service = SpreadsheetService()
+        file_path = node.data.get("file_path", node.data.get("filePath", ""))
+        sheet_name = node.data.get("sheet_name", node.data.get("sheetName"))
+
+        if not file_path:
+            return {"spreadsheet_data": [], "columns": [], "error": "No file path configured"}
+
+        result = await service.parse_file(file_path=file_path, sheet_name=sheet_name)
+        return {
+            "columns": result.get("columns", []),
+            "rows": result.get("preview_rows", []),
+            "total_rows": result.get("total_rows", 0),
+        }
+
+    async def _execute_email_inbox_node(self, node: WorkflowNode, input_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Execute an email inbox node - fetch emails."""
+        from app.services.email_service import EmailService
+
+        service = EmailService()
+        config = {
+            "protocol": node.data.get("protocol", "imap"),
+            "host": node.data.get("host", ""),
+            "port": node.data.get("port", 993),
+            "email": node.data.get("email", ""),
+            "password": node.data.get("password", ""),
+            "ssl": node.data.get("ssl", True),
+        }
+        filters = {
+            "folder": node.data.get("folder", "INBOX"),
+            "filter_unread": node.data.get("filter_unread", False),
+            "filter_from": node.data.get("filter_from"),
+            "filter_since": node.data.get("filter_since"),
+            "limit": node.data.get("limit", 50),
+        }
+
+        if not config["host"]:
+            return {"emails": [], "error": "No email host configured"}
+
+        emails = await service.fetch_emails(config, filters)
+        return {"emails": emails, "count": len(emails)}
+
+    async def _execute_websearch_node(self, node: WorkflowNode, input_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Execute a web search node."""
+        from app.services.websearch_service import WebSearchService
+
+        service = WebSearchService()
+        query = node.data.get("query", "")
+        engine_url = node.data.get("engine_url", node.data.get("engineUrl", ""))
+
+        if not query or not engine_url:
+            return {"results": [], "error": "No query or engine URL configured"}
+
+        results = await service.search(
+            query=query,
+            engine_url=engine_url,
+            max_results=node.data.get("max_results", 10),
+            categories=node.data.get("categories", []),
+            language=node.data.get("language", "en"),
+            safe_search=node.data.get("safe_search", True),
+        )
+        return {"results": results, "result_count": len(results), "query": query}
+
+    async def _execute_personality_node(self, node: WorkflowNode, input_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Execute a personality node - returns config as context for LLM."""
+        return {
+            "persona": node.data.get("persona", ""),
+            "tone": node.data.get("tone", "professional"),
+            "language": node.data.get("language", "en"),
+            "custom_prompt": node.data.get("customPrompt", node.data.get("custom_prompt", "")),
+        }
+
+    async def _execute_audit_node(self, node: WorkflowNode, input_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Execute an audit node - log execution state."""
+        snapshot = {
+            "timestamp": datetime.utcnow().isoformat(),
+            "data_keys": list(input_data.keys()),
+            "completed_nodes": list(self.execution_context.completed_nodes),
+            "input_snapshot": {k: str(v)[:500] for k, v in input_data.items()},
+        }
+        logger.info(f"Audit snapshot: {snapshot}")
+        return {"audit_snapshot": snapshot}
+
+    async def _execute_code_review_node(self, node: WorkflowNode, input_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Execute a code review node - use LLM to review code."""
+        from app.services.ollama import OllamaService
+
+        review_type = node.data.get("reviewType", node.data.get("review_type", "general"))
+        code_language = node.data.get("language", "auto")
+        min_severity = node.data.get("minSeverity", node.data.get("min_severity", "medium"))
+        model = node.data.get("model", "llama3.2")
+
+        # Gather code from input data
+        code_content = ""
+        for key in ("response", "filtered_text", "output", "result"):
+            if key in input_data and isinstance(input_data[key], str):
+                code_content = input_data[key]
+                break
+
+        if not code_content:
+            return {"review": "", "error": "No code content available for review"}
+
+        ollama = OllamaService()
+        system_prompt = (
+            f"You are a code review assistant. Perform a {review_type} review of the following "
+            f"{code_language} code. Focus on issues of {min_severity} severity or higher."
+        )
+
+        result = await ollama.generate(
+            model=model,
+            prompt=f"Review this code:\n```\n{code_content[:4000]}\n```\n\nProvide a structured review.",
+            system=system_prompt,
+            temperature=0.3,
+        )
+        return {"review": result.get("response", ""), "model": model}
+
+    async def _execute_mcp_context_node(self, node: WorkflowNode, input_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Execute an MCP context node - returns MCP config as context."""
+        return {
+            "server_url": node.data.get("serverUrl", node.data.get("server_url", "")),
+            "protocol": node.data.get("protocol", "mcp"),
+            "tool_count": node.data.get("toolCount", node.data.get("tool_count", 0)),
+            "tools": node.data.get("tools", []),
         }
 
     @staticmethod

@@ -21,6 +21,15 @@ class NodeType(str, Enum):
     LLM = "llmNode"
     PII_FILTER = "piiFilterNode"
     OUTPUT = "outputNode"
+    DOCKER_CONTAINER = "dockerContainerNode"
+    DOCUMENT = "documentNode"
+    SPREADSHEET = "spreadsheetNode"
+    EMAIL_INBOX = "emailInboxNode"
+    WEB_SEARCH = "webSearchNode"
+    PERSONALITY = "personalityNode"
+    AUDIT = "auditNode"
+    CODE_REVIEW = "codeReviewNode"
+    MCP_CONTEXT = "mcpContextNode"
 
 
 class TriggerType(str, Enum):

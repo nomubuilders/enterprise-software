@@ -327,6 +327,96 @@ class ApiClient {
     })
   }
 
+  // Spreadsheet Parsing
+  async parseSpreadsheet(
+    filePath: string,
+    sheetName?: string
+  ): Promise<{
+    success: boolean
+    columns: string[]
+    preview_rows: Record<string, unknown>[]
+    total_rows: number
+    error?: string
+  }> {
+    return this.fetch('/spreadsheet/parse', {
+      method: 'POST',
+      body: JSON.stringify({ file_path: filePath, sheet_name: sheetName }),
+    })
+  }
+
+  async transformSpreadsheet(
+    data: Record<string, unknown>[],
+    operations: Array<{ type: string; column: string; value?: unknown; direction?: string }>
+  ): Promise<{
+    success: boolean
+    data: Record<string, unknown>[]
+    row_count: number
+    error?: string
+  }> {
+    return this.fetch('/spreadsheet/transform', {
+      method: 'POST',
+      body: JSON.stringify({ data, operations }),
+    })
+  }
+
+  // Email Inbox
+  async fetchEmails(
+    config: {
+      protocol?: string
+      host: string
+      port?: number
+      email: string
+      password: string
+      ssl?: boolean
+    },
+    filters?: {
+      folder?: string
+      filter_unread?: boolean
+      filter_from?: string
+      filter_since?: string
+      limit?: number
+    }
+  ): Promise<{
+    success: boolean
+    emails: Array<{
+      uid: string
+      subject?: string
+      sender?: string
+      date?: string
+      body_text?: string
+      has_attachments: boolean
+    }>
+    count: number
+    error?: string
+  }> {
+    return this.fetch('/email/fetch', {
+      method: 'POST',
+      body: JSON.stringify({ ...config, ...filters }),
+    })
+  }
+
+  // Web Search
+  async webSearch(config: {
+    engine?: string
+    engine_url: string
+    query: string
+    max_results?: number
+    categories?: string[]
+    language?: string
+    safe_search?: boolean
+  }): Promise<{
+    success: boolean
+    results: Array<{ title: string; url: string; snippet: string }>
+    result_count: number
+    query: string
+    error?: string
+  }> {
+    return this.fetch('/websearch/search', {
+      method: 'POST',
+      body: JSON.stringify(config),
+    })
+  }
+
   async testEmailConfig(config: {
     smtp_host: string
     smtp_port: number
