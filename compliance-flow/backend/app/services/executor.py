@@ -353,6 +353,12 @@ class WorkflowExecutionEngine:
                 output_data = await self._execute_conditional_node(node, input_data)
             elif node.type == NodeType.APPROVAL_GATE:
                 output_data = await self._execute_approval_gate_node(node, input_data)
+            elif node.type == NodeType.COMPLIANCE_DASHBOARD:
+                output_data = await self._execute_compliance_dashboard_node(node, input_data)
+            elif node.type == NodeType.MODEL_REGISTRY:
+                output_data = await self._execute_model_registry_node(node, input_data)
+            elif node.type == NodeType.EVIDENCE_COLLECTION:
+                output_data = await self._execute_evidence_collection_node(node, input_data)
             elif node.type in (NodeType.DOCKER_CONTAINER, NodeType.DOCUMENT):
                 # Handled by frontend execution engine
                 output_data = {"passthrough": True, **input_data}
@@ -770,6 +776,80 @@ class WorkflowExecutionEngine:
             "actual": actual_str,
             **input_data,
         }
+
+    async def _execute_compliance_dashboard_node(self, node: WorkflowNode, input_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Execute a compliance dashboard node - generates compliance report data."""
+        frameworks = node.data.get("frameworks", [])
+        report_format = node.data.get("reportFormat", node.data.get("report_format", "pdf"))
+        include_evidence = node.data.get("includeEvidence", node.data.get("include_evidence", True))
+
+        report = {
+            "report_id": str(uuid.uuid4()),
+            "generated_at": datetime.utcnow().isoformat(),
+            "frameworks": frameworks,
+            "format": report_format,
+            "sections": [],
+            "compliance_score": 0,
+        }
+
+        # Collect compliance data from upstream nodes
+        if input_data:
+            report["input_summary"] = {k: str(v)[:200] for k, v in input_data.items()}
+
+        for fw in (frameworks or ["general"]):
+            report["sections"].append({
+                "framework": fw,
+                "status": "assessed",
+                "findings": [],
+                "evidence_count": len(input_data) if include_evidence else 0,
+            })
+
+        return {**report, **input_data}
+
+    async def _execute_model_registry_node(self, node: WorkflowNode, input_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Execute a model registry node - registers/validates AI model metadata."""
+        model_name = node.data.get("modelName", node.data.get("model_name", ""))
+        risk_level = node.data.get("riskLevel", node.data.get("risk_level", "unclassified"))
+        model_version = node.data.get("modelVersion", node.data.get("model_version", "1.0"))
+        purpose = node.data.get("purpose", "")
+
+        return {
+            "registry_entry": {
+                "model_name": model_name,
+                "risk_level": risk_level,
+                "version": model_version,
+                "purpose": purpose,
+                "registered_at": datetime.utcnow().isoformat(),
+                "eu_ai_act_compliant": risk_level not in ("unacceptable",),
+            },
+            **input_data,
+        }
+
+    async def _execute_evidence_collection_node(self, node: WorkflowNode, input_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Execute an evidence collection node - packages compliance artifacts."""
+        target_framework = node.data.get("targetFramework", node.data.get("target_framework", "soc2"))
+        artifact_types = node.data.get("artifactTypes", node.data.get("artifact_types", ["logs"]))
+        auto_package = node.data.get("autoPackage", node.data.get("auto_package", True))
+
+        evidence_package = {
+            "package_id": str(uuid.uuid4()),
+            "framework": target_framework,
+            "collected_at": datetime.utcnow().isoformat(),
+            "artifact_types": artifact_types,
+            "artifacts": [],
+            "auto_packaged": auto_package,
+        }
+
+        # Collect artifacts from input data
+        for key, value in input_data.items():
+            evidence_package["artifacts"].append({
+                "type": "workflow_data",
+                "key": key,
+                "summary": str(value)[:500],
+                "collected_at": datetime.utcnow().isoformat(),
+            })
+
+        return {**evidence_package, **input_data}
 
     async def _execute_approval_gate_node(self, node: WorkflowNode, input_data: Dict[str, Any]) -> Dict[str, Any]:
         """

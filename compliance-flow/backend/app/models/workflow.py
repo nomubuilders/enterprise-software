@@ -32,6 +32,9 @@ class NodeType(str, Enum):
     MCP_CONTEXT = "mcpContextNode"
     CONDITIONAL = "conditionalNode"
     APPROVAL_GATE = "approvalGateNode"
+    COMPLIANCE_DASHBOARD = "complianceDashboardNode"
+    MODEL_REGISTRY = "modelRegistryNode"
+    EVIDENCE_COLLECTION = "evidenceCollectionNode"
 
 
 class TriggerType(str, Enum):

@@ -21,6 +21,9 @@ import {
   Plug,
   GitBranch,
   ShieldCheck,
+  BarChart3,
+  Brain,
+  Archive,
 } from 'lucide-react'
 import { useDockerStore } from '../../store/dockerStore'
 
@@ -237,9 +240,34 @@ const nodeTemplates: NodeTemplate[] = [
     category: 'Workflow Control',
     config: { approvalType: 'single', approvers: [], requireAll: true, approvalStatus: 'pending' },
   },
+  // Compliance Frameworks
+  {
+    type: 'complianceDashboardNode',
+    label: 'Compliance Report',
+    icon: <BarChart3 size={18} />,
+    color: 'bg-indigo-600',
+    category: 'Compliance Frameworks',
+    config: { frameworks: [], reportFormat: 'pdf', autoGenerate: true },
+  },
+  {
+    type: 'modelRegistryNode',
+    label: 'Model Registry',
+    icon: <Brain size={18} />,
+    color: 'bg-violet-600',
+    category: 'Compliance Frameworks',
+    config: { modelName: '', riskLevel: 'unclassified', modelVersion: '1.0' },
+  },
+  {
+    type: 'evidenceCollectionNode',
+    label: 'Evidence Collection',
+    icon: <Archive size={18} />,
+    color: 'bg-teal-600',
+    category: 'Compliance Frameworks',
+    config: { artifactTypes: ['logs', 'configs'], targetFramework: 'soc2', autoPackage: true },
+  },
 ]
 
-const categories = ['Triggers', 'Data Sources', 'Documents', 'AI Models', 'Compliance', 'Outputs', 'Containers', 'Data Processing', 'AI Configuration', 'Audit & Compliance', 'Workflow Control']
+const categories = ['Triggers', 'Data Sources', 'Documents', 'AI Models', 'Compliance', 'Outputs', 'Containers', 'Data Processing', 'AI Configuration', 'Audit & Compliance', 'Workflow Control', 'Compliance Frameworks']
 
 export function Sidebar() {
   const dockerAvailable = useDockerStore((s) => s.dockerAvailable)

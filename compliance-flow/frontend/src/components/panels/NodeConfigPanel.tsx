@@ -34,6 +34,9 @@ import {
   Plug,
   GitBranch,
   ShieldCheck,
+  BarChart3,
+  Brain,
+  Archive,
 } from 'lucide-react'
 import { Button, Input, Select, DocumentUploadZone, ConfirmModal } from '../common'
 import { DockerTerminal } from './DockerTerminal'
@@ -289,6 +292,42 @@ export function NodeConfigPanel({ node, onClose, onRunWorkflow, onOpenChat }: No
             ]}
           />
         )}
+        {nodeType === 'complianceDashboardNode' && (
+          <GenericNodeConfig
+            node={node}
+            onUpdate={(data) => updateNodeData(node.id, data)}
+            fields={[
+              { key: 'reportFormat', label: 'Report Format', type: 'select', options: [{ value: 'pdf', label: 'PDF' }, { value: 'docx', label: 'DOCX' }, { value: 'html', label: 'HTML' }, { value: 'json', label: 'JSON' }] },
+              { key: 'autoGenerate', label: 'Auto-Generate Reports', type: 'checkbox' },
+              { key: 'includeEvidence', label: 'Include Evidence', type: 'checkbox' },
+              { key: 'reportTitle', label: 'Report Title', type: 'text', placeholder: 'Compliance Assessment Report' },
+            ]}
+          />
+        )}
+        {nodeType === 'modelRegistryNode' && (
+          <GenericNodeConfig
+            node={node}
+            onUpdate={(data) => updateNodeData(node.id, data)}
+            fields={[
+              { key: 'modelName', label: 'Model Name', type: 'text', placeholder: 'e.g. llama3.2, mistral' },
+              { key: 'riskLevel', label: 'EU AI Act Risk Level', type: 'select', options: [{ value: 'unclassified', label: 'Unclassified' }, { value: 'minimal', label: 'Minimal Risk' }, { value: 'limited', label: 'Limited Risk' }, { value: 'high', label: 'High Risk' }, { value: 'unacceptable', label: 'Unacceptable Risk' }] },
+              { key: 'modelVersion', label: 'Model Version', type: 'text', placeholder: '1.0' },
+              { key: 'purpose', label: 'Purpose / Use Case', type: 'textarea', placeholder: 'Describe the model purpose...' },
+            ]}
+          />
+        )}
+        {nodeType === 'evidenceCollectionNode' && (
+          <GenericNodeConfig
+            node={node}
+            onUpdate={(data) => updateNodeData(node.id, data)}
+            fields={[
+              { key: 'targetFramework', label: 'Target Framework', type: 'select', options: [{ value: 'soc2', label: 'SOC 2' }, { value: 'iso27001', label: 'ISO 27001' }, { value: 'hipaa', label: 'HIPAA' }, { value: 'gdpr', label: 'GDPR' }, { value: 'eu_ai_act', label: 'EU AI Act' }] },
+              { key: 'autoPackage', label: 'Auto-Package Evidence', type: 'checkbox' },
+              { key: 'retentionDays', label: 'Retention (days)', type: 'number', placeholder: '365' },
+              { key: 'outputPath', label: 'Output Path', type: 'text', placeholder: '/evidence/output/' },
+            ]}
+          />
+        )}
       </div>
 
       {/* Footer */}
@@ -356,6 +395,12 @@ function NodeIcon({ type }: { type: string }) {
       return <div className={`${iconClass} bg-yellow-600`}><GitBranch size={20} className="text-white" /></div>
     case 'approvalGateNode':
       return <div className={`${iconClass} bg-orange-600`}><ShieldCheck size={20} className="text-white" /></div>
+    case 'complianceDashboardNode':
+      return <div className={`${iconClass} bg-indigo-600`}><BarChart3 size={20} className="text-white" /></div>
+    case 'modelRegistryNode':
+      return <div className={`${iconClass} bg-violet-600`}><Brain size={20} className="text-white" /></div>
+    case 'evidenceCollectionNode':
+      return <div className={`${iconClass} bg-teal-600`}><Archive size={20} className="text-white" /></div>
     default:
       return null
   }

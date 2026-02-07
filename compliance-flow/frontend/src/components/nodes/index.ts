@@ -14,6 +14,9 @@ export { CodeReviewNode } from './CodeReviewNode'
 export { MCPContextNode } from './MCPContextNode'
 export { ConditionalNode } from './ConditionalNode'
 export { ApprovalGateNode } from './ApprovalGateNode'
+export { ComplianceDashboardNode } from './ComplianceDashboardNode'
+export { ModelRegistryNode } from './ModelRegistryNode'
+export { EvidenceCollectionNode } from './EvidenceCollectionNode'
 
 import { LLMNode } from './LLMNode'
 import { DatabaseNode } from './DatabaseNode'
@@ -31,6 +34,9 @@ import { CodeReviewNode } from './CodeReviewNode'
 import { MCPContextNode } from './MCPContextNode'
 import { ConditionalNode } from './ConditionalNode'
 import { ApprovalGateNode } from './ApprovalGateNode'
+import { ComplianceDashboardNode } from './ComplianceDashboardNode'
+import { ModelRegistryNode } from './ModelRegistryNode'
+import { EvidenceCollectionNode } from './EvidenceCollectionNode'
 
 export const nodeTypes = {
   llmNode: LLMNode,
@@ -49,4 +55,7 @@ export const nodeTypes = {
   mcpContextNode: MCPContextNode,
   conditionalNode: ConditionalNode,
   approvalGateNode: ApprovalGateNode,
+  complianceDashboardNode: ComplianceDashboardNode,
+  modelRegistryNode: ModelRegistryNode,
+  evidenceCollectionNode: EvidenceCollectionNode,
 }

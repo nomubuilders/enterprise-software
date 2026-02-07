@@ -875,6 +875,43 @@ export const useWorkflowStore = create<WorkflowState>()(
                 }
                 addLog(node.id, nodeName, 'info', `MCP context set: ${config.serverUrl || 'not configured'}`)
               }
+              else if (node.type === 'complianceDashboardNode') {
+                addLog(node.id, nodeName, 'info', 'Generating compliance report...')
+                const frameworks = (config.frameworks as string[]) || []
+                const reportFormat = (config.reportFormat as string) || 'pdf'
+                workflowData.complianceReport = {
+                  reportId: generateId(),
+                  generatedAt: new Date().toISOString(),
+                  frameworks,
+                  format: reportFormat,
+                  dataKeys: Object.keys(workflowData),
+                }
+                addLog(node.id, nodeName, 'info', `Compliance report generated (${reportFormat.toUpperCase()}, ${frameworks.length} frameworks)`)
+              }
+              else if (node.type === 'modelRegistryNode') {
+                addLog(node.id, nodeName, 'info', 'Registering AI model...')
+                const modelName = config.modelName as string || 'unknown'
+                const riskLevel = config.riskLevel as string || 'unclassified'
+                workflowData.modelRegistry = {
+                  modelName,
+                  riskLevel,
+                  version: config.modelVersion as string || '1.0',
+                  registeredAt: new Date().toISOString(),
+                }
+                addLog(node.id, nodeName, 'info', `Model registered: ${modelName} (risk: ${riskLevel})`)
+              }
+              else if (node.type === 'evidenceCollectionNode') {
+                addLog(node.id, nodeName, 'info', 'Collecting compliance evidence...')
+                const targetFramework = config.targetFramework as string || 'soc2'
+                const artifactCount = Object.keys(workflowData).length
+                workflowData.evidencePackage = {
+                  packageId: generateId(),
+                  framework: targetFramework,
+                  collectedAt: new Date().toISOString(),
+                  artifactCount,
+                }
+                addLog(node.id, nodeName, 'info', `Evidence collected: ${artifactCount} artifacts for ${targetFramework.toUpperCase()}`)
+              }
               else if (node.type === 'conditionalNode') {
                 const field = config.field as string || ''
                 const operator = config.operator as string || 'equals'
