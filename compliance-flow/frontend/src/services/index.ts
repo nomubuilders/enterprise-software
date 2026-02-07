@@ -10,3 +10,4 @@ export type {
   ChatRequest,
   HealthStatus,
 } from './api'
+export { getElectronBridge, isElectron } from './electronBridge'

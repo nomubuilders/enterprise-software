@@ -1,0 +1,67 @@
+appId: com.nomu.complianceflow
+productName: Compliance Ready AI
+copyright: Copyright (c) 2026 Nomu
+
+directories:
+  buildResources: electron/resources
+  output: dist-electron
+
+files:
+  - out/**/*
+  - "!out/renderer/**/*"
+
+extraResources:
+  - from: electron/resources/docker-compose.prod.yml
+    to: docker-compose.prod.yml
+
+mac:
+  category: public.app-category.developer-tools
+  icon: electron/resources/icon.icns
+  target:
+    - target: dmg
+      arch:
+        - universal
+  hardenedRuntime: true
+  gatekeeperAssess: false
+  entitlements: electron/resources/entitlements.mac.plist
+  entitlementsInherit: electron/resources/entitlements.mac.plist
+
+dmg:
+  contents:
+    - x: 130
+      y: 220
+    - x: 410
+      y: 220
+      type: link
+      path: /Applications
+
+win:
+  icon: electron/resources/icon.ico
+  target:
+    - target: nsis
+      arch:
+        - x64
+  legalTrademarks: Copyright (c) 2026 Nomu
+
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  installerIcon: electron/resources/icon.ico
+  uninstallerIcon: electron/resources/icon.ico
+  installerHeaderIcon: electron/resources/icon.ico
+
+linux:
+  icon: electron/resources/icon.png
+  category: Development
+  target:
+    - target: AppImage
+      arch:
+        - x64
+    - target: deb
+      arch:
+        - x64
+
+publish:
+  provider: github
+  owner: nomubuilders
+  repo: enterprise-software

@@ -13,7 +13,6 @@ import {
   Clock,
   Webhook,
   Search,
-  Sparkles,
 } from 'lucide-react'
 import { useDockerStore } from '../../store/dockerStore'
 
@@ -167,13 +166,10 @@ export function Sidebar() {
   }
 
   return (
-    <aside className="flex h-full w-64 flex-col border-r border-[var(--nomu-border)] bg-[var(--nomu-bg-secondary)]">
+    <aside data-tutorial="sidebar" className="flex h-full w-64 flex-col border-r border-[var(--nomu-border)] bg-[var(--nomu-bg-secondary)]">
       {/* Header */}
       <div className="border-b border-[var(--nomu-border)] p-4">
-        <div className="flex items-center gap-2">
-          <Sparkles className="h-6 w-6 text-[var(--nomu-primary)]" />
-          <h1 className="font-['Barlow'] text-lg font-bold text-[var(--nomu-text)]">ComplianceFlow</h1>
-        </div>
+        <img src="/nomu-logo.png" alt="NOMU" className="h-6 [filter:var(--nomu-logo-filter)]" draggable={false} />
         <p className="mt-1 text-xs text-[var(--nomu-text-muted)]">Local AI Workflow Builder</p>
       </div>
 
@@ -192,7 +188,7 @@ export function Sidebar() {
       {/* Node Palette */}
       <div className="flex-1 overflow-y-auto p-3">
         {categories.map((category) => (
-          <div key={category} className="mb-4">
+          <div key={category} className="mb-4" data-tutorial={`category-${category.toLowerCase().replace(/\s+/g, '-')}`}>
             <h3 className="mb-2 font-['Barlow'] text-xs font-semibold uppercase tracking-wider text-[var(--nomu-text-muted)]">
               {category}
               {category === 'Containers' && (

@@ -57,6 +57,8 @@
   --nomu-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
   --nomu-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
   --nomu-shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.5);
+  --nomu-logo-filter: brightness(0) invert(1);
+  --nomu-dots: #4D4D4D;
 }
 
 :root.light {
@@ -73,6 +75,8 @@
   --nomu-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
   --nomu-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
   --nomu-shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
+  --nomu-logo-filter: none;
+  --nomu-dots: #C8C8C8;
 }
 
 /* Brand Typography */

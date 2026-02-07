@@ -153,7 +153,7 @@ export function Canvas() {
   }, [edges, isNodeConfigured, isEditMode, selectedEdgeId])
 
   return (
-    <div ref={reactFlowWrapper} className="h-full w-full">
+    <div ref={reactFlowWrapper} className="h-full w-full" data-tutorial="canvas">
       <ReactFlow
         nodes={nodes}
         edges={enhancedEdges}
@@ -182,7 +182,7 @@ export function Canvas() {
           variant={BackgroundVariant.Dots}
           gap={20}
           size={1}
-          color="var(--nomu-border)"
+          color="var(--nomu-dots)"
         />
         <Controls
           className="!bg-[var(--nomu-surface)] !border-[var(--nomu-border)] !rounded-lg !shadow-lg"

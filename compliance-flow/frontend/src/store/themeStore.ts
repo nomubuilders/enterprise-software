@@ -21,8 +21,8 @@ const getInitialTheme = (): Theme => {
     return 'light'
   }
 
-  // Default to dark
-  return 'dark'
+  // Default to light
+  return 'light'
 }
 
 const applyTheme = (theme: Theme) => {

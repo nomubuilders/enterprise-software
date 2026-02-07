@@ -1,5 +1,5 @@
 /**
- * ComplianceFlow API Client
+ * Compliance Ready AI API Client
  * Connects frontend to backend services
  */
 

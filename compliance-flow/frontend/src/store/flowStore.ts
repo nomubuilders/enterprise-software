@@ -28,46 +28,9 @@ interface FlowState {
   clearFlow: () => void
 }
 
-const initialNodes: Node[] = [
-  {
-    id: 'trigger-1',
-    type: 'triggerNode',
-    position: { x: 100, y: 200 },
-    data: { label: 'Manual Trigger', type: 'trigger', config: { triggerType: 'manual' } },
-  },
-  {
-    id: 'db-1',
-    type: 'databaseNode',
-    position: { x: 350, y: 100 },
-    data: { label: 'PostgreSQL', type: 'database', config: { dbType: 'postgresql' } },
-  },
-  {
-    id: 'llm-1',
-    type: 'llmNode',
-    position: { x: 600, y: 200 },
-    data: { label: 'AI Agent', type: 'llm', config: { model: 'llama3.2', temperature: 0.7, maxTokens: 2048 } },
-  },
-  {
-    id: 'pii-1',
-    type: 'piiFilterNode',
-    position: { x: 350, y: 300 },
-    data: { label: 'PII Filter', type: 'pii', config: { mode: 'redact' } },
-  },
-  {
-    id: 'output-1',
-    type: 'outputNode',
-    position: { x: 850, y: 200 },
-    data: { label: 'Chat Output', type: 'output', config: { outputType: 'chat' } },
-  },
-]
+const initialNodes: Node[] = []
 
-const initialEdges: Edge[] = [
-  { id: 'e1-2', source: 'trigger-1', target: 'db-1', animated: true },
-  { id: 'e1-4', source: 'trigger-1', target: 'pii-1', animated: true },
-  { id: 'e2-3', source: 'db-1', target: 'llm-1', animated: true },
-  { id: 'e4-3', source: 'pii-1', target: 'llm-1', animated: true },
-  { id: 'e3-5', source: 'llm-1', target: 'output-1', animated: true },
-]
+const initialEdges: Edge[] = []
 
 export const useFlowStore = create<FlowState>()(
   persist(

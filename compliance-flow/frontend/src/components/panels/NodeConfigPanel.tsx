@@ -998,7 +998,7 @@ function EmailOutputConfig({
       <div>
         <h3 className="mb-3 text-sm font-medium text-[var(--nomu-text)]">Message</h3>
         <div className="space-y-3">
-          <Input label="From Name" value={fromName} onChange={(e) => setFromName(e.target.value)} placeholder="Nomu ComplianceFlow" />
+          <Input label="From Name" value={fromName} onChange={(e) => setFromName(e.target.value)} placeholder="Compliance Ready AI" />
           <Input label="To Email(s)" value={toEmail} onChange={(e) => setToEmail(e.target.value)} placeholder="recipient@example.com" helperText="Comma-separated for multiple" />
           <Input label="CC (optional)" value={ccEmail} onChange={(e) => setCcEmail(e.target.value)} placeholder="cc@example.com" />
           <Input label="Subject" value={subject} onChange={(e) => setSubject(e.target.value)} placeholder="Workflow Results" />

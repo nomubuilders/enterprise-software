@@ -11,8 +11,8 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg', 'robots.txt', 'icons/*.png'],
       manifest: {
-        name: 'Nomu ComplianceFlow',
-        short_name: 'ComplianceFlow',
+        name: 'Compliance Ready AI',
+        short_name: 'Compliance Ready AI',
         description: 'Visual workflow builder for AI compliance pipelines',
         theme_color: '#000000',
         background_color: '#000000',

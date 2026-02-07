@@ -29,7 +29,7 @@ export class AIWorkflowBuilder {
    * Parse user request and generate workflow structure
    */
   async buildWorkflow(userRequest: string): Promise<WorkflowIntent> {
-    const systemPrompt = `You are an expert workflow automation assistant for ComplianceFlow - a local-first AI workflow builder.
+    const systemPrompt = `You are an expert workflow automation assistant for Compliance Ready AI - a local-first AI workflow builder.
 
 Your job is to analyze user requests and generate workflows using these node types:
 

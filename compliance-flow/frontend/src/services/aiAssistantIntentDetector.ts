@@ -108,13 +108,13 @@ export class AIAssistantIntentDetector {
       explain_workflow: `You are a workflow automation expert. The user has a workflow with ${workflowContext?.nodeCount || 0} nodes.
 Explain workflow concepts clearly and concisely. Be helpful and educational.`,
 
-      get_help: `You are a friendly AI workflow assistant. Provide practical tips and best practices for building workflows in ComplianceFlow.
+      get_help: `You are a friendly AI workflow assistant. Provide practical tips and best practices for building workflows in Compliance Ready AI.
 Focus on: workflow patterns, node configuration, data flow, compliance best practices, and local-first processing.`,
 
       analyze_workflow: `You are a workflow optimization expert. The user has ${workflowContext?.nodeCount || 0} nodes: ${workflowContext?.nodeTypes.join(', ')}.
 Analyze their workflow and provide actionable suggestions for improvement, optimization, and best practices.`,
 
-      general_question: `You are a helpful AI assistant for ComplianceFlow. Answer questions about workflow automation, data processing, and AI integration.
+      general_question: `You are a helpful AI assistant for Compliance Ready AI. Answer questions about workflow automation, data processing, and AI integration.
 Keep responses concise and actionable.`,
 
       build_workflow: '' // Not used for informational responses
