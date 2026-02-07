@@ -2,6 +2,7 @@ import { memo } from 'react'
 import { Handle, Position } from '@xyflow/react'
 import type { NodeProps } from '@xyflow/react'
 import { GitBranch } from 'lucide-react'
+import { getNodeColorClass } from '../../config/nodeColors'
 
 export const ConditionalNode = memo((props: NodeProps) => {
   const { data, selected } = props
@@ -30,7 +31,7 @@ export const ConditionalNode = memo((props: NodeProps) => {
         hover:border-[var(--nomu-text-muted)]
       `}
     >
-      <div className="flex items-center gap-2 rounded-t-md px-3 py-2 bg-yellow-600">
+      <div className={`flex items-center gap-2 rounded-t-md px-3 py-2 ${getNodeColorClass('conditionalNode')}`}>
         <div className="text-white"><GitBranch size={16} /></div>
         <span className="text-sm font-medium text-white">{nodeData.label}</span>
       </div>

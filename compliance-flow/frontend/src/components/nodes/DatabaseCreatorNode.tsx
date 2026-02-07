@@ -2,6 +2,7 @@ import { memo } from 'react'
 import type { NodeProps } from '@xyflow/react'
 import { DatabaseZap } from 'lucide-react'
 import { BaseNode } from './BaseNode'
+import { getNodeColorClass } from '../../config/nodeColors'
 
 const DB_TYPE_LABELS: Record<string, string> = {
   sqlite: 'SQLite (Local)',
@@ -17,7 +18,7 @@ export const DatabaseCreatorNode = memo((props: NodeProps) => {
   const databaseName = (config?.databaseName as string) || ''
 
   return (
-    <BaseNode {...props} icon={<DatabaseZap size={16} />} color="bg-emerald-600">
+    <BaseNode {...props} icon={<DatabaseZap size={16} />} color={getNodeColorClass('databaseCreatorNode')}>
       <div className="space-y-1">
         <div className="flex justify-between">
           <span className="text-[var(--nomu-text-secondary)]">Type:</span>

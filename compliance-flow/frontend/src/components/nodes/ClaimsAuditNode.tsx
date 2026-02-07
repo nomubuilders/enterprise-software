@@ -2,6 +2,7 @@ import { memo } from 'react'
 import type { NodeProps } from '@xyflow/react'
 import { FileCheck } from 'lucide-react'
 import { BaseNode } from './BaseNode'
+import { getNodeColorClass } from '../../config/nodeColors'
 
 export const ClaimsAuditNode = memo((props: NodeProps) => {
   const nodeData = props.data as { label: string; config?: Record<string, unknown> }
@@ -10,7 +11,7 @@ export const ClaimsAuditNode = memo((props: NodeProps) => {
   const generateExplanation = nodeData.config?.generateExplanation !== false
 
   return (
-    <BaseNode {...props} icon={<FileCheck size={16} />} color="bg-orange-700">
+    <BaseNode {...props} icon={<FileCheck size={16} />} color={getNodeColorClass('claimsAuditNode')}>
       <div className="space-y-1">
         <div className="flex justify-between">
           <span className="text-[var(--nomu-text-secondary)]">Audit:</span>

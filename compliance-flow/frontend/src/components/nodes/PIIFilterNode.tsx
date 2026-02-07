@@ -2,6 +2,7 @@ import { memo } from 'react'
 import type { NodeProps } from '@xyflow/react'
 import { Shield } from 'lucide-react'
 import { BaseNode } from './BaseNode'
+import { getNodeColorClass } from '../../config/nodeColors'
 
 export const PIIFilterNode = memo((props: NodeProps) => {
   const nodeData = props.data as { label: string; config?: Record<string, unknown> }
@@ -15,7 +16,7 @@ export const PIIFilterNode = memo((props: NodeProps) => {
   }
 
   return (
-    <BaseNode {...props} icon={<Shield size={16} />} color="bg-[var(--nomu-accent)] border-l-4 border-l-[var(--nomu-accent)]">
+    <BaseNode {...props} icon={<Shield size={16} />} color={getNodeColorClass('piiFilterNode') + ' border-l-4 border-l-[var(--nomu-accent)]'}>
       <div className="space-y-1">
         <div className="flex justify-between">
           <span className="text-[var(--nomu-text-secondary)]">Mode:</span>

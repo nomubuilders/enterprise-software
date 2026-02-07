@@ -2,6 +2,7 @@ import { memo } from 'react'
 import type { NodeProps } from '@xyflow/react'
 import { Layers } from 'lucide-react'
 import { BaseNode } from './BaseNode'
+import { getNodeColorClass } from '../../config/nodeColors'
 
 export const SubWorkflowNode = memo((props: NodeProps) => {
   const nodeData = props.data as { label: string; config?: Record<string, unknown> }
@@ -10,7 +11,7 @@ export const SubWorkflowNode = memo((props: NodeProps) => {
   const passData = nodeData.config?.passData !== false
 
   return (
-    <BaseNode {...props} icon={<Layers size={16} />} color="bg-purple-700">
+    <BaseNode {...props} icon={<Layers size={16} />} color={getNodeColorClass('subWorkflowNode')}>
       <div className="space-y-1">
         <div className="flex justify-between">
           <span className="text-[var(--nomu-text-secondary)]">Workflow:</span>

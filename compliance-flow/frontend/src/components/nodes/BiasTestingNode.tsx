@@ -2,6 +2,7 @@ import { memo } from 'react'
 import type { NodeProps } from '@xyflow/react'
 import { Scale } from 'lucide-react'
 import { BaseNode } from './BaseNode'
+import { getNodeColorClass } from '../../config/nodeColors'
 
 export const BiasTestingNode = memo((props: NodeProps) => {
   const nodeData = props.data as { label: string; config?: Record<string, unknown> }
@@ -17,7 +18,7 @@ export const BiasTestingNode = memo((props: NodeProps) => {
   }
 
   return (
-    <BaseNode {...props} icon={<Scale size={16} />} color="bg-rose-600">
+    <BaseNode {...props} icon={<Scale size={16} />} color={getNodeColorClass('biasTestingNode')}>
       <div className="space-y-1">
         <div className="flex justify-between">
           <span className="text-[var(--nomu-text-secondary)]">Test:</span>

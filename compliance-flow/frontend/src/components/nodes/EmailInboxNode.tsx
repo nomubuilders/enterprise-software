@@ -2,6 +2,7 @@ import { memo } from 'react'
 import type { NodeProps } from '@xyflow/react'
 import { Mail } from 'lucide-react'
 import { BaseNode } from './BaseNode'
+import { getNodeColorClass } from '../../config/nodeColors'
 
 export const EmailInboxNode = memo((props: NodeProps) => {
   const nodeData = props.data as { label: string; config?: Record<string, unknown> }
@@ -30,7 +31,7 @@ export const EmailInboxNode = memo((props: NodeProps) => {
   const filterLabel = getFilterLabel()
 
   return (
-    <BaseNode {...props} icon={<Mail size={16} />} color="bg-[var(--nomu-accent)]">
+    <BaseNode {...props} icon={<Mail size={16} />} color={getNodeColorClass('emailInboxNode')}>
       <div className="space-y-1">
         <div className="flex justify-between">
           <span className="text-[var(--nomu-text-secondary)]">Protocol:</span>

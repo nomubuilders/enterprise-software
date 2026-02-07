@@ -2,6 +2,7 @@ import { memo } from 'react'
 import type { NodeProps } from '@xyflow/react'
 import { Plug } from 'lucide-react'
 import { BaseNode } from './BaseNode'
+import { getNodeColorClass } from '../../config/nodeColors'
 
 export const MCPContextNode = memo((props: NodeProps) => {
   const nodeData = props.data as { label: string; config?: Record<string, unknown> }
@@ -19,7 +20,7 @@ export const MCPContextNode = memo((props: NodeProps) => {
   const status = getStatus()
 
   return (
-    <BaseNode {...props} icon={<Plug size={16} />} color="bg-[var(--nomu-primary)]">
+    <BaseNode {...props} icon={<Plug size={16} />} color={getNodeColorClass('mcpContextNode')}>
       <div className="space-y-1">
         <div className="flex justify-between">
           <span className="text-[var(--nomu-text-secondary)]">Protocol:</span>

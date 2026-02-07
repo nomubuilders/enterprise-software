@@ -59,6 +59,14 @@
   --nomu-shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.5);
   --nomu-logo-filter: brightness(0) invert(1);
   --nomu-dots: #4D4D4D;
+  --nomu-cat-compliance: #1B6B93;
+  --nomu-cat-compliance-hover: #155A7A;
+  --nomu-cat-security: #0D7C5F;
+  --nomu-cat-security-hover: #0A6A4F;
+  --nomu-cat-integration: #6D28D9;
+  --nomu-cat-integration-hover: #5B21B6;
+  --nomu-cat-testing: #B45309;
+  --nomu-cat-testing-hover: #92400E;
 }
 
 :root.light {
@@ -77,6 +85,14 @@
   --nomu-shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
   --nomu-logo-filter: none;
   --nomu-dots: #C8C8C8;
+  --nomu-cat-compliance: #1B6B93;
+  --nomu-cat-compliance-hover: #155A7A;
+  --nomu-cat-security: #0D7C5F;
+  --nomu-cat-security-hover: #0A6A4F;
+  --nomu-cat-integration: #6D28D9;
+  --nomu-cat-integration-hover: #5B21B6;
+  --nomu-cat-testing: #B45309;
+  --nomu-cat-testing-hover: #92400E;
 }
 
 /* Brand Typography */

@@ -2,6 +2,7 @@ import { memo } from 'react'
 import type { NodeProps } from '@xyflow/react'
 import { Cloud } from 'lucide-react'
 import { BaseNode } from './BaseNode'
+import { getNodeColorClass } from '../../config/nodeColors'
 
 const PROVIDER_LABELS: Record<string, string> = {
   google_drive: 'Google Drive',
@@ -25,7 +26,7 @@ export const CloudDocumentNode = memo((props: NodeProps) => {
   const operation = (config?.operation as string) || 'list'
 
   return (
-    <BaseNode {...props} icon={<Cloud size={16} />} color="bg-sky-600">
+    <BaseNode {...props} icon={<Cloud size={16} />} color={getNodeColorClass('cloudDocumentNode')}>
       <div className="space-y-1">
         <div className="flex justify-between">
           <span className="text-[var(--nomu-text-secondary)]">Provider:</span>

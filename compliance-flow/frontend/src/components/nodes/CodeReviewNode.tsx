@@ -2,6 +2,7 @@ import { memo } from 'react'
 import type { NodeProps } from '@xyflow/react'
 import { FileCode } from 'lucide-react'
 import { BaseNode } from './BaseNode'
+import { getNodeColorClass } from '../../config/nodeColors'
 
 export const CodeReviewNode = memo((props: NodeProps) => {
   const nodeData = props.data as { label: string; config?: Record<string, unknown> }
@@ -33,7 +34,7 @@ export const CodeReviewNode = memo((props: NodeProps) => {
   const status = getStatus()
 
   return (
-    <BaseNode {...props} icon={<FileCode size={16} />} color="bg-[var(--nomu-primary)]">
+    <BaseNode {...props} icon={<FileCode size={16} />} color={getNodeColorClass('codeReviewNode')}>
       <div className="space-y-1">
         <div className="flex justify-between">
           <span className="text-[var(--nomu-text-secondary)]">Review:</span>

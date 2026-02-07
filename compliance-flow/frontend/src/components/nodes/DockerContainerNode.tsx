@@ -2,6 +2,7 @@ import { memo } from 'react'
 import type { NodeProps } from '@xyflow/react'
 import { Container } from 'lucide-react'
 import { BaseNode } from './BaseNode'
+import { getNodeColorClass } from '../../config/nodeColors'
 import { useDockerStore } from '../../store/dockerStore'
 
 export const DockerContainerNode = memo((props: NodeProps) => {
@@ -27,7 +28,7 @@ export const DockerContainerNode = memo((props: NodeProps) => {
   const statusDisplay = getStatusDisplay()
 
   return (
-    <BaseNode {...props} icon={<Container size={16} />} color="bg-[var(--nomu-primary)]">
+    <BaseNode {...props} icon={<Container size={16} />} color={getNodeColorClass('dockerContainerNode')}>
       <div className="space-y-1.5">
         <div className="flex justify-between items-center">
           <span className="text-[var(--nomu-text-secondary)]">Image:</span>

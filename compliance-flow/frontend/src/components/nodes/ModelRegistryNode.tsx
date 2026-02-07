@@ -2,6 +2,7 @@ import { memo } from 'react'
 import type { NodeProps } from '@xyflow/react'
 import { Brain } from 'lucide-react'
 import { BaseNode } from './BaseNode'
+import { getNodeColorClass } from '../../config/nodeColors'
 
 export const ModelRegistryNode = memo((props: NodeProps) => {
   const nodeData = props.data as { label: string; config?: Record<string, unknown> }
@@ -18,7 +19,7 @@ export const ModelRegistryNode = memo((props: NodeProps) => {
   }
 
   return (
-    <BaseNode {...props} icon={<Brain size={16} />} color="bg-violet-600">
+    <BaseNode {...props} icon={<Brain size={16} />} color={getNodeColorClass('modelRegistryNode')}>
       <div className="space-y-1">
         <div className="flex justify-between">
           <span className="text-[var(--nomu-text-secondary)]">Model:</span>

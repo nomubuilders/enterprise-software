@@ -2,6 +2,7 @@ import { memo } from 'react'
 import type { NodeProps } from '@xyflow/react'
 import { UserCircle } from 'lucide-react'
 import { BaseNode } from './BaseNode'
+import { getNodeColorClass } from '../../config/nodeColors'
 
 export const PersonalityNode = memo((props: NodeProps) => {
   const nodeData = props.data as { label: string; config?: Record<string, unknown> }
@@ -24,7 +25,7 @@ export const PersonalityNode = memo((props: NodeProps) => {
   }
 
   return (
-    <BaseNode {...props} icon={<UserCircle size={16} />} color="bg-[var(--nomu-primary)]">
+    <BaseNode {...props} icon={<UserCircle size={16} />} color={getNodeColorClass('personalityNode')}>
       <div className="space-y-1">
         <div className="flex justify-between">
           <span className="text-[var(--nomu-text-secondary)]">Persona:</span>

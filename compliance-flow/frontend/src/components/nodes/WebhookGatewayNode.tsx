@@ -2,6 +2,7 @@ import { memo } from 'react'
 import type { NodeProps } from '@xyflow/react'
 import { Radio } from 'lucide-react'
 import { BaseNode } from './BaseNode'
+import { getNodeColorClass } from '../../config/nodeColors'
 
 export const WebhookGatewayNode = memo((props: NodeProps) => {
   const nodeData = props.data as { label: string; config?: Record<string, unknown> }
@@ -10,7 +11,7 @@ export const WebhookGatewayNode = memo((props: NodeProps) => {
   const endpointPath = (nodeData.config?.endpointPath as string) || ''
 
   return (
-    <BaseNode {...props} icon={<Radio size={16} />} color="bg-sky-600">
+    <BaseNode {...props} icon={<Radio size={16} />} color={getNodeColorClass('webhookGatewayNode')}>
       <div className="space-y-1">
         <div className="flex justify-between">
           <span className="text-[var(--nomu-text-secondary)]">Method:</span>

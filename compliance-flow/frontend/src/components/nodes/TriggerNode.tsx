@@ -2,6 +2,7 @@ import { memo } from 'react'
 import { Handle, Position } from '@xyflow/react'
 import type { NodeProps } from '@xyflow/react'
 import { Play, Clock, Webhook } from 'lucide-react'
+import { getNodeColorClass } from '../../config/nodeColors'
 
 export const TriggerNode = memo(({ data, selected }: NodeProps) => {
   const nodeData = data as { label: string; config?: Record<string, unknown> }
@@ -28,7 +29,7 @@ export const TriggerNode = memo(({ data, selected }: NodeProps) => {
         hover:border-[var(--nomu-text-muted)]
       `}
     >
-      <div className="flex items-center gap-2 rounded-t-md bg-[var(--nomu-accent)] px-3 py-2">
+      <div className={`flex items-center gap-2 rounded-t-md px-3 py-2 ${getNodeColorClass('triggerNode')}`}>
         <div className="text-white">{triggerIcons[triggerType]}</div>
         <span className="text-sm font-medium text-white">{nodeData.label}</span>
       </div>

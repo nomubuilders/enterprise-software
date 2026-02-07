@@ -56,6 +56,7 @@ import {
   Building2,
 } from 'lucide-react'
 import { Button, Input, Select, DocumentUploadZone, ConfirmModal } from '../common'
+import { getNodeColorClass } from '../../config/nodeColors'
 import { DockerTerminal } from './DockerTerminal'
 import { SAPERPConfig } from './SAPERPConfig'
 import { EvaluationPanel } from './EvaluationPanel'
@@ -608,87 +609,52 @@ export function NodeConfigPanel({ node, onClose, onRunWorkflow, onOpenChat }: No
 // Node type icon component
 function NodeIcon({ type }: { type: string }) {
   const iconClass = "h-8 w-8 rounded-lg p-1.5"
+  const colorClass = getNodeColorClass(type)
 
-  switch (type) {
-    case 'triggerNode':
-      return <div className={`${iconClass} bg-green-600`}><Play size={20} className="text-white" /></div>
-    case 'databaseNode':
-      return <div className={`${iconClass} bg-blue-600`}><Database size={20} className="text-white" /></div>
-    case 'llmNode':
-      return <div className={`${iconClass} bg-[var(--nomu-primary)]`}><Bot size={20} className="text-white" /></div>
-    case 'piiFilterNode':
-      return <div className={`${iconClass} bg-amber-600`}><Shield size={20} className="text-white" /></div>
-    case 'outputNode':
-      return <div className={`${iconClass} bg-[var(--nomu-accent)]`}><MessageSquare size={20} className="text-white" /></div>
-    case 'dockerContainerNode':
-      return <div className={`${iconClass} bg-[var(--nomu-surface)]`}><Container size={20} className="text-white" /></div>
-    case 'documentNode':
-      return <div className={`${iconClass} bg-[var(--nomu-primary)]`}><FileText size={20} className="text-white" /></div>
-    case 'spreadsheetNode':
-      return <div className={`${iconClass} bg-[var(--nomu-primary)]`}><FileSpreadsheet size={20} className="text-white" /></div>
-    case 'emailInboxNode':
-      return <div className={`${iconClass} bg-[var(--nomu-accent)]`}><Mail size={20} className="text-white" /></div>
-    case 'webSearchNode':
-      return <div className={`${iconClass} bg-[var(--nomu-primary)]`}><Globe size={20} className="text-white" /></div>
-    case 'personalityNode':
-      return <div className={`${iconClass} bg-[var(--nomu-primary)]`}><UserCircle size={20} className="text-white" /></div>
-    case 'auditNode':
-      return <div className={`${iconClass} bg-[var(--nomu-accent)]`}><ScrollText size={20} className="text-white" /></div>
-    case 'codeReviewNode':
-      return <div className={`${iconClass} bg-[var(--nomu-primary)]`}><FileCode size={20} className="text-white" /></div>
-    case 'mcpContextNode':
-      return <div className={`${iconClass} bg-[var(--nomu-primary)]`}><Plug size={20} className="text-white" /></div>
-    case 'conditionalNode':
-      return <div className={`${iconClass} bg-yellow-600`}><GitBranch size={20} className="text-white" /></div>
-    case 'approvalGateNode':
-      return <div className={`${iconClass} bg-orange-600`}><ShieldCheck size={20} className="text-white" /></div>
-    case 'complianceDashboardNode':
-      return <div className={`${iconClass} bg-indigo-600`}><BarChart3 size={20} className="text-white" /></div>
-    case 'modelRegistryNode':
-      return <div className={`${iconClass} bg-violet-600`}><Brain size={20} className="text-white" /></div>
-    case 'evidenceCollectionNode':
-      return <div className={`${iconClass} bg-teal-600`}><Archive size={20} className="text-white" /></div>
-    case 'biasTestingNode':
-      return <div className={`${iconClass} bg-rose-600`}><Scale size={20} className="text-white" /></div>
-    case 'explainabilityNode':
-      return <div className={`${iconClass} bg-amber-600`}><Lightbulb size={20} className="text-white" /></div>
-    case 'redTeamingNode':
-      return <div className={`${iconClass} bg-red-700`}><Bug size={20} className="text-white" /></div>
-    case 'driftDetectionNode':
-      return <div className={`${iconClass} bg-cyan-700`}><Activity size={20} className="text-white" /></div>
-    case 'notificationNode':
-      return <div className={`${iconClass} bg-blue-600`}><Bell size={20} className="text-white" /></div>
-    case 'encryptionNode':
-      return <div className={`${iconClass} bg-emerald-700`}><Lock size={20} className="text-white" /></div>
-    case 'webhookGatewayNode':
-      return <div className={`${iconClass} bg-sky-600`}><Radio size={20} className="text-white" /></div>
-    case 'subWorkflowNode':
-      return <div className={`${iconClass} bg-purple-700`}><Layers size={20} className="text-white" /></div>
-    case 'phiClassificationNode':
-      return <div className={`${iconClass} bg-pink-700`}><HeartPulse size={20} className="text-white" /></div>
-    case 'fairLendingNode':
-      return <div className={`${iconClass} bg-green-700`}><Landmark size={20} className="text-white" /></div>
-    case 'claimsAuditNode':
-      return <div className={`${iconClass} bg-orange-700`}><FileCheck size={20} className="text-white" /></div>
-    case 'consentManagementNode':
-      return <div className={`${iconClass} bg-lime-700`}><UserCheck size={20} className="text-white" /></div>
-    case 'slackComplianceNode':
-      return <div className={`${iconClass} bg-purple-600`}><MessageSquare size={20} className="text-white" /></div>
-    case 'microsoftTeamsDORANode':
-      return <div className={`${iconClass} bg-blue-700`}><ShieldAlert size={20} className="text-white" /></div>
-    case 'databaseCreatorNode':
-      return <div className={`${iconClass} bg-emerald-600`}><DatabaseZap size={20} className="text-white" /></div>
-    case 'localFolderStorageNode':
-      return <div className={`${iconClass} bg-amber-600`}><FolderOpen size={20} className="text-white" /></div>
-    case 'cloudDocumentNode':
-      return <div className={`${iconClass} bg-sky-600`}><Cloud size={20} className="text-white" /></div>
-    case 'jiraComplianceNode':
-      return <div className={`${iconClass} bg-indigo-600`}><Ticket size={20} className="text-white" /></div>
-    case 'sapERPNode':
-      return <div className={`${iconClass} bg-teal-700`}><Building2 size={20} className="text-white" /></div>
-    default:
-      return null
+  const icons: Record<string, React.ReactNode> = {
+    triggerNode: <Play size={20} className="text-white" />,
+    databaseNode: <Database size={20} className="text-white" />,
+    llmNode: <Bot size={20} className="text-white" />,
+    piiFilterNode: <Shield size={20} className="text-white" />,
+    outputNode: <MessageSquare size={20} className="text-white" />,
+    dockerContainerNode: <Container size={20} className="text-white" />,
+    documentNode: <FileText size={20} className="text-white" />,
+    spreadsheetNode: <FileSpreadsheet size={20} className="text-white" />,
+    emailInboxNode: <Mail size={20} className="text-white" />,
+    webSearchNode: <Globe size={20} className="text-white" />,
+    personalityNode: <UserCircle size={20} className="text-white" />,
+    auditNode: <ScrollText size={20} className="text-white" />,
+    codeReviewNode: <FileCode size={20} className="text-white" />,
+    mcpContextNode: <Plug size={20} className="text-white" />,
+    conditionalNode: <GitBranch size={20} className="text-white" />,
+    approvalGateNode: <ShieldCheck size={20} className="text-white" />,
+    complianceDashboardNode: <BarChart3 size={20} className="text-white" />,
+    modelRegistryNode: <Brain size={20} className="text-white" />,
+    evidenceCollectionNode: <Archive size={20} className="text-white" />,
+    biasTestingNode: <Scale size={20} className="text-white" />,
+    explainabilityNode: <Lightbulb size={20} className="text-white" />,
+    redTeamingNode: <Bug size={20} className="text-white" />,
+    driftDetectionNode: <Activity size={20} className="text-white" />,
+    notificationNode: <Bell size={20} className="text-white" />,
+    encryptionNode: <Lock size={20} className="text-white" />,
+    webhookGatewayNode: <Radio size={20} className="text-white" />,
+    subWorkflowNode: <Layers size={20} className="text-white" />,
+    phiClassificationNode: <HeartPulse size={20} className="text-white" />,
+    fairLendingNode: <Landmark size={20} className="text-white" />,
+    claimsAuditNode: <FileCheck size={20} className="text-white" />,
+    consentManagementNode: <UserCheck size={20} className="text-white" />,
+    slackComplianceNode: <MessageSquare size={20} className="text-white" />,
+    microsoftTeamsDORANode: <ShieldAlert size={20} className="text-white" />,
+    databaseCreatorNode: <DatabaseZap size={20} className="text-white" />,
+    localFolderStorageNode: <FolderOpen size={20} className="text-white" />,
+    cloudDocumentNode: <Cloud size={20} className="text-white" />,
+    jiraComplianceNode: <Ticket size={20} className="text-white" />,
+    sapERPNode: <Building2 size={20} className="text-white" />,
   }
+
+  const icon = icons[type]
+  if (!icon) return null
+  return <div className={`${iconClass} ${colorClass}`}>{icon}</div>
 }
 
 // ============================================

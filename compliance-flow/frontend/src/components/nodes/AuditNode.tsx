@@ -2,6 +2,7 @@ import { memo } from 'react'
 import type { NodeProps } from '@xyflow/react'
 import { ScrollText } from 'lucide-react'
 import { BaseNode } from './BaseNode'
+import { getNodeColorClass } from '../../config/nodeColors'
 
 export const AuditNode = memo((props: NodeProps) => {
   const nodeData = props.data as { label: string; config?: Record<string, unknown> }
@@ -18,7 +19,7 @@ export const AuditNode = memo((props: NodeProps) => {
   const status = getStatus()
 
   return (
-    <BaseNode {...props} icon={<ScrollText size={16} />} color="bg-[var(--nomu-accent)]">
+    <BaseNode {...props} icon={<ScrollText size={16} />} color={getNodeColorClass('auditNode')}>
       <div className="space-y-1">
         <div className="flex justify-between">
           <span className="text-[var(--nomu-text-secondary)]">Level:</span>

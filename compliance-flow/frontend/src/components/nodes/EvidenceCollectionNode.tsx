@@ -2,6 +2,7 @@ import { memo } from 'react'
 import type { NodeProps } from '@xyflow/react'
 import { Archive } from 'lucide-react'
 import { BaseNode } from './BaseNode'
+import { getNodeColorClass } from '../../config/nodeColors'
 
 export const EvidenceCollectionNode = memo((props: NodeProps) => {
   const nodeData = props.data as { label: string; config?: Record<string, unknown> }
@@ -18,7 +19,7 @@ export const EvidenceCollectionNode = memo((props: NodeProps) => {
   }
 
   return (
-    <BaseNode {...props} icon={<Archive size={16} />} color="bg-teal-600">
+    <BaseNode {...props} icon={<Archive size={16} />} color={getNodeColorClass('evidenceCollectionNode')}>
       <div className="space-y-1">
         <div className="flex justify-between">
           <span className="text-[var(--nomu-text-secondary)]">Framework:</span>

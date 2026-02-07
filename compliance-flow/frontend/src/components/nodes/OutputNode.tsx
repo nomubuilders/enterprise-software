@@ -2,6 +2,7 @@ import { memo } from 'react'
 import { Handle, Position } from '@xyflow/react'
 import type { NodeProps } from '@xyflow/react'
 import { MessageSquare, FileSpreadsheet, Mail, Send } from 'lucide-react'
+import { getNodeColorClass } from '../../config/nodeColors'
 
 export const OutputNode = memo(({ data, selected }: NodeProps) => {
   const nodeData = data as { label: string; config?: Record<string, unknown> }
@@ -14,13 +15,6 @@ export const OutputNode = memo(({ data, selected }: NodeProps) => {
     telegram: <Send size={16} />,
   }
 
-  const outputColors: Record<string, string> = {
-    chat: 'bg-[var(--nomu-primary)]',
-    spreadsheet: 'bg-[var(--nomu-primary)]',
-    email: 'bg-[var(--nomu-accent)]',
-    telegram: 'bg-[var(--nomu-primary)]',
-  }
-
   return (
     <div
       className={`
@@ -30,7 +24,7 @@ export const OutputNode = memo(({ data, selected }: NodeProps) => {
         hover:border-[var(--nomu-text-muted)]
       `}
     >
-      <div className={`flex items-center gap-2 rounded-t-md px-3 py-2 ${outputColors[outputType]}`}>
+      <div className={`flex items-center gap-2 rounded-t-md px-3 py-2 ${getNodeColorClass('outputNode')}`}>
         <div className="text-white">{outputIcons[outputType]}</div>
         <span className="text-sm font-medium text-white">{nodeData.label}</span>
       </div>

@@ -2,6 +2,7 @@ import { memo } from 'react'
 import type { NodeProps } from '@xyflow/react'
 import { Building2 } from 'lucide-react'
 import { BaseNode } from './BaseNode'
+import { getNodeColorClass } from '../../config/nodeColors'
 
 const REPORT_TYPE_LABELS: Record<string, string> = {
   balance_sheet: 'Balance Sheet',
@@ -17,7 +18,7 @@ export const SAPERPNode = memo((props: NodeProps) => {
   const fiscalYear = (config?.fiscalYear as string) || new Date().getFullYear().toString()
 
   return (
-    <BaseNode {...props} icon={<Building2 size={16} />} color="bg-teal-700">
+    <BaseNode {...props} icon={<Building2 size={16} />} color={getNodeColorClass('sapERPNode')}>
       <div className="space-y-1">
         <div className="flex justify-between">
           <span className="text-[var(--nomu-text-secondary)]">Report:</span>

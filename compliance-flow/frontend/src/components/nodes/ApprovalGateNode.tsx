@@ -2,6 +2,7 @@ import { memo } from 'react'
 import type { NodeProps } from '@xyflow/react'
 import { ShieldCheck } from 'lucide-react'
 import { BaseNode } from './BaseNode'
+import { getNodeColorClass } from '../../config/nodeColors'
 
 export const ApprovalGateNode = memo((props: NodeProps) => {
   const nodeData = props.data as { label: string; config?: Record<string, unknown> }
@@ -26,7 +27,7 @@ export const ApprovalGateNode = memo((props: NodeProps) => {
   const statusDisplay = getStatusDisplay()
 
   return (
-    <BaseNode {...props} icon={<ShieldCheck size={16} />} color="bg-orange-600">
+    <BaseNode {...props} icon={<ShieldCheck size={16} />} color={getNodeColorClass('approvalGateNode')}>
       <div className="space-y-1">
         <div className="flex justify-between">
           <span className="text-[var(--nomu-text-secondary)]">Type:</span>

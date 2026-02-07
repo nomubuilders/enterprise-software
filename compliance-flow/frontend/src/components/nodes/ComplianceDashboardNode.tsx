@@ -2,6 +2,7 @@ import { memo } from 'react'
 import type { NodeProps } from '@xyflow/react'
 import { BarChart3 } from 'lucide-react'
 import { BaseNode } from './BaseNode'
+import { getNodeColorClass } from '../../config/nodeColors'
 
 export const ComplianceDashboardNode = memo((props: NodeProps) => {
   const nodeData = props.data as { label: string; config?: Record<string, unknown> }
@@ -10,7 +11,7 @@ export const ComplianceDashboardNode = memo((props: NodeProps) => {
   const autoGenerate = nodeData.config?.autoGenerate !== false
 
   return (
-    <BaseNode {...props} icon={<BarChart3 size={16} />} color="bg-indigo-600">
+    <BaseNode {...props} icon={<BarChart3 size={16} />} color={getNodeColorClass('complianceDashboardNode')}>
       <div className="space-y-1">
         <div className="flex justify-between">
           <span className="text-[var(--nomu-text-secondary)]">Frameworks:</span>

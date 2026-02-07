@@ -2,6 +2,7 @@ import { memo } from 'react'
 import type { NodeProps } from '@xyflow/react'
 import { ShieldAlert } from 'lucide-react'
 import { BaseNode } from './BaseNode'
+import { getNodeColorClass } from '../../config/nodeColors'
 
 const MONITORING_MODE_LABELS: Record<string, string> = {
   ict_incidents: 'ICT Incidents',
@@ -16,7 +17,7 @@ export const MicrosoftTeamsDORANode = memo((props: NodeProps) => {
   const alertWindow = (config?.alertWindow as number) || 240
 
   return (
-    <BaseNode {...props} icon={<ShieldAlert size={16} />} color="bg-blue-700">
+    <BaseNode {...props} icon={<ShieldAlert size={16} />} color={getNodeColorClass('microsoftTeamsDORANode')}>
       <div className="space-y-1">
         <div className="flex justify-between">
           <span className="text-[var(--nomu-text-secondary)]">Monitor:</span>

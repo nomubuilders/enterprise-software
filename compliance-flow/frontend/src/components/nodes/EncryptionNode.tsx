@@ -2,6 +2,7 @@ import { memo } from 'react'
 import type { NodeProps } from '@xyflow/react'
 import { Lock } from 'lucide-react'
 import { BaseNode } from './BaseNode'
+import { getNodeColorClass } from '../../config/nodeColors'
 
 export const EncryptionNode = memo((props: NodeProps) => {
   const nodeData = props.data as { label: string; config?: Record<string, unknown> }
@@ -17,7 +18,7 @@ export const EncryptionNode = memo((props: NodeProps) => {
   }
 
   return (
-    <BaseNode {...props} icon={<Lock size={16} />} color="bg-emerald-700">
+    <BaseNode {...props} icon={<Lock size={16} />} color={getNodeColorClass('encryptionNode')}>
       <div className="space-y-1">
         <div className="flex justify-between">
           <span className="text-[var(--nomu-text-secondary)]">Algorithm:</span>

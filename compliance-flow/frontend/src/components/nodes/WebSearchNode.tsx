@@ -2,6 +2,7 @@ import { memo } from 'react'
 import type { NodeProps } from '@xyflow/react'
 import { Globe } from 'lucide-react'
 import { BaseNode } from './BaseNode'
+import { getNodeColorClass } from '../../config/nodeColors'
 
 export const WebSearchNode = memo((props: NodeProps) => {
   const nodeData = props.data as { label: string; config?: Record<string, unknown> }
@@ -25,7 +26,7 @@ export const WebSearchNode = memo((props: NodeProps) => {
   const status = getStatus()
 
   return (
-    <BaseNode {...props} icon={<Globe size={16} />} color="bg-[var(--nomu-primary)]">
+    <BaseNode {...props} icon={<Globe size={16} />} color={getNodeColorClass('webSearchNode')}>
       <div className="space-y-1">
         <div className="flex justify-between">
           <span className="text-[var(--nomu-text-secondary)]">Engine:</span>

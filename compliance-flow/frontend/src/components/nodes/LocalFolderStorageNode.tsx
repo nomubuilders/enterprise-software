@@ -2,6 +2,7 @@ import { memo } from 'react'
 import type { NodeProps } from '@xyflow/react'
 import { FolderOpen } from 'lucide-react'
 import { BaseNode } from './BaseNode'
+import { getNodeColorClass } from '../../config/nodeColors'
 
 const OPERATION_LABELS: Record<string, string> = {
   list: 'List Files',
@@ -17,7 +18,7 @@ export const LocalFolderStorageNode = memo((props: NodeProps) => {
   const recursive = config?.recursive === true
 
   return (
-    <BaseNode {...props} icon={<FolderOpen size={16} />} color="bg-amber-600">
+    <BaseNode {...props} icon={<FolderOpen size={16} />} color={getNodeColorClass('localFolderStorageNode')}>
       <div className="space-y-1">
         <div className="flex justify-between">
           <span className="text-[var(--nomu-text-secondary)]">Operation:</span>
