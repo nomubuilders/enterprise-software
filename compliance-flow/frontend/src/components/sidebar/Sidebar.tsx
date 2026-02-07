@@ -19,6 +19,23 @@ import {
   ScrollText,
   FileCode,
   Plug,
+  GitBranch,
+  ShieldCheck,
+  BarChart3,
+  Brain,
+  Archive,
+  Scale,
+  Lightbulb,
+  Bug,
+  Activity,
+  Bell,
+  Lock,
+  Radio,
+  Layers,
+  HeartPulse,
+  Landmark,
+  FileCheck,
+  UserCheck,
 } from 'lucide-react'
 import { useDockerStore } from '../../store/dockerStore'
 
@@ -218,9 +235,153 @@ const nodeTemplates: NodeTemplate[] = [
     category: 'Audit & Compliance',
     config: { auditLevel: 'full', retentionDays: 90, logFormat: 'json', enabled: true },
   },
+  // Workflow Control
+  {
+    type: 'conditionalNode',
+    label: 'Conditional Logic',
+    icon: <GitBranch size={18} />,
+    color: 'bg-yellow-600',
+    category: 'Workflow Control',
+    config: { field: '', operator: 'equals', value: '' },
+  },
+  {
+    type: 'approvalGateNode',
+    label: 'Approval Gate',
+    icon: <ShieldCheck size={18} />,
+    color: 'bg-orange-600',
+    category: 'Workflow Control',
+    config: { approvalType: 'single', approvers: [], requireAll: true, approvalStatus: 'pending' },
+  },
+  // Compliance Frameworks
+  {
+    type: 'complianceDashboardNode',
+    label: 'Compliance Report',
+    icon: <BarChart3 size={18} />,
+    color: 'bg-indigo-600',
+    category: 'Compliance Frameworks',
+    config: { frameworks: [], reportFormat: 'pdf', autoGenerate: true },
+  },
+  {
+    type: 'modelRegistryNode',
+    label: 'Model Registry',
+    icon: <Brain size={18} />,
+    color: 'bg-violet-600',
+    category: 'Compliance Frameworks',
+    config: { modelName: '', riskLevel: 'unclassified', modelVersion: '1.0' },
+  },
+  {
+    type: 'evidenceCollectionNode',
+    label: 'Evidence Collection',
+    icon: <Archive size={18} />,
+    color: 'bg-teal-600',
+    category: 'Compliance Frameworks',
+    config: { artifactTypes: ['logs', 'configs'], targetFramework: 'soc2', autoPackage: true },
+  },
+  // AI Testing
+  {
+    type: 'biasTestingNode',
+    label: 'Bias & Fairness',
+    icon: <Scale size={18} />,
+    color: 'bg-rose-600',
+    category: 'AI Testing',
+    config: { testType: 'disparate_impact', protectedAttributes: [], threshold: 0.8 },
+  },
+  {
+    type: 'explainabilityNode',
+    label: 'Explainability (XAI)',
+    icon: <Lightbulb size={18} />,
+    color: 'bg-amber-600',
+    category: 'AI Testing',
+    config: { method: 'feature_importance', model: 'llama3.2', detailLevel: 'summary' },
+  },
+  {
+    type: 'redTeamingNode',
+    label: 'Red Teaming',
+    icon: <Bug size={18} />,
+    color: 'bg-red-700',
+    category: 'AI Testing',
+    config: { attackVectors: ['prompt_injection'], minSeverity: 'medium', iterations: 10 },
+  },
+  {
+    type: 'driftDetectionNode',
+    label: 'Drift Detection',
+    icon: <Activity size={18} />,
+    color: 'bg-cyan-700',
+    category: 'AI Testing',
+    config: { metric: 'output_similarity', driftThreshold: 0.15, schedule: 'daily' },
+  },
+  // Communication
+  {
+    type: 'notificationNode',
+    label: 'Notification',
+    icon: <Bell size={18} />,
+    color: 'bg-blue-600',
+    category: 'Communication',
+    config: { channel: 'webhook', messageTemplate: '' },
+  },
+  {
+    type: 'webhookGatewayNode',
+    label: 'API Gateway',
+    icon: <Radio size={18} />,
+    color: 'bg-sky-600',
+    category: 'Communication',
+    config: { method: 'POST', authType: 'api_key', endpointPath: '/api/workflow' },
+  },
+  {
+    type: 'subWorkflowNode',
+    label: 'Sub-Workflow',
+    icon: <Layers size={18} />,
+    color: 'bg-purple-700',
+    category: 'Communication',
+    config: { targetWorkflowId: '', targetWorkflowName: '', passData: true },
+  },
+  // Security
+  {
+    type: 'encryptionNode',
+    label: 'Encryption',
+    icon: <Lock size={18} />,
+    color: 'bg-emerald-700',
+    category: 'Security',
+    config: { algorithm: 'aes-256-gcm', operation: 'encrypt' },
+  },
+  // Healthcare
+  {
+    type: 'phiClassificationNode',
+    label: 'PHI Classification',
+    icon: <HeartPulse size={18} />,
+    color: 'bg-pink-700',
+    category: 'Healthcare',
+    config: { deidentMethod: 'safe_harbor', identifiers: [] },
+  },
+  {
+    type: 'consentManagementNode',
+    label: 'Consent Check',
+    icon: <UserCheck size={18} />,
+    color: 'bg-lime-700',
+    category: 'Healthcare',
+    config: { regulation: 'hipaa', consentType: 'explicit', blockOnMissing: true },
+  },
+  // Fintech
+  {
+    type: 'fairLendingNode',
+    label: 'Fair Lending',
+    icon: <Landmark size={18} />,
+    color: 'bg-green-700',
+    category: 'Fintech',
+    config: { regulation: 'ecoa', analysisType: 'disparate_impact', protectedClasses: [] },
+  },
+  // Insurance
+  {
+    type: 'claimsAuditNode',
+    label: 'Claims Audit',
+    icon: <FileCheck size={18} />,
+    color: 'bg-orange-700',
+    category: 'Insurance',
+    config: { auditType: 'full', flagAutoDenials: true, generateExplanation: true },
+  },
 ]
 
-const categories = ['Triggers', 'Data Sources', 'Documents', 'AI Models', 'Compliance', 'Outputs', 'Containers', 'Data Processing', 'AI Configuration', 'Audit & Compliance']
+const categories = ['Triggers', 'Data Sources', 'Documents', 'AI Models', 'Compliance', 'Outputs', 'Containers', 'Data Processing', 'AI Configuration', 'Audit & Compliance', 'Workflow Control', 'Compliance Frameworks', 'AI Testing', 'Communication', 'Security', 'Healthcare', 'Fintech', 'Insurance']
 
 export function Sidebar() {
   const dockerAvailable = useDockerStore((s) => s.dockerAvailable)

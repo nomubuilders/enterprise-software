@@ -32,6 +32,22 @@ import {
   ScrollText,
   FileCode,
   Plug,
+  GitBranch,
+  ShieldCheck,
+  Brain,
+  Archive,
+  Scale,
+  Lightbulb,
+  Bug,
+  Activity,
+  Bell,
+  Lock,
+  Radio,
+  Layers,
+  HeartPulse,
+  Landmark,
+  FileCheck,
+  UserCheck,
 } from 'lucide-react'
 import { Button, Input, Select, DocumentUploadZone, ConfirmModal } from '../common'
 import { DockerTerminal } from './DockerTerminal'
@@ -264,6 +280,206 @@ export function NodeConfigPanel({ node, onClose, onRunWorkflow, onOpenChat }: No
             ]}
           />
         )}
+        {nodeType === 'conditionalNode' && (
+          <GenericNodeConfig
+            node={node}
+            onUpdate={(data) => updateNodeData(node.id, data)}
+            fields={[
+              { key: 'field', label: 'Field / Key', type: 'text', placeholder: 'e.g. status, score, result' },
+              { key: 'operator', label: 'Operator', type: 'select', options: [{ value: 'equals', label: 'Equals' }, { value: 'not_equals', label: 'Not Equals' }, { value: 'contains', label: 'Contains' }, { value: 'greater_than', label: 'Greater Than' }, { value: 'less_than', label: 'Less Than' }, { value: 'is_empty', label: 'Is Empty' }, { value: 'is_not_empty', label: 'Is Not Empty' }, { value: 'regex', label: 'Regex Match' }] },
+              { key: 'value', label: 'Value', type: 'text', placeholder: 'Comparison value' },
+            ]}
+          />
+        )}
+        {nodeType === 'approvalGateNode' && (
+          <GenericNodeConfig
+            node={node}
+            onUpdate={(data) => updateNodeData(node.id, data)}
+            fields={[
+              { key: 'approvalType', label: 'Approval Type', type: 'select', options: [{ value: 'single', label: 'Single Approver' }, { value: 'multi', label: 'Multi-Level Chain' }, { value: 'quorum', label: 'Quorum (Majority)' }] },
+              { key: 'requireAll', label: 'Require All Approvers', type: 'checkbox' },
+              { key: 'timeoutHours', label: 'Timeout (hours)', type: 'number', placeholder: '24' },
+              { key: 'escalationEmail', label: 'Escalation Email', type: 'text', placeholder: 'manager@company.com' },
+            ]}
+          />
+        )}
+        {nodeType === 'complianceDashboardNode' && (
+          <GenericNodeConfig
+            node={node}
+            onUpdate={(data) => updateNodeData(node.id, data)}
+            fields={[
+              { key: 'reportFormat', label: 'Report Format', type: 'select', options: [{ value: 'pdf', label: 'PDF' }, { value: 'docx', label: 'DOCX' }, { value: 'html', label: 'HTML' }, { value: 'json', label: 'JSON' }] },
+              { key: 'autoGenerate', label: 'Auto-Generate Reports', type: 'checkbox' },
+              { key: 'includeEvidence', label: 'Include Evidence', type: 'checkbox' },
+              { key: 'reportTitle', label: 'Report Title', type: 'text', placeholder: 'Compliance Assessment Report' },
+            ]}
+          />
+        )}
+        {nodeType === 'modelRegistryNode' && (
+          <GenericNodeConfig
+            node={node}
+            onUpdate={(data) => updateNodeData(node.id, data)}
+            fields={[
+              { key: 'modelName', label: 'Model Name', type: 'text', placeholder: 'e.g. llama3.2, mistral' },
+              { key: 'riskLevel', label: 'EU AI Act Risk Level', type: 'select', options: [{ value: 'unclassified', label: 'Unclassified' }, { value: 'minimal', label: 'Minimal Risk' }, { value: 'limited', label: 'Limited Risk' }, { value: 'high', label: 'High Risk' }, { value: 'unacceptable', label: 'Unacceptable Risk' }] },
+              { key: 'modelVersion', label: 'Model Version', type: 'text', placeholder: '1.0' },
+              { key: 'purpose', label: 'Purpose / Use Case', type: 'textarea', placeholder: 'Describe the model purpose...' },
+            ]}
+          />
+        )}
+        {nodeType === 'evidenceCollectionNode' && (
+          <GenericNodeConfig
+            node={node}
+            onUpdate={(data) => updateNodeData(node.id, data)}
+            fields={[
+              { key: 'targetFramework', label: 'Target Framework', type: 'select', options: [{ value: 'soc2', label: 'SOC 2' }, { value: 'iso27001', label: 'ISO 27001' }, { value: 'hipaa', label: 'HIPAA' }, { value: 'gdpr', label: 'GDPR' }, { value: 'eu_ai_act', label: 'EU AI Act' }] },
+              { key: 'autoPackage', label: 'Auto-Package Evidence', type: 'checkbox' },
+              { key: 'retentionDays', label: 'Retention (days)', type: 'number', placeholder: '365' },
+              { key: 'outputPath', label: 'Output Path', type: 'text', placeholder: '/evidence/output/' },
+            ]}
+          />
+        )}
+        {nodeType === 'biasTestingNode' && (
+          <GenericNodeConfig
+            node={node}
+            onUpdate={(data) => updateNodeData(node.id, data)}
+            fields={[
+              { key: 'testType', label: 'Test Type', type: 'select', options: [{ value: 'disparate_impact', label: 'Disparate Impact' }, { value: 'demographic_parity', label: 'Demographic Parity' }, { value: 'equalized_odds', label: 'Equalized Odds' }, { value: 'calibration', label: 'Calibration' }] },
+              { key: 'threshold', label: 'Pass Threshold', type: 'number', placeholder: '0.8' },
+              { key: 'protectedField', label: 'Protected Attribute Field', type: 'text', placeholder: 'e.g. gender, race, age' },
+              { key: 'outcomeField', label: 'Outcome Field', type: 'text', placeholder: 'e.g. approved, score' },
+            ]}
+          />
+        )}
+        {nodeType === 'explainabilityNode' && (
+          <GenericNodeConfig
+            node={node}
+            onUpdate={(data) => updateNodeData(node.id, data)}
+            fields={[
+              { key: 'method', label: 'Method', type: 'select', options: [{ value: 'feature_importance', label: 'Feature Importance' }, { value: 'counterfactual', label: 'Counterfactual' }, { value: 'decision_trail', label: 'Decision Trail' }, { value: 'shap_proxy', label: 'SHAP Proxy (LLM)' }] },
+              { key: 'model', label: 'Explanation Model', type: 'select', options: [{ value: 'llama3.2', label: 'Llama 3.2' }, { value: 'mistral', label: 'Mistral' }, { value: 'codellama', label: 'CodeLlama' }] },
+              { key: 'detailLevel', label: 'Detail Level', type: 'select', options: [{ value: 'summary', label: 'Summary' }, { value: 'detailed', label: 'Detailed' }, { value: 'technical', label: 'Technical' }] },
+            ]}
+          />
+        )}
+        {nodeType === 'redTeamingNode' && (
+          <GenericNodeConfig
+            node={node}
+            onUpdate={(data) => updateNodeData(node.id, data)}
+            fields={[
+              { key: 'minSeverity', label: 'Min Severity', type: 'select', options: [{ value: 'low', label: 'Low' }, { value: 'medium', label: 'Medium' }, { value: 'high', label: 'High' }, { value: 'critical', label: 'Critical' }] },
+              { key: 'iterations', label: 'Iterations', type: 'number', placeholder: '10' },
+              { key: 'targetModel', label: 'Target Model', type: 'text', placeholder: 'llama3.2' },
+              { key: 'customPrompts', label: 'Custom Attack Prompts', type: 'textarea', placeholder: 'One prompt per line...' },
+            ]}
+          />
+        )}
+        {nodeType === 'driftDetectionNode' && (
+          <GenericNodeConfig
+            node={node}
+            onUpdate={(data) => updateNodeData(node.id, data)}
+            fields={[
+              { key: 'metric', label: 'Drift Metric', type: 'select', options: [{ value: 'output_similarity', label: 'Output Similarity' }, { value: 'statistical', label: 'Statistical (KS Test)' }, { value: 'embedding_distance', label: 'Embedding Distance' }] },
+              { key: 'driftThreshold', label: 'Drift Threshold', type: 'number', placeholder: '0.15' },
+              { key: 'schedule', label: 'Schedule', type: 'select', options: [{ value: 'hourly', label: 'Hourly' }, { value: 'daily', label: 'Daily' }, { value: 'weekly', label: 'Weekly' }] },
+              { key: 'alertEmail', label: 'Alert Email', type: 'text', placeholder: 'alerts@company.com' },
+            ]}
+          />
+        )}
+        {nodeType === 'notificationNode' && (
+          <GenericNodeConfig
+            node={node}
+            onUpdate={(data) => updateNodeData(node.id, data)}
+            fields={[
+              { key: 'channel', label: 'Channel', type: 'select', options: [{ value: 'slack', label: 'Slack' }, { value: 'teams', label: 'MS Teams' }, { value: 'sms', label: 'SMS (Twilio)' }, { value: 'webhook', label: 'Webhook' }, { value: 'email', label: 'Email' }] },
+              { key: 'webhookUrl', label: 'Webhook / API URL', type: 'text', placeholder: 'https://hooks.slack.com/...' },
+              { key: 'messageTemplate', label: 'Message Template', type: 'textarea', placeholder: 'Workflow {workflowName} completed: {result}' },
+              { key: 'onFailureOnly', label: 'Only On Failure', type: 'checkbox' },
+            ]}
+          />
+        )}
+        {nodeType === 'encryptionNode' && (
+          <GenericNodeConfig
+            node={node}
+            onUpdate={(data) => updateNodeData(node.id, data)}
+            fields={[
+              { key: 'algorithm', label: 'Algorithm', type: 'select', options: [{ value: 'aes-256-gcm', label: 'AES-256-GCM' }, { value: 'aes-256-cbc', label: 'AES-256-CBC' }, { value: 'rsa-oaep', label: 'RSA-OAEP' }, { value: 'chacha20', label: 'ChaCha20-Poly1305' }] },
+              { key: 'operation', label: 'Operation', type: 'select', options: [{ value: 'encrypt', label: 'Encrypt' }, { value: 'decrypt', label: 'Decrypt' }, { value: 'sign', label: 'Digital Sign' }, { value: 'verify', label: 'Verify Signature' }] },
+              { key: 'keyId', label: 'Key ID / Reference', type: 'text', placeholder: 'key-001 or path to key file' },
+            ]}
+          />
+        )}
+        {nodeType === 'webhookGatewayNode' && (
+          <GenericNodeConfig
+            node={node}
+            onUpdate={(data) => updateNodeData(node.id, data)}
+            fields={[
+              { key: 'method', label: 'HTTP Method', type: 'select', options: [{ value: 'GET', label: 'GET' }, { value: 'POST', label: 'POST' }, { value: 'PUT', label: 'PUT' }, { value: 'DELETE', label: 'DELETE' }] },
+              { key: 'authType', label: 'Auth Type', type: 'select', options: [{ value: 'none', label: 'None' }, { value: 'api_key', label: 'API Key' }, { value: 'bearer', label: 'Bearer Token' }, { value: 'basic', label: 'Basic Auth' }] },
+              { key: 'endpointPath', label: 'Endpoint Path', type: 'text', placeholder: '/api/workflow/execute' },
+              { key: 'rateLimit', label: 'Rate Limit (req/min)', type: 'number', placeholder: '60' },
+            ]}
+          />
+        )}
+        {nodeType === 'subWorkflowNode' && (
+          <GenericNodeConfig
+            node={node}
+            onUpdate={(data) => updateNodeData(node.id, data)}
+            fields={[
+              { key: 'targetWorkflowId', label: 'Target Workflow ID', type: 'text', placeholder: 'Workflow ID to invoke' },
+              { key: 'targetWorkflowName', label: 'Workflow Name', type: 'text', placeholder: 'Sub-workflow name' },
+              { key: 'passData', label: 'Pass Data to Sub-Workflow', type: 'checkbox' },
+              { key: 'waitForCompletion', label: 'Wait for Completion', type: 'checkbox' },
+            ]}
+          />
+        )}
+        {nodeType === 'phiClassificationNode' && (
+          <GenericNodeConfig
+            node={node}
+            onUpdate={(data) => updateNodeData(node.id, data)}
+            fields={[
+              { key: 'deidentMethod', label: 'De-identification Method', type: 'select', options: [{ value: 'safe_harbor', label: 'Safe Harbor (18 IDs)' }, { value: 'expert_determination', label: 'Expert Determination' }, { value: 'limited_dataset', label: 'Limited Dataset' }] },
+              { key: 'replacementStrategy', label: 'Replacement', type: 'select', options: [{ value: 'redact', label: 'Redact [PHI]' }, { value: 'pseudonymize', label: 'Pseudonymize' }, { value: 'generalize', label: 'Generalize' }] },
+              { key: 'customPatterns', label: 'Custom PHI Patterns', type: 'textarea', placeholder: 'Additional regex patterns, one per line' },
+            ]}
+          />
+        )}
+        {nodeType === 'fairLendingNode' && (
+          <GenericNodeConfig
+            node={node}
+            onUpdate={(data) => updateNodeData(node.id, data)}
+            fields={[
+              { key: 'regulation', label: 'Regulation', type: 'select', options: [{ value: 'ecoa', label: 'ECOA' }, { value: 'reg_b', label: 'Regulation B' }, { value: 'hmda', label: 'HMDA' }, { value: 'cra', label: 'CRA' }] },
+              { key: 'analysisType', label: 'Analysis Type', type: 'select', options: [{ value: 'disparate_impact', label: 'Disparate Impact' }, { value: 'disparate_treatment', label: 'Disparate Treatment' }, { value: 'regression', label: 'Regression Analysis' }] },
+              { key: 'decisionField', label: 'Decision Field', type: 'text', placeholder: 'e.g. approved, denied' },
+              { key: 'threshold', label: 'Impact Threshold', type: 'number', placeholder: '0.8' },
+            ]}
+          />
+        )}
+        {nodeType === 'claimsAuditNode' && (
+          <GenericNodeConfig
+            node={node}
+            onUpdate={(data) => updateNodeData(node.id, data)}
+            fields={[
+              { key: 'auditType', label: 'Audit Type', type: 'select', options: [{ value: 'full', label: 'Full Audit' }, { value: 'denial_review', label: 'Denial Review' }, { value: 'sample', label: 'Random Sample' }] },
+              { key: 'flagAutoDenials', label: 'Flag Auto-Denials', type: 'checkbox' },
+              { key: 'generateExplanation', label: 'Generate Policyholder Explanation', type: 'checkbox' },
+              { key: 'model', label: 'Explanation Model', type: 'select', options: [{ value: 'llama3.2', label: 'Llama 3.2' }, { value: 'mistral', label: 'Mistral' }] },
+            ]}
+          />
+        )}
+        {nodeType === 'consentManagementNode' && (
+          <GenericNodeConfig
+            node={node}
+            onUpdate={(data) => updateNodeData(node.id, data)}
+            fields={[
+              { key: 'regulation', label: 'Regulation', type: 'select', options: [{ value: 'gdpr', label: 'GDPR Article 7' }, { value: 'hipaa', label: 'HIPAA Authorization' }, { value: 'ccpa', label: 'CCPA' }, { value: 'lgpd', label: 'LGPD' }] },
+              { key: 'consentType', label: 'Consent Type', type: 'select', options: [{ value: 'explicit', label: 'Explicit Opt-in' }, { value: 'implied', label: 'Implied' }, { value: 'opt_out', label: 'Opt-out' }] },
+              { key: 'blockOnMissing', label: 'Block Processing if No Consent', type: 'checkbox' },
+              { key: 'consentField', label: 'Consent Record Field', type: 'text', placeholder: 'e.g. consent_given, authorized' },
+            ]}
+          />
+        )}
       </div>
 
       {/* Footer */}
@@ -327,6 +543,40 @@ function NodeIcon({ type }: { type: string }) {
       return <div className={`${iconClass} bg-[var(--nomu-primary)]`}><FileCode size={20} className="text-white" /></div>
     case 'mcpContextNode':
       return <div className={`${iconClass} bg-[var(--nomu-primary)]`}><Plug size={20} className="text-white" /></div>
+    case 'conditionalNode':
+      return <div className={`${iconClass} bg-yellow-600`}><GitBranch size={20} className="text-white" /></div>
+    case 'approvalGateNode':
+      return <div className={`${iconClass} bg-orange-600`}><ShieldCheck size={20} className="text-white" /></div>
+    case 'complianceDashboardNode':
+      return <div className={`${iconClass} bg-indigo-600`}><BarChart3 size={20} className="text-white" /></div>
+    case 'modelRegistryNode':
+      return <div className={`${iconClass} bg-violet-600`}><Brain size={20} className="text-white" /></div>
+    case 'evidenceCollectionNode':
+      return <div className={`${iconClass} bg-teal-600`}><Archive size={20} className="text-white" /></div>
+    case 'biasTestingNode':
+      return <div className={`${iconClass} bg-rose-600`}><Scale size={20} className="text-white" /></div>
+    case 'explainabilityNode':
+      return <div className={`${iconClass} bg-amber-600`}><Lightbulb size={20} className="text-white" /></div>
+    case 'redTeamingNode':
+      return <div className={`${iconClass} bg-red-700`}><Bug size={20} className="text-white" /></div>
+    case 'driftDetectionNode':
+      return <div className={`${iconClass} bg-cyan-700`}><Activity size={20} className="text-white" /></div>
+    case 'notificationNode':
+      return <div className={`${iconClass} bg-blue-600`}><Bell size={20} className="text-white" /></div>
+    case 'encryptionNode':
+      return <div className={`${iconClass} bg-emerald-700`}><Lock size={20} className="text-white" /></div>
+    case 'webhookGatewayNode':
+      return <div className={`${iconClass} bg-sky-600`}><Radio size={20} className="text-white" /></div>
+    case 'subWorkflowNode':
+      return <div className={`${iconClass} bg-purple-700`}><Layers size={20} className="text-white" /></div>
+    case 'phiClassificationNode':
+      return <div className={`${iconClass} bg-pink-700`}><HeartPulse size={20} className="text-white" /></div>
+    case 'fairLendingNode':
+      return <div className={`${iconClass} bg-green-700`}><Landmark size={20} className="text-white" /></div>
+    case 'claimsAuditNode':
+      return <div className={`${iconClass} bg-orange-700`}><FileCheck size={20} className="text-white" /></div>
+    case 'consentManagementNode':
+      return <div className={`${iconClass} bg-lime-700`}><UserCheck size={20} className="text-white" /></div>
     default:
       return null
   }
