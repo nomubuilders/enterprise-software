@@ -36,6 +36,12 @@ import {
   Landmark,
   FileCheck,
   UserCheck,
+  ShieldAlert,
+  DatabaseZap,
+  FolderOpen,
+  Cloud,
+  Ticket,
+  Building2,
 } from 'lucide-react'
 import { useDockerStore } from '../../store/dockerStore'
 
@@ -379,9 +385,69 @@ const nodeTemplates: NodeTemplate[] = [
     category: 'Insurance',
     config: { auditType: 'full', flagAutoDenials: true, generateExplanation: true },
   },
+  // Team Collaboration
+  {
+    type: 'slackComplianceNode',
+    label: 'Slack Compliance',
+    icon: <MessageSquare size={18} />,
+    color: 'bg-purple-600',
+    category: 'Team Collaboration',
+    config: { authType: 'oauth', scanMode: 'batch', detectPII: true, extractDocs: false, maxMessages: 1000 },
+  },
+  {
+    type: 'microsoftTeamsDORANode',
+    label: 'MS Teams DORA',
+    icon: <ShieldAlert size={18} />,
+    color: 'bg-blue-700',
+    category: 'Team Collaboration',
+    config: { monitoringMode: 'ict_incidents', alertWindow: 240, keywords: 'outage, incident, breach, failure, downtime' },
+  },
+  // Data Sources (additional)
+  {
+    type: 'databaseCreatorNode',
+    label: 'Database Creator',
+    icon: <DatabaseZap size={18} />,
+    color: 'bg-emerald-600',
+    category: 'Data Sources',
+    config: { dbType: 'sqlite', databaseName: 'compliance_db', encrypted: false },
+  },
+  {
+    type: 'localFolderStorageNode',
+    label: 'Local Folder',
+    icon: <FolderOpen size={18} />,
+    color: 'bg-amber-600',
+    category: 'Data Sources',
+    config: { operation: 'list', filePattern: '*.pdf, *.docx', recursive: false },
+  },
+  {
+    type: 'cloudDocumentNode',
+    label: 'Cloud Documents',
+    icon: <Cloud size={18} />,
+    color: 'bg-sky-600',
+    category: 'Data Sources',
+    config: { provider: 'google_drive', operation: 'list', folderId: 'root', maxResults: 100 },
+  },
+  // Audit & Compliance (additional)
+  {
+    type: 'jiraComplianceNode',
+    label: 'Jira Compliance',
+    icon: <Ticket size={18} />,
+    color: 'bg-indigo-600',
+    category: 'Audit & Compliance',
+    config: { authType: 'oauth', analysisType: 'resolution_time', jqlQuery: 'project = COMP AND status != Closed', includeChangelog: false },
+  },
+  // Fintech (additional)
+  {
+    type: 'sapERPNode',
+    label: 'SAP ERP',
+    icon: <Building2 size={18} />,
+    color: 'bg-teal-700',
+    category: 'Fintech',
+    config: { reportType: 'balance_sheet', fiscalYear: '2025', companyCode: '1000', authType: 'oauth', includeActuals: true, includeBudget: false },
+  },
 ]
 
-const categories = ['Triggers', 'Data Sources', 'Documents', 'AI Models', 'Compliance', 'Outputs', 'Containers', 'Data Processing', 'AI Configuration', 'Audit & Compliance', 'Workflow Control', 'Compliance Frameworks', 'AI Testing', 'Communication', 'Security', 'Healthcare', 'Fintech', 'Insurance']
+const categories = ['Triggers', 'Data Sources', 'Documents', 'AI Models', 'Compliance', 'Outputs', 'Containers', 'Data Processing', 'AI Configuration', 'Audit & Compliance', 'Workflow Control', 'Compliance Frameworks', 'AI Testing', 'Communication', 'Team Collaboration', 'Security', 'Healthcare', 'Fintech', 'Insurance']
 
 export function Sidebar() {
   const dockerAvailable = useDockerStore((s) => s.dockerAvailable)

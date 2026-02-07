@@ -35,6 +35,17 @@ const electronAPI = {
     setFirstRunComplete: () => ipcRenderer.invoke('app:set-first-run-complete'),
   },
 
+  // Filesystem operations (Database Creator & Local Folder Storage nodes)
+  filesystem: {
+    selectFolder: () => ipcRenderer.invoke('fs:select-folder'),
+    selectDatabasePath: () => ipcRenderer.invoke('fs:select-database-path'),
+    listFiles: (folderPath: string, pattern: string, recursive: boolean) =>
+      ipcRenderer.invoke('fs:list-files', folderPath, pattern, recursive),
+    readFile: (filePath: string) => ipcRenderer.invoke('fs:read-file', filePath),
+    writeFile: (filePath: string, content: string) => ipcRenderer.invoke('fs:write-file', filePath, content),
+    checkExists: (filePath: string) => ipcRenderer.invoke('fs:check-exists', filePath),
+  },
+
   // Auto-updater
   updater: {
     checkForUpdates: () => ipcRenderer.invoke('updater:check'),

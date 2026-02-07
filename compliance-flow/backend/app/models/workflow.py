@@ -47,6 +47,13 @@ class NodeType(str, Enum):
     FAIR_LENDING = "fairLendingNode"
     CLAIMS_AUDIT = "claimsAuditNode"
     CONSENT_MANAGEMENT = "consentManagementNode"
+    SLACK_COMPLIANCE = "slackComplianceNode"
+    MICROSOFT_TEAMS_DORA = "microsoftTeamsDORANode"
+    DATABASE_CREATOR = "databaseCreatorNode"
+    LOCAL_FOLDER_STORAGE = "localFolderStorageNode"
+    CLOUD_DOCUMENT = "cloudDocumentNode"
+    JIRA_COMPLIANCE = "jiraComplianceNode"
+    SAP_ERP = "sapERPNode"
 
 
 class TriggerType(str, Enum):

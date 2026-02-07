@@ -48,9 +48,16 @@ import {
   Landmark,
   FileCheck,
   UserCheck,
+  ShieldAlert,
+  DatabaseZap,
+  FolderOpen,
+  Cloud,
+  Ticket,
+  Building2,
 } from 'lucide-react'
 import { Button, Input, Select, DocumentUploadZone, ConfirmModal } from '../common'
 import { DockerTerminal } from './DockerTerminal'
+import { SAPERPConfig } from './SAPERPConfig'
 import { EvaluationPanel } from './EvaluationPanel'
 import { useFlowStore } from '../../store/flowStore'
 import { useWorkflowStore } from '../../store/workflowStore'
@@ -480,6 +487,94 @@ export function NodeConfigPanel({ node, onClose, onRunWorkflow, onOpenChat }: No
             ]}
           />
         )}
+        {nodeType === 'slackComplianceNode' && (
+          <GenericNodeConfig
+            node={node}
+            onUpdate={(data) => updateNodeData(node.id, data)}
+            fields={[
+              { key: 'authType', label: 'Authentication', type: 'select', options: [{ value: 'oauth', label: 'OAuth 2.0' }, { value: 'token', label: 'API Token' }] },
+              { key: 'workspaceUrl', label: 'Workspace URL', type: 'text', placeholder: 'yourworkspace.slack.com' },
+              { key: 'scanMode', label: 'Scan Mode', type: 'select', options: [{ value: 'realtime', label: 'Real-time (Events API)' }, { value: 'batch', label: 'Batch (Conversations API)' }, { value: 'discovery', label: 'Discovery (Enterprise Grid)' }] },
+              { key: 'channels', label: 'Channels', type: 'textarea', placeholder: 'general, compliance-alerts' },
+              { key: 'detectPII', label: 'Detect PII (Presidio)', type: 'checkbox' },
+              { key: 'extractDocs', label: 'Extract Documents', type: 'checkbox' },
+              { key: 'maxMessages', label: 'Max Messages', type: 'number', placeholder: '1000' },
+            ]}
+          />
+        )}
+        {nodeType === 'microsoftTeamsDORANode' && (
+          <GenericNodeConfig
+            node={node}
+            onUpdate={(data) => updateNodeData(node.id, data)}
+            fields={[
+              { key: 'tenantId', label: 'Tenant ID', type: 'text', placeholder: 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx' },
+              { key: 'monitoringMode', label: 'Monitoring Mode', type: 'select', options: [{ value: 'ict_incidents', label: 'ICT Incidents' }, { value: 'resilience_testing', label: 'Resilience Testing' }, { value: 'third_party_risk', label: 'Third-Party Risk' }, { value: 'full_dora', label: 'Full DORA' }] },
+              { key: 'alertWindow', label: 'Alert Window (minutes)', type: 'number', placeholder: '240' },
+              { key: 'keywords', label: 'ICT Keywords', type: 'textarea', placeholder: 'outage, incident, breach, failure, downtime' },
+              { key: 'teams', label: 'Team IDs', type: 'textarea', placeholder: 'Comma-separated Team IDs' },
+              { key: 'integratePurview', label: 'Integrate Microsoft Purview', type: 'checkbox' },
+            ]}
+          />
+        )}
+        {nodeType === 'databaseCreatorNode' && (
+          <GenericNodeConfig
+            node={node}
+            onUpdate={(data) => updateNodeData(node.id, data)}
+            fields={[
+              { key: 'dbType', label: 'Database Type', type: 'select', options: [{ value: 'sqlite', label: 'SQLite (Local)' }, { value: 'postgresql', label: 'PostgreSQL (Docker)' }, { value: 'mysql', label: 'MySQL (Docker)' }, { value: 'mongodb', label: 'MongoDB (Docker)' }] },
+              { key: 'databaseName', label: 'Database Name', type: 'text', placeholder: 'compliance_db' },
+              { key: 'filePath', label: 'File Path (SQLite)', type: 'text', placeholder: '/path/to/database.db' },
+              { key: 'encrypted', label: 'Encrypt (SQLCipher)', type: 'checkbox' },
+              { key: 'initSchema', label: 'Init Schema (SQL)', type: 'textarea', placeholder: 'CREATE TABLE users (id INTEGER PRIMARY KEY, name TEXT);' },
+            ]}
+          />
+        )}
+        {nodeType === 'localFolderStorageNode' && (
+          <GenericNodeConfig
+            node={node}
+            onUpdate={(data) => updateNodeData(node.id, data)}
+            fields={[
+              { key: 'operation', label: 'Operation', type: 'select', options: [{ value: 'list', label: 'List Files' }, { value: 'read', label: 'Read File' }, { value: 'write', label: 'Write File' }, { value: 'monitor', label: 'Monitor Changes' }] },
+              { key: 'folderPath', label: 'Folder Path', type: 'text', placeholder: '/path/to/folder' },
+              { key: 'filePattern', label: 'File Pattern', type: 'text', placeholder: '*.pdf, *.docx' },
+              { key: 'recursive', label: 'Recursive', type: 'checkbox' },
+            ]}
+          />
+        )}
+        {nodeType === 'cloudDocumentNode' && (
+          <GenericNodeConfig
+            node={node}
+            onUpdate={(data) => updateNodeData(node.id, data)}
+            fields={[
+              { key: 'provider', label: 'Cloud Provider', type: 'select', options: [{ value: 'google_drive', label: 'Google Drive' }, { value: 'dropbox', label: 'Dropbox' }, { value: 'onedrive', label: 'OneDrive' }, { value: 'mega', label: 'MEGA (Encrypted)' }] },
+              { key: 'operation', label: 'Operation', type: 'select', options: [{ value: 'list', label: 'List Files' }, { value: 'download', label: 'Download' }, { value: 'upload', label: 'Upload' }, { value: 'search', label: 'Search' }, { value: 'share', label: 'Share Link' }, { value: 'delete', label: 'Delete' }] },
+              { key: 'folderId', label: 'Folder ID', type: 'text', placeholder: 'root or folder ID' },
+              { key: 'query', label: 'Search Query', type: 'text', placeholder: 'name contains "compliance"' },
+              { key: 'maxResults', label: 'Max Results', type: 'number', placeholder: '100' },
+            ]}
+          />
+        )}
+        {nodeType === 'jiraComplianceNode' && (
+          <GenericNodeConfig
+            node={node}
+            onUpdate={(data) => updateNodeData(node.id, data)}
+            fields={[
+              { key: 'jiraUrl', label: 'Jira URL', type: 'text', placeholder: 'https://yourcompany.atlassian.net' },
+              { key: 'authType', label: 'Authentication', type: 'select', options: [{ value: 'oauth', label: 'OAuth 2.0 (3LO)' }, { value: 'token', label: 'API Token (Basic Auth)' }] },
+              { key: 'email', label: 'Email (API Token)', type: 'text', placeholder: 'user@company.com' },
+              { key: 'apiToken', label: 'API Token', type: 'password', placeholder: 'Jira API token' },
+              { key: 'jqlQuery', label: 'JQL Query', type: 'textarea', placeholder: 'project = COMP AND status != Closed' },
+              { key: 'analysisType', label: 'Analysis Type', type: 'select', options: [{ value: 'resolution_time', label: 'Resolution Time' }, { value: 'sla_compliance', label: 'SLA Compliance' }, { value: 'sprint_velocity', label: 'Sprint Velocity' }, { value: 'audit_trail', label: 'Audit Trail' }] },
+              { key: 'includeChangelog', label: 'Include Changelog', type: 'checkbox' },
+            ]}
+          />
+        )}
+        {nodeType === 'sapERPNode' && (
+          <SAPERPConfig
+            node={node}
+            onUpdate={(data) => updateNodeData(node.id, data)}
+          />
+        )}
       </div>
 
       {/* Footer */}
@@ -577,6 +672,20 @@ function NodeIcon({ type }: { type: string }) {
       return <div className={`${iconClass} bg-orange-700`}><FileCheck size={20} className="text-white" /></div>
     case 'consentManagementNode':
       return <div className={`${iconClass} bg-lime-700`}><UserCheck size={20} className="text-white" /></div>
+    case 'slackComplianceNode':
+      return <div className={`${iconClass} bg-purple-600`}><MessageSquare size={20} className="text-white" /></div>
+    case 'microsoftTeamsDORANode':
+      return <div className={`${iconClass} bg-blue-700`}><ShieldAlert size={20} className="text-white" /></div>
+    case 'databaseCreatorNode':
+      return <div className={`${iconClass} bg-emerald-600`}><DatabaseZap size={20} className="text-white" /></div>
+    case 'localFolderStorageNode':
+      return <div className={`${iconClass} bg-amber-600`}><FolderOpen size={20} className="text-white" /></div>
+    case 'cloudDocumentNode':
+      return <div className={`${iconClass} bg-sky-600`}><Cloud size={20} className="text-white" /></div>
+    case 'jiraComplianceNode':
+      return <div className={`${iconClass} bg-indigo-600`}><Ticket size={20} className="text-white" /></div>
+    case 'sapERPNode':
+      return <div className={`${iconClass} bg-teal-700`}><Building2 size={20} className="text-white" /></div>
     default:
       return null
   }

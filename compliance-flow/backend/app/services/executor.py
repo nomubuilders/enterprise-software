@@ -383,6 +383,20 @@ class WorkflowExecutionEngine:
                 output_data = await self._execute_claims_audit_node(node, input_data)
             elif node.type == NodeType.CONSENT_MANAGEMENT:
                 output_data = await self._execute_consent_management_node(node, input_data)
+            elif node.type == NodeType.SLACK_COMPLIANCE:
+                output_data = await self._execute_slack_compliance_node(node, input_data)
+            elif node.type == NodeType.MICROSOFT_TEAMS_DORA:
+                output_data = await self._execute_microsoft_teams_dora_node(node, input_data)
+            elif node.type == NodeType.DATABASE_CREATOR:
+                output_data = await self._execute_database_creator_node(node, input_data)
+            elif node.type == NodeType.LOCAL_FOLDER_STORAGE:
+                output_data = await self._execute_local_folder_storage_node(node, input_data)
+            elif node.type == NodeType.CLOUD_DOCUMENT:
+                output_data = await self._execute_cloud_document_node(node, input_data)
+            elif node.type == NodeType.JIRA_COMPLIANCE:
+                output_data = await self._execute_jira_compliance_node(node, input_data)
+            elif node.type == NodeType.SAP_ERP:
+                output_data = await self._execute_sap_erp_node(node, input_data)
             elif node.type in (NodeType.DOCKER_CONTAINER, NodeType.DOCUMENT):
                 # Handled by frontend execution engine
                 output_data = {"passthrough": True, **input_data}
@@ -1162,6 +1176,156 @@ class WorkflowExecutionEngine:
             "approvers": approvers,
             "timeout_hours": timeout_hours,
             "paused": True,
+            **input_data,
+        }
+
+    async def _execute_slack_compliance_node(self, node: WorkflowNode, input_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Execute a Slack compliance node - scans channels for messages and PII."""
+        scan_mode = node.data.get("scanMode", node.data.get("scan_mode", "batch"))
+        channels = node.data.get("channels", "")
+        detect_pii = node.data.get("detectPII", node.data.get("detect_pii", True))
+        extract_docs = node.data.get("extractDocs", node.data.get("extract_docs", False))
+        max_messages = node.data.get("maxMessages", node.data.get("max_messages", 1000))
+
+        channel_list = [c.strip() for c in channels.split(",") if c.strip()] if channels else []
+
+        return {
+            "slack_scan": {
+                "scan_mode": scan_mode,
+                "channels_scanned": channel_list,
+                "max_messages": max_messages,
+                "detect_pii": detect_pii,
+                "extract_docs": extract_docs,
+                "status": "configured",
+                "note": "Requires Slack OAuth token for execution",
+            },
+            **input_data,
+        }
+
+    async def _execute_microsoft_teams_dora_node(self, node: WorkflowNode, input_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Execute a Microsoft Teams DORA monitoring node."""
+        monitoring_mode = node.data.get("monitoringMode", node.data.get("monitoring_mode", "ict_incidents"))
+        alert_window = node.data.get("alertWindow", node.data.get("alert_window", 240))
+        keywords = node.data.get("keywords", "outage, incident, breach, failure, downtime")
+
+        keyword_list = [k.strip() for k in keywords.split(",") if k.strip()] if isinstance(keywords, str) else keywords
+
+        return {
+            "dora_monitor": {
+                "monitoring_mode": monitoring_mode,
+                "alert_window_minutes": alert_window,
+                "keywords": keyword_list,
+                "framework": "EU DORA 2022/2554",
+                "status": "configured",
+                "note": "Requires Microsoft Graph OAuth token for execution",
+            },
+            **input_data,
+        }
+
+    async def _execute_database_creator_node(self, node: WorkflowNode, input_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Execute a database creator node - provisions new databases."""
+        db_type = node.data.get("dbType", node.data.get("db_type", "sqlite"))
+        database_name = node.data.get("databaseName", node.data.get("database_name", "compliance_db"))
+        encrypted = node.data.get("encrypted", False)
+
+        connection_strings = {
+            "sqlite": f"sqlite:///./{database_name}.db",
+            "postgresql": f"postgresql://postgres:postgres@localhost:5432/{database_name}",
+            "mysql": f"mysql://root:root@localhost:3306/{database_name}",
+            "mongodb": f"mongodb://localhost:27017/{database_name}",
+        }
+
+        return {
+            "database_created": {
+                "db_type": db_type,
+                "database_name": database_name,
+                "encrypted": encrypted,
+                "connection_string": connection_strings.get(db_type, ""),
+                "status": "configured",
+            },
+            **input_data,
+        }
+
+    async def _execute_local_folder_storage_node(self, node: WorkflowNode, input_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Execute a local folder storage node - file system operations."""
+        operation = node.data.get("operation", "list")
+        folder_path = node.data.get("folderPath", node.data.get("folder_path", ""))
+        file_pattern = node.data.get("filePattern", node.data.get("file_pattern", "*"))
+        recursive = node.data.get("recursive", False)
+
+        return {
+            "folder_operation": {
+                "operation": operation,
+                "folder_path": folder_path,
+                "file_pattern": file_pattern,
+                "recursive": recursive,
+                "status": "configured",
+                "note": "File operations executed via Electron IPC in desktop mode",
+            },
+            **input_data,
+        }
+
+    async def _execute_cloud_document_node(self, node: WorkflowNode, input_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Execute a cloud document node - multi-provider cloud storage operations."""
+        provider = node.data.get("provider", "google_drive")
+        operation = node.data.get("operation", "list")
+        folder_id = node.data.get("folderId", node.data.get("folder_id", "root"))
+        max_results = node.data.get("maxResults", node.data.get("max_results", 100))
+
+        return {
+            "cloud_operation": {
+                "provider": provider,
+                "operation": operation,
+                "folder_id": folder_id,
+                "max_results": max_results,
+                "status": "configured",
+                "note": f"Requires {provider} OAuth token for execution",
+            },
+            **input_data,
+        }
+
+    async def _execute_jira_compliance_node(self, node: WorkflowNode, input_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Execute a Jira compliance node - ticket analysis and audit trails."""
+        jql_query = node.data.get("jqlQuery", node.data.get("jql_query", ""))
+        analysis_type = node.data.get("analysisType", node.data.get("analysis_type", "resolution_time"))
+        include_changelog = node.data.get("includeChangelog", node.data.get("include_changelog", False))
+
+        return {
+            "jira_analysis": {
+                "analysis_type": analysis_type,
+                "jql_query": jql_query,
+                "include_changelog": include_changelog,
+                "status": "configured",
+                "note": "Requires Jira OAuth or API token for execution",
+            },
+            **input_data,
+        }
+
+    async def _execute_sap_erp_node(self, node: WorkflowNode, input_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Execute a SAP ERP node - financial report generation via OData v4."""
+        report_type = node.data.get("reportType", node.data.get("report_type", "balance_sheet"))
+        fiscal_year = node.data.get("fiscalYear", node.data.get("fiscal_year", "2025"))
+        company_code = node.data.get("companyCode", node.data.get("company_code", "1000"))
+
+        report_labels = {
+            "balance_sheet": "Balance Sheet",
+            "profit_loss": "Profit & Loss",
+            "cost_center": "Cost Center Analysis",
+            "general_ledger": "General Ledger",
+            "custom_odata": "Custom OData Query",
+        }
+
+        return {
+            "sap_report": {
+                "report_type": report_type,
+                "report_label": report_labels.get(report_type, report_type),
+                "fiscal_year": fiscal_year,
+                "company_code": company_code,
+                "include_actuals": node.data.get("includeActuals", True),
+                "include_budget": node.data.get("includeBudget", False),
+                "status": "configured",
+                "note": "Requires SAP S/4HANA OData v4 access for execution",
+            },
             **input_data,
         }
 

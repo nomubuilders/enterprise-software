@@ -32,12 +32,20 @@
     "sonner": "^2.0.7",
     "tailwindcss": "^4.1.18",
     "vite-plugin-pwa": "^1.2.0",
-    "zustand": "^5.0.11"
+    "zustand": "^5.0.11",
+    "@slack/web-api": "^7.8.0",
+    "@microsoft/microsoft-graph-client": "^3.0.7",
+    "googleapis": "^134.0.0",
+    "dropbox": "^10.34.0",
+    "megajs": "^1.1.1",
+    "better-sqlite3": "^11.7.0",
+    "glob": "^11.0.0"
   },
   "devDependencies": {
     "@electron-toolkit/preload": "^3.0.2",
     "@electron-toolkit/utils": "^4.0.0",
     "@eslint/js": "^9.39.1",
+    "@types/better-sqlite3": "^7.6.11",
     "@types/node": "^24.10.1",
     "@types/react": "^19.2.5",
     "@types/react-dom": "^19.2.3",

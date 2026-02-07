@@ -29,6 +29,13 @@ export { PHIClassificationNode } from './PHIClassificationNode'
 export { FairLendingNode } from './FairLendingNode'
 export { ClaimsAuditNode } from './ClaimsAuditNode'
 export { ConsentManagementNode } from './ConsentManagementNode'
+export { SlackComplianceNode } from './SlackComplianceNode'
+export { MicrosoftTeamsDORANode } from './MicrosoftTeamsDORANode'
+export { DatabaseCreatorNode } from './DatabaseCreatorNode'
+export { LocalFolderStorageNode } from './LocalFolderStorageNode'
+export { CloudDocumentNode } from './CloudDocumentNode'
+export { JiraComplianceNode } from './JiraComplianceNode'
+export { SAPERPNode } from './SAPERPNode'
 
 import { LLMNode } from './LLMNode'
 import { DatabaseNode } from './DatabaseNode'
@@ -61,6 +68,13 @@ import { PHIClassificationNode } from './PHIClassificationNode'
 import { FairLendingNode } from './FairLendingNode'
 import { ClaimsAuditNode } from './ClaimsAuditNode'
 import { ConsentManagementNode } from './ConsentManagementNode'
+import { SlackComplianceNode } from './SlackComplianceNode'
+import { MicrosoftTeamsDORANode } from './MicrosoftTeamsDORANode'
+import { DatabaseCreatorNode } from './DatabaseCreatorNode'
+import { LocalFolderStorageNode } from './LocalFolderStorageNode'
+import { CloudDocumentNode } from './CloudDocumentNode'
+import { JiraComplianceNode } from './JiraComplianceNode'
+import { SAPERPNode } from './SAPERPNode'
 
 export const nodeTypes = {
   llmNode: LLMNode,
@@ -94,4 +108,11 @@ export const nodeTypes = {
   fairLendingNode: FairLendingNode,
   claimsAuditNode: ClaimsAuditNode,
   consentManagementNode: ConsentManagementNode,
+  slackComplianceNode: SlackComplianceNode,
+  microsoftTeamsDORANode: MicrosoftTeamsDORANode,
+  databaseCreatorNode: DatabaseCreatorNode,
+  localFolderStorageNode: LocalFolderStorageNode,
+  cloudDocumentNode: CloudDocumentNode,
+  jiraComplianceNode: JiraComplianceNode,
+  sapERPNode: SAPERPNode,
 }

@@ -43,6 +43,19 @@ email-validator>=2.1.0   # Email validation for Pydantic
 aiohttp>=3.9.0           # Async HTTP for Telegram API
 openpyxl>=3.1.0          # Excel file export (optional)
 
+# Enterprise Integrations
+slack-sdk>=3.23.0            # Slack API
+msal>=1.28.0                 # Microsoft Auth Library
+msgraph-core>=1.0.0          # Microsoft Graph SDK
+google-auth>=2.29.0          # Google OAuth
+google-api-python-client>=2.118.0  # Google Drive API
+dropbox>=12.0.2              # Dropbox SDK
+mega.py>=1.0.8               # MEGA cloud storage
+sqlcipher3>=0.5.3            # SQLite encryption
+watchdog>=4.0.0              # Filesystem monitoring
+jira>=3.8.0                  # Jira REST API client
+requests-oauthlib>=2.0.0     # OAuth for SAP/general
+
 # Testing
 pytest>=7.4.0
 pytest-asyncio>=0.23.0

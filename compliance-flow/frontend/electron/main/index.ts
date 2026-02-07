@@ -5,6 +5,7 @@ import { createMainWindow } from './window-manager'
 import { registerIpcHandlers } from './ipc-handlers'
 import { DockerManager } from './docker-manager'
 import { initAutoUpdater } from './auto-updater'
+import { registerFsHandlers } from './fs-handlers'
 
 let mainWindow: BrowserWindow | null = null
 const dockerManager = new DockerManager()
@@ -26,6 +27,7 @@ app.whenReady().then(() => {
 
   // Register IPC handlers
   registerIpcHandlers(dockerManager)
+  registerFsHandlers()
 
   // Create window
   mainWindow = createMainWindow()
