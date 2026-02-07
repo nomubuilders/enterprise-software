@@ -46,7 +46,7 @@ export function registerFsHandlers(): void {
           await walk(fullPath)
         } else if (entry.isFile()) {
           const ext = extname(entry.name).toLowerCase()
-          if (extensions.length === 0 || extensions.some((e) => ext === e || e === '')) {
+          if (extensions.length === 0 || extensions.some((filterExt) => ext === filterExt || filterExt === '')) {
             const info = await stat(fullPath)
             files.push({
               name: entry.name,
@@ -65,8 +65,7 @@ export function registerFsHandlers(): void {
 
   // Read a file's content
   ipcMain.handle('fs:read-file', async (_e, filePath: string) => {
-    const content = await readFile(filePath, 'utf-8')
-    return content
+    return readFile(filePath, 'utf-8')
   })
 
   // Write content to a file

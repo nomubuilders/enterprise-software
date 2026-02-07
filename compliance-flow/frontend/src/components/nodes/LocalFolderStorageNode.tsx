@@ -3,25 +3,25 @@ import type { NodeProps } from '@xyflow/react'
 import { FolderOpen } from 'lucide-react'
 import { BaseNode } from './BaseNode'
 
-export const LocalFolderStorageNode = memo((props: NodeProps) => {
-  const nodeData = props.data as { label: string; config?: Record<string, unknown> }
-  const operation = (nodeData.config?.operation as string) || 'list'
-  const filePattern = (nodeData.config?.filePattern as string) || '*'
-  const recursive = nodeData.config?.recursive === true
+const OPERATION_LABELS: Record<string, string> = {
+  list: 'List Files',
+  read: 'Read File',
+  write: 'Write File',
+  monitor: 'Monitor Changes',
+}
 
-  const opLabels: Record<string, string> = {
-    list: 'List Files',
-    read: 'Read File',
-    write: 'Write File',
-    monitor: 'Monitor Changes',
-  }
+export const LocalFolderStorageNode = memo((props: NodeProps) => {
+  const config = (props.data as { config?: Record<string, unknown> }).config
+  const operation = (config?.operation as string) || 'list'
+  const filePattern = (config?.filePattern as string) || '*'
+  const recursive = config?.recursive === true
 
   return (
     <BaseNode {...props} icon={<FolderOpen size={16} />} color="bg-amber-600">
       <div className="space-y-1">
         <div className="flex justify-between">
           <span className="text-[var(--nomu-text-secondary)]">Operation:</span>
-          <span className="text-amber-400">{opLabels[operation] || operation}</span>
+          <span className="text-amber-400">{OPERATION_LABELS[operation] || operation}</span>
         </div>
         <div className="flex justify-between">
           <span className="text-[var(--nomu-text-secondary)]">Pattern:</span>

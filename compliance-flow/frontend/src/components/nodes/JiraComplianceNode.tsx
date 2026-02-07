@@ -3,24 +3,24 @@ import type { NodeProps } from '@xyflow/react'
 import { Ticket } from 'lucide-react'
 import { BaseNode } from './BaseNode'
 
-export const JiraComplianceNode = memo((props: NodeProps) => {
-  const nodeData = props.data as { label: string; config?: Record<string, unknown> }
-  const analysisType = (nodeData.config?.analysisType as string) || 'resolution_time'
-  const authType = (nodeData.config?.authType as string) || 'oauth'
+const ANALYSIS_TYPE_LABELS: Record<string, string> = {
+  resolution_time: 'Resolution Time',
+  sla_compliance: 'SLA Compliance',
+  sprint_velocity: 'Sprint Velocity',
+  audit_trail: 'Audit Trail',
+}
 
-  const analysisLabels: Record<string, string> = {
-    resolution_time: 'Resolution Time',
-    sla_compliance: 'SLA Compliance',
-    sprint_velocity: 'Sprint Velocity',
-    audit_trail: 'Audit Trail',
-  }
+export const JiraComplianceNode = memo((props: NodeProps) => {
+  const config = (props.data as { config?: Record<string, unknown> }).config
+  const analysisType = (config?.analysisType as string) || 'resolution_time'
+  const authType = (config?.authType as string) || 'oauth'
 
   return (
     <BaseNode {...props} icon={<Ticket size={16} />} color="bg-indigo-600">
       <div className="space-y-1">
         <div className="flex justify-between">
           <span className="text-[var(--nomu-text-secondary)]">Analysis:</span>
-          <span className="text-indigo-400">{analysisLabels[analysisType] || analysisType}</span>
+          <span className="text-indigo-400">{ANALYSIS_TYPE_LABELS[analysisType] || analysisType}</span>
         </div>
         <div className="flex justify-between">
           <span className="text-[var(--nomu-text-secondary)]">Auth:</span>

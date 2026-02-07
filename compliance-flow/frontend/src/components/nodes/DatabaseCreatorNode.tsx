@@ -3,25 +3,25 @@ import type { NodeProps } from '@xyflow/react'
 import { DatabaseZap } from 'lucide-react'
 import { BaseNode } from './BaseNode'
 
-export const DatabaseCreatorNode = memo((props: NodeProps) => {
-  const nodeData = props.data as { label: string; config?: Record<string, unknown> }
-  const dbType = (nodeData.config?.dbType as string) || 'sqlite'
-  const encrypted = nodeData.config?.encrypted === true
-  const databaseName = (nodeData.config?.databaseName as string) || ''
+const DB_TYPE_LABELS: Record<string, string> = {
+  sqlite: 'SQLite (Local)',
+  postgresql: 'PostgreSQL',
+  mysql: 'MySQL',
+  mongodb: 'MongoDB',
+}
 
-  const typeLabels: Record<string, string> = {
-    sqlite: 'SQLite (Local)',
-    postgresql: 'PostgreSQL',
-    mysql: 'MySQL',
-    mongodb: 'MongoDB',
-  }
+export const DatabaseCreatorNode = memo((props: NodeProps) => {
+  const config = (props.data as { config?: Record<string, unknown> }).config
+  const dbType = (config?.dbType as string) || 'sqlite'
+  const encrypted = config?.encrypted === true
+  const databaseName = (config?.databaseName as string) || ''
 
   return (
     <BaseNode {...props} icon={<DatabaseZap size={16} />} color="bg-emerald-600">
       <div className="space-y-1">
         <div className="flex justify-between">
           <span className="text-[var(--nomu-text-secondary)]">Type:</span>
-          <span className="text-emerald-400">{typeLabels[dbType] || dbType}</span>
+          <span className="text-emerald-400">{DB_TYPE_LABELS[dbType] || dbType}</span>
         </div>
         {databaseName && (
           <div className="flex justify-between">

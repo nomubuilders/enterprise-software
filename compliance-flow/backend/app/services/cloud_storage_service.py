@@ -64,26 +64,18 @@ class CloudStorageService:
         headers = {"Authorization": f"Bearer {self.access_token}"}
         base = "https://www.googleapis.com/drive/v3"
 
-        async with aiohttp.ClientSession() as session:
-            if operation == "list":
-                params = {
-                    "q": f"'{folder_id}' in parents and trashed=false",
-                    "pageSize": max_results,
-                    "fields": "files(id,name,mimeType,size,modifiedTime)",
-                }
+        if operation in ("list", "search"):
+            q = (query or "trashed=false") if operation == "search" else f"'{folder_id}' in parents and trashed=false"
+            params = {
+                "q": q,
+                "pageSize": max_results,
+                "fields": "files(id,name,mimeType,size,modifiedTime)",
+            }
+            async with aiohttp.ClientSession() as session:
                 async with session.get(f"{base}/files", headers=headers, params=params) as resp:
                     data = await resp.json()
-                    return {"files": data.get("files", []), "count": len(data.get("files", []))}
-
-            elif operation == "search":
-                params = {
-                    "q": query or "trashed=false",
-                    "pageSize": max_results,
-                    "fields": "files(id,name,mimeType,size,modifiedTime)",
-                }
-                async with session.get(f"{base}/files", headers=headers, params=params) as resp:
-                    data = await resp.json()
-                    return {"files": data.get("files", []), "count": len(data.get("files", []))}
+                    files = data.get("files", [])
+                    return {"files": files, "count": len(files)}
 
         return {"operation": operation, "provider": "google_drive", "status": "not_implemented"}
 

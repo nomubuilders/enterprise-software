@@ -60,12 +60,12 @@ export function SAPERPConfig({ node, onUpdate }: SAPERPConfigProps) {
       <div>
         <h3 className="mb-3 text-sm font-semibold text-[var(--nomu-text)] uppercase tracking-wider">SAP Connection</h3>
         <div className="space-y-3">
-          <Input label="SAP URL" value={sapUrl} onChange={setSapUrl} placeholder="https://sap-system.company.com" />
-          <Input label="Client Number" value={clientNumber} onChange={setClientNumber} placeholder="100" />
+          <Input label="SAP URL" value={sapUrl} onChange={(e) => setSapUrl(e.target.value)} placeholder="https://sap-system.company.com" />
+          <Input label="Client Number" value={clientNumber} onChange={(e) => setClientNumber(e.target.value)} placeholder="100" />
           <Select
             label="Authentication"
             value={authType}
-            onChange={setAuthType}
+            onChange={(e) => setAuthType(e.target.value)}
             options={[
               { value: 'oauth', label: 'OAuth 2.0' },
               { value: 'basic', label: 'Basic Auth' },
@@ -74,8 +74,8 @@ export function SAPERPConfig({ node, onUpdate }: SAPERPConfigProps) {
           />
           {authType === 'basic' && (
             <>
-              <Input label="Username" value={username} onChange={setUsername} placeholder="SAP username" />
-              <Input label="Password" value={password} onChange={setPassword} placeholder="SAP password" type="password" />
+              <Input label="Username" value={username} onChange={(e) => setUsername(e.target.value)} placeholder="SAP username" />
+              <Input label="Password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="SAP password" type="password" />
             </>
           )}
         </div>
@@ -88,7 +88,7 @@ export function SAPERPConfig({ node, onUpdate }: SAPERPConfigProps) {
           <Select
             label="Report Type"
             value={reportType}
-            onChange={setReportType}
+            onChange={(e) => setReportType(e.target.value)}
             options={[
               { value: 'balance_sheet', label: 'Balance Sheet' },
               { value: 'profit_loss', label: 'Profit & Loss' },
@@ -97,10 +97,10 @@ export function SAPERPConfig({ node, onUpdate }: SAPERPConfigProps) {
               { value: 'custom_odata', label: 'Custom OData Query' },
             ]}
           />
-          <Input label="Fiscal Year" value={fiscalYear} onChange={setFiscalYear} placeholder="2025" />
-          <Input label="Company Code" value={companyCode} onChange={setCompanyCode} placeholder="1000" />
+          <Input label="Fiscal Year" value={fiscalYear} onChange={(e) => setFiscalYear(e.target.value)} placeholder="2025" />
+          <Input label="Company Code" value={companyCode} onChange={(e) => setCompanyCode(e.target.value)} placeholder="1000" />
           {reportType === 'cost_center' && (
-            <Input label="Cost Centers" value={costCenters} onChange={setCostCenters} placeholder="CC100, CC200, CC300" />
+            <Input label="Cost Centers" value={costCenters} onChange={(e) => setCostCenters(e.target.value)} placeholder="CC100, CC200, CC300" />
           )}
           <div className="flex items-center gap-3">
             <label className="flex items-center gap-2 text-sm text-[var(--nomu-text)]">

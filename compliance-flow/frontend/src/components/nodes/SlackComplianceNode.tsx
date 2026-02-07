@@ -3,24 +3,24 @@ import type { NodeProps } from '@xyflow/react'
 import { MessageSquare } from 'lucide-react'
 import { BaseNode } from './BaseNode'
 
-export const SlackComplianceNode = memo((props: NodeProps) => {
-  const nodeData = props.data as { label: string; config?: Record<string, unknown> }
-  const scanMode = (nodeData.config?.scanMode as string) || 'batch'
-  const detectPII = nodeData.config?.detectPII !== false
-  const extractDocs = nodeData.config?.extractDocs === true
+const SCAN_MODE_LABELS: Record<string, string> = {
+  realtime: 'Real-time',
+  batch: 'Batch Scan',
+  discovery: 'Discovery',
+}
 
-  const modeLabels: Record<string, string> = {
-    realtime: 'Real-time',
-    batch: 'Batch Scan',
-    discovery: 'Discovery',
-  }
+export const SlackComplianceNode = memo((props: NodeProps) => {
+  const config = (props.data as { config?: Record<string, unknown> }).config
+  const scanMode = (config?.scanMode as string) || 'batch'
+  const detectPII = config?.detectPII !== false
+  const extractDocs = config?.extractDocs === true
 
   return (
     <BaseNode {...props} icon={<MessageSquare size={16} />} color="bg-purple-600">
       <div className="space-y-1">
         <div className="flex justify-between">
           <span className="text-[var(--nomu-text-secondary)]">Mode:</span>
-          <span className="text-purple-400">{modeLabels[scanMode] || scanMode}</span>
+          <span className="text-purple-400">{SCAN_MODE_LABELS[scanMode] || scanMode}</span>
         </div>
         <div className="flex justify-between">
           <span className="text-[var(--nomu-text-secondary)]">PII Scan:</span>

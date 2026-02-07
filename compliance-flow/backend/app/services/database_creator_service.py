@@ -7,7 +7,7 @@ for local/on-premises use, or Docker-managed PostgreSQL/MySQL/MongoDB.
 
 import logging
 import sqlite3
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
 logger = logging.getLogger(__name__)
 

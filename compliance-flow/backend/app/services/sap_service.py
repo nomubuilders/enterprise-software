@@ -44,6 +44,14 @@ class SAPERPService:
                     raise ValueError(f"SAP OData error ({resp.status}): {error}")
                 return await resp.json()
 
+    async def _safe_odata_request(self, path: str, params: Optional[Dict[str, str]] = None) -> Dict[str, Any]:
+        """Execute an OData request, returning empty result set on failure."""
+        try:
+            return await self._odata_request(path, params)
+        except Exception as e:
+            logger.warning(f"SAP API call failed: {e}. Returning placeholder report.")
+            return {"value": []}
+
     async def generate_report(self, config: Dict[str, Any]) -> Dict[str, Any]:
         """
         Generate a financial report based on configuration.
@@ -78,21 +86,18 @@ class SAPERPService:
             "$filter": f"CompanyCode eq '{company_code}' and FiscalYear eq '{fiscal_year}'",
             "$select": "GLAccount,GLAccountName,AmountInCompanyCodeCurrency,CompanyCodeCurrency",
         }
-        try:
-            data = await self._odata_request(
-                "/sap/opu/odata4/sap/api_balancesheet/srvd_a2x/SAP/BalanceSheet/0001/BalanceSheet",
-                params,
-            )
-        except Exception as e:
-            logger.warning(f"SAP API call failed: {e}. Returning placeholder report.")
-            data = {"value": []}
+        data = await self._safe_odata_request(
+            "/sap/opu/odata4/sap/api_balancesheet/srvd_a2x/SAP/BalanceSheet/0001/BalanceSheet",
+            params,
+        )
+        records = data.get("value", [])
 
         return {
             "report_type": "balance_sheet",
             "fiscal_year": fiscal_year,
             "company_code": company_code,
-            "financial_data": data.get("value", []),
-            "record_count": len(data.get("value", [])),
+            "financial_data": records,
+            "record_count": len(records),
             "include_actuals": config.get("includeActuals", True),
             "include_budget": config.get("includeBudget", False),
         }
@@ -102,21 +107,18 @@ class SAPERPService:
         params = {
             "$filter": f"CompanyCode eq '{company_code}' and FiscalYear eq '{fiscal_year}'",
         }
-        try:
-            data = await self._odata_request(
-                "/sap/opu/odata4/sap/api_profitandloss/srvd_a2x/SAP/ProfitAndLoss/0001/ProfitAndLoss",
-                params,
-            )
-        except Exception as e:
-            logger.warning(f"SAP API call failed: {e}. Returning placeholder report.")
-            data = {"value": []}
+        data = await self._safe_odata_request(
+            "/sap/opu/odata4/sap/api_profitandloss/srvd_a2x/SAP/ProfitAndLoss/0001/ProfitAndLoss",
+            params,
+        )
+        records = data.get("value", [])
 
         return {
             "report_type": "profit_loss",
             "fiscal_year": fiscal_year,
             "company_code": company_code,
-            "financial_data": data.get("value", []),
-            "record_count": len(data.get("value", [])),
+            "financial_data": records,
+            "record_count": len(records),
         }
 
     async def _cost_center(self, config: Dict[str, Any], fiscal_year: str, company_code: str) -> Dict[str, Any]:
@@ -130,22 +132,19 @@ class SAPERPService:
                 filter_parts.append(f"({cc_filter})")
 
         params = {"$filter": " and ".join(filter_parts)}
-        try:
-            data = await self._odata_request(
-                "/sap/opu/odata4/sap/api_costcenter/srvd_a2x/SAP/CostCenter/0001/CostCenterData",
-                params,
-            )
-        except Exception as e:
-            logger.warning(f"SAP API call failed: {e}. Returning placeholder report.")
-            data = {"value": []}
+        data = await self._safe_odata_request(
+            "/sap/opu/odata4/sap/api_costcenter/srvd_a2x/SAP/CostCenter/0001/CostCenterData",
+            params,
+        )
+        records = data.get("value", [])
 
         return {
             "report_type": "cost_center",
             "fiscal_year": fiscal_year,
             "company_code": company_code,
             "cost_centers": cost_centers,
-            "financial_data": data.get("value", []),
-            "record_count": len(data.get("value", [])),
+            "financial_data": records,
+            "record_count": len(records),
         }
 
     async def _general_ledger(self, config: Dict[str, Any], fiscal_year: str, company_code: str) -> Dict[str, Any]:
@@ -153,21 +152,18 @@ class SAPERPService:
         params = {
             "$filter": f"CompanyCode eq '{company_code}' and FiscalYear eq '{fiscal_year}'",
         }
-        try:
-            data = await self._odata_request(
-                "/sap/opu/odata4/sap/api_glaccountlineitem/srvd_a2x/SAP/GLAccountLineItem/0001/GLAccountLineItem",
-                params,
-            )
-        except Exception as e:
-            logger.warning(f"SAP API call failed: {e}. Returning placeholder report.")
-            data = {"value": []}
+        data = await self._safe_odata_request(
+            "/sap/opu/odata4/sap/api_glaccountlineitem/srvd_a2x/SAP/GLAccountLineItem/0001/GLAccountLineItem",
+            params,
+        )
+        records = data.get("value", [])
 
         return {
             "report_type": "general_ledger",
             "fiscal_year": fiscal_year,
             "company_code": company_code,
-            "financial_data": data.get("value", []),
-            "record_count": len(data.get("value", [])),
+            "financial_data": records,
+            "record_count": len(records),
         }
 
     async def _custom_query(self, config: Dict[str, Any], fiscal_year: str, company_code: str) -> Dict[str, Any]:
@@ -181,17 +177,16 @@ class SAPERPService:
             }
 
         params = {"$filter": custom_query}
-        try:
-            data = await self._odata_request("/sap/opu/odata4/sap/api_custom/srvd_a2x/SAP/Custom/0001/Data", params)
-        except Exception as e:
-            logger.warning(f"SAP custom query failed: {e}")
-            data = {"value": []}
+        data = await self._safe_odata_request(
+            "/sap/opu/odata4/sap/api_custom/srvd_a2x/SAP/Custom/0001/Data", params,
+        )
+        records = data.get("value", [])
 
         return {
             "report_type": "custom_odata",
             "fiscal_year": fiscal_year,
             "company_code": company_code,
             "custom_query": custom_query,
-            "financial_data": data.get("value", []),
-            "record_count": len(data.get("value", [])),
+            "financial_data": records,
+            "record_count": len(records),
         }
