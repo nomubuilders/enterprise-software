@@ -35,6 +35,10 @@ class NodeType(str, Enum):
     COMPLIANCE_DASHBOARD = "complianceDashboardNode"
     MODEL_REGISTRY = "modelRegistryNode"
     EVIDENCE_COLLECTION = "evidenceCollectionNode"
+    BIAS_TESTING = "biasTestingNode"
+    EXPLAINABILITY = "explainabilityNode"
+    RED_TEAMING = "redTeamingNode"
+    DRIFT_DETECTION = "driftDetectionNode"
 
 
 class TriggerType(str, Enum):

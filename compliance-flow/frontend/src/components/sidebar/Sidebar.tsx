@@ -24,6 +24,10 @@ import {
   BarChart3,
   Brain,
   Archive,
+  Scale,
+  Lightbulb,
+  Bug,
+  Activity,
 } from 'lucide-react'
 import { useDockerStore } from '../../store/dockerStore'
 
@@ -265,9 +269,42 @@ const nodeTemplates: NodeTemplate[] = [
     category: 'Compliance Frameworks',
     config: { artifactTypes: ['logs', 'configs'], targetFramework: 'soc2', autoPackage: true },
   },
+  // AI Testing
+  {
+    type: 'biasTestingNode',
+    label: 'Bias & Fairness',
+    icon: <Scale size={18} />,
+    color: 'bg-rose-600',
+    category: 'AI Testing',
+    config: { testType: 'disparate_impact', protectedAttributes: [], threshold: 0.8 },
+  },
+  {
+    type: 'explainabilityNode',
+    label: 'Explainability (XAI)',
+    icon: <Lightbulb size={18} />,
+    color: 'bg-amber-600',
+    category: 'AI Testing',
+    config: { method: 'feature_importance', model: 'llama3.2', detailLevel: 'summary' },
+  },
+  {
+    type: 'redTeamingNode',
+    label: 'Red Teaming',
+    icon: <Bug size={18} />,
+    color: 'bg-red-700',
+    category: 'AI Testing',
+    config: { attackVectors: ['prompt_injection'], minSeverity: 'medium', iterations: 10 },
+  },
+  {
+    type: 'driftDetectionNode',
+    label: 'Drift Detection',
+    icon: <Activity size={18} />,
+    color: 'bg-cyan-700',
+    category: 'AI Testing',
+    config: { metric: 'output_similarity', driftThreshold: 0.15, schedule: 'daily' },
+  },
 ]
 
-const categories = ['Triggers', 'Data Sources', 'Documents', 'AI Models', 'Compliance', 'Outputs', 'Containers', 'Data Processing', 'AI Configuration', 'Audit & Compliance', 'Workflow Control', 'Compliance Frameworks']
+const categories = ['Triggers', 'Data Sources', 'Documents', 'AI Models', 'Compliance', 'Outputs', 'Containers', 'Data Processing', 'AI Configuration', 'Audit & Compliance', 'Workflow Control', 'Compliance Frameworks', 'AI Testing']
 
 export function Sidebar() {
   const dockerAvailable = useDockerStore((s) => s.dockerAvailable)

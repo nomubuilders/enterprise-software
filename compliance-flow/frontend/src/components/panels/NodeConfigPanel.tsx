@@ -37,6 +37,10 @@ import {
   BarChart3,
   Brain,
   Archive,
+  Scale,
+  Lightbulb,
+  Bug,
+  Activity,
 } from 'lucide-react'
 import { Button, Input, Select, DocumentUploadZone, ConfirmModal } from '../common'
 import { DockerTerminal } from './DockerTerminal'
@@ -328,6 +332,53 @@ export function NodeConfigPanel({ node, onClose, onRunWorkflow, onOpenChat }: No
             ]}
           />
         )}
+        {nodeType === 'biasTestingNode' && (
+          <GenericNodeConfig
+            node={node}
+            onUpdate={(data) => updateNodeData(node.id, data)}
+            fields={[
+              { key: 'testType', label: 'Test Type', type: 'select', options: [{ value: 'disparate_impact', label: 'Disparate Impact' }, { value: 'demographic_parity', label: 'Demographic Parity' }, { value: 'equalized_odds', label: 'Equalized Odds' }, { value: 'calibration', label: 'Calibration' }] },
+              { key: 'threshold', label: 'Pass Threshold', type: 'number', placeholder: '0.8' },
+              { key: 'protectedField', label: 'Protected Attribute Field', type: 'text', placeholder: 'e.g. gender, race, age' },
+              { key: 'outcomeField', label: 'Outcome Field', type: 'text', placeholder: 'e.g. approved, score' },
+            ]}
+          />
+        )}
+        {nodeType === 'explainabilityNode' && (
+          <GenericNodeConfig
+            node={node}
+            onUpdate={(data) => updateNodeData(node.id, data)}
+            fields={[
+              { key: 'method', label: 'Method', type: 'select', options: [{ value: 'feature_importance', label: 'Feature Importance' }, { value: 'counterfactual', label: 'Counterfactual' }, { value: 'decision_trail', label: 'Decision Trail' }, { value: 'shap_proxy', label: 'SHAP Proxy (LLM)' }] },
+              { key: 'model', label: 'Explanation Model', type: 'select', options: [{ value: 'llama3.2', label: 'Llama 3.2' }, { value: 'mistral', label: 'Mistral' }, { value: 'codellama', label: 'CodeLlama' }] },
+              { key: 'detailLevel', label: 'Detail Level', type: 'select', options: [{ value: 'summary', label: 'Summary' }, { value: 'detailed', label: 'Detailed' }, { value: 'technical', label: 'Technical' }] },
+            ]}
+          />
+        )}
+        {nodeType === 'redTeamingNode' && (
+          <GenericNodeConfig
+            node={node}
+            onUpdate={(data) => updateNodeData(node.id, data)}
+            fields={[
+              { key: 'minSeverity', label: 'Min Severity', type: 'select', options: [{ value: 'low', label: 'Low' }, { value: 'medium', label: 'Medium' }, { value: 'high', label: 'High' }, { value: 'critical', label: 'Critical' }] },
+              { key: 'iterations', label: 'Iterations', type: 'number', placeholder: '10' },
+              { key: 'targetModel', label: 'Target Model', type: 'text', placeholder: 'llama3.2' },
+              { key: 'customPrompts', label: 'Custom Attack Prompts', type: 'textarea', placeholder: 'One prompt per line...' },
+            ]}
+          />
+        )}
+        {nodeType === 'driftDetectionNode' && (
+          <GenericNodeConfig
+            node={node}
+            onUpdate={(data) => updateNodeData(node.id, data)}
+            fields={[
+              { key: 'metric', label: 'Drift Metric', type: 'select', options: [{ value: 'output_similarity', label: 'Output Similarity' }, { value: 'statistical', label: 'Statistical (KS Test)' }, { value: 'embedding_distance', label: 'Embedding Distance' }] },
+              { key: 'driftThreshold', label: 'Drift Threshold', type: 'number', placeholder: '0.15' },
+              { key: 'schedule', label: 'Schedule', type: 'select', options: [{ value: 'hourly', label: 'Hourly' }, { value: 'daily', label: 'Daily' }, { value: 'weekly', label: 'Weekly' }] },
+              { key: 'alertEmail', label: 'Alert Email', type: 'text', placeholder: 'alerts@company.com' },
+            ]}
+          />
+        )}
       </div>
 
       {/* Footer */}
@@ -401,6 +452,14 @@ function NodeIcon({ type }: { type: string }) {
       return <div className={`${iconClass} bg-violet-600`}><Brain size={20} className="text-white" /></div>
     case 'evidenceCollectionNode':
       return <div className={`${iconClass} bg-teal-600`}><Archive size={20} className="text-white" /></div>
+    case 'biasTestingNode':
+      return <div className={`${iconClass} bg-rose-600`}><Scale size={20} className="text-white" /></div>
+    case 'explainabilityNode':
+      return <div className={`${iconClass} bg-amber-600`}><Lightbulb size={20} className="text-white" /></div>
+    case 'redTeamingNode':
+      return <div className={`${iconClass} bg-red-700`}><Bug size={20} className="text-white" /></div>
+    case 'driftDetectionNode':
+      return <div className={`${iconClass} bg-cyan-700`}><Activity size={20} className="text-white" /></div>
     default:
       return null
   }

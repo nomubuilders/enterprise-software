@@ -17,6 +17,10 @@ export { ApprovalGateNode } from './ApprovalGateNode'
 export { ComplianceDashboardNode } from './ComplianceDashboardNode'
 export { ModelRegistryNode } from './ModelRegistryNode'
 export { EvidenceCollectionNode } from './EvidenceCollectionNode'
+export { BiasTestingNode } from './BiasTestingNode'
+export { ExplainabilityNode } from './ExplainabilityNode'
+export { RedTeamingNode } from './RedTeamingNode'
+export { DriftDetectionNode } from './DriftDetectionNode'
 
 import { LLMNode } from './LLMNode'
 import { DatabaseNode } from './DatabaseNode'
@@ -37,6 +41,10 @@ import { ApprovalGateNode } from './ApprovalGateNode'
 import { ComplianceDashboardNode } from './ComplianceDashboardNode'
 import { ModelRegistryNode } from './ModelRegistryNode'
 import { EvidenceCollectionNode } from './EvidenceCollectionNode'
+import { BiasTestingNode } from './BiasTestingNode'
+import { ExplainabilityNode } from './ExplainabilityNode'
+import { RedTeamingNode } from './RedTeamingNode'
+import { DriftDetectionNode } from './DriftDetectionNode'
 
 export const nodeTypes = {
   llmNode: LLMNode,
@@ -58,4 +66,8 @@ export const nodeTypes = {
   complianceDashboardNode: ComplianceDashboardNode,
   modelRegistryNode: ModelRegistryNode,
   evidenceCollectionNode: EvidenceCollectionNode,
+  biasTestingNode: BiasTestingNode,
+  explainabilityNode: ExplainabilityNode,
+  redTeamingNode: RedTeamingNode,
+  driftDetectionNode: DriftDetectionNode,
 }
