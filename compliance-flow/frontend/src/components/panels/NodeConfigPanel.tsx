@@ -34,7 +34,6 @@ import {
   Plug,
   GitBranch,
   ShieldCheck,
-  BarChart3,
   Brain,
   Archive,
   Scale,
