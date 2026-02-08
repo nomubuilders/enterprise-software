@@ -361,6 +361,64 @@
       line-height: 1.5;
     }
 
+    /* === RECENT ACTIVITY === */
+    .activity-scroll {
+      overflow-x: auto;
+      border: 1px solid var(--border-subtle);
+      scrollbar-width: thin;
+      scrollbar-color: var(--nomu-purple) transparent;
+    }
+    .activity-scroll::-webkit-scrollbar { height: 6px; }
+    .activity-scroll::-webkit-scrollbar-track { background: transparent; }
+    .activity-scroll::-webkit-scrollbar-thumb { background: var(--nomu-purple); border-radius: 3px; }
+    .activity-track {
+      display: flex;
+      gap: 1px;
+      background: var(--border-subtle);
+      min-width: min-content;
+    }
+    .activity-card {
+      background: var(--bg-surface);
+      padding: 1rem 1.25rem;
+      min-width: 220px;
+      max-width: 280px;
+      flex-shrink: 0;
+      transition: background 0.3s;
+      position: relative;
+    }
+    .activity-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 2px;
+      background: var(--nomu-purple);
+    }
+    .activity-card .commit-msg {
+      font-family: 'Barlow', sans-serif;
+      font-weight: 600;
+      font-size: 0.82rem;
+      color: var(--text-primary);
+      line-height: 1.4;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .activity-card .commit-meta {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      margin-top: 0.5rem;
+      font-weight: 500;
+    }
+    .activity-card .commit-files {
+      font-size: 0.65rem;
+      color: var(--nomu-purple);
+      margin-top: 0.25rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
     /* === MERMAID CONTAINERS === */
     .mermaid-container {
       background: var(--bg-elevated);
@@ -595,6 +653,7 @@
       .palette { grid-template-columns: repeat(3, 1fr); }
       .hero h1 { font-size: 2rem; }
       .hero-inner { grid-template-columns: 1fr; }
+      .activity-card { min-width: 180px; }
     }
     @media (max-width: 600px) {
       .stats { grid-template-columns: repeat(2, 1fr); }
@@ -717,6 +776,71 @@
           <span class="badge">Completed</span>
           <div class="meta">GitHub #23 &middot; 10 tasks &middot; Merged</div>
           <div class="desc">Document upload, PDF/DOCX parsing, structured summarization via Ollama, chunking, RAG search, ROUGE/BLEU evaluation.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RECENT ACTIVITY -->
+    <div class="section" id="activity-section">
+      <div class="section-header">
+        <h2>Recent Activity</h2>
+        <div class="line"></div>
+        <svg class="arrow-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="20" x2="20" y2="4"/><polyline points="10,4 20,4 20,14"/></svg>
+      </div>
+      <div class="activity-scroll">
+        <div class="activity-track">
+<!-- ACTIVITY-START -->
+          <div class="activity-card">
+            <div class="commit-msg">Fix config persistence across all nodes: replace || with ?? in useState initializers</div>
+            <div class="commit-meta">9 minutes ago</div>
+            <div class="commit-files">54 files changed</div>
+          </div>
+          <div class="activity-card">
+            <div class="commit-msg">Fix node data flow, config persistence, and upstream context</div>
+            <div class="commit-meta">42 minutes ago</div>
+            <div class="commit-files">3 files changed</div>
+          </div>
+          <div class="activity-card">
+            <div class="commit-msg">Add project overview dashboard with auto-update script</div>
+            <div class="commit-meta">71 minutes ago</div>
+            <div class="commit-files">5 files changed</div>
+          </div>
+          <div class="activity-card">
+            <div class="commit-msg">Unify node colors under 6-category palette with centralized config</div>
+            <div class="commit-meta">9 hours ago</div>
+            <div class="commit-files">42 files changed</div>
+          </div>
+          <div class="activity-card">
+            <div class="commit-msg">Simplify enterprise integration nodes: fix bugs, reduce duplication</div>
+            <div class="commit-meta">9 hours ago</div>
+            <div class="commit-files">13 files changed</div>
+          </div>
+          <div class="activity-card">
+            <div class="commit-msg">Update docs to reflect 38 node types and enterprise integrations</div>
+            <div class="commit-meta">10 hours ago</div>
+            <div class="commit-files">4 files changed</div>
+          </div>
+          <div class="activity-card">
+            <div class="commit-msg">Add 7 enterprise integration nodes: Slack, Teams DORA, Database Creator, Local Folder, Cloud Docs, Jira, SAP ERP</div>
+            <div class="commit-meta">10 hours ago</div>
+            <div class="commit-files">25 files changed</div>
+          </div>
+          <div class="activity-card">
+            <div class="commit-msg">Merge pull request #34 from nomubuilders/epic/regulated-industries-roadmap</div>
+            <div class="commit-meta">10 hours ago</div>
+            <div class="commit-files">0 files changed</div>
+          </div>
+          <div class="activity-card">
+            <div class="commit-msg">Fix duplicate BarChart3 import in NodeConfigPanel</div>
+            <div class="commit-meta">10 hours ago</div>
+            <div class="commit-files">1 file changed</div>
+          </div>
+          <div class="activity-card">
+            <div class="commit-msg">Epic 5: Add PHI Classification, Fair Lending, Claims Audit, and Consent Management nodes</div>
+            <div class="commit-meta">10 hours ago</div>
+            <div class="commit-files">10 files changed</div>
+          </div>
+<!-- ACTIVITY-END -->
         </div>
       </div>
     </div>

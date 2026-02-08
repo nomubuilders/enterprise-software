@@ -82,6 +82,34 @@ function countInfraServices() {
   return matches ? matches.length : 0
 }
 
+function getRecentCommits() {
+  try {
+    const SEP = ';;SEP;;'
+    const raw = execSync(`git log -10 --format="COMMIT:%H${SEP}%s${SEP}%ar" --shortstat`, {
+      cwd: ROOT,
+      encoding: 'utf-8',
+      timeout: 10000,
+    })
+    const commits = []
+    const lines = raw.split('\n')
+    let current = null
+    for (const line of lines) {
+      if (line.startsWith('COMMIT:')) {
+        if (current) commits.push(current)
+        const parts = line.slice(7).split(SEP)
+        current = { hash: parts[0], message: parts[1] || '', timeAgo: parts[2] || '', filesChanged: 0 }
+      } else if (current && line.includes('file')) {
+        const match = line.match(/(\d+)\s+file/)
+        if (match) current.filesChanged = parseInt(match[1], 10)
+      }
+    }
+    if (current) commits.push(current)
+    return commits
+  } catch {
+    return []
+  }
+}
+
 function formatDate() {
   const now = new Date()
   return now.toLocaleDateString('en-US', {
@@ -118,6 +146,23 @@ function updateHTML(stats) {
     html = html.replace(re, `$1${value}$2`)
   }
 
+  // Inject recent activity commit cards
+  if (stats.commits.length > 0) {
+    const cards = stats.commits.map(c => {
+      const msg = c.message.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+      const filesLabel = c.filesChanged === 1 ? '1 file changed' : `${c.filesChanged} files changed`
+      return `          <div class="activity-card">
+            <div class="commit-msg">${msg}</div>
+            <div class="commit-meta">${c.timeAgo}</div>
+            <div class="commit-files">${filesLabel}</div>
+          </div>`
+    }).join('\n')
+    html = html.replace(
+      /<!-- ACTIVITY-START -->[\s\S]*?<!-- ACTIVITY-END -->/,
+      `<!-- ACTIVITY-START -->\n${cards}\n<!-- ACTIVITY-END -->`
+    )
+  }
+
   writeFileSync(htmlPath, html, 'utf-8')
 }
 
@@ -131,6 +176,7 @@ const stats = {
   epics: countEpics(),
   issues: countOpenIssues(),
   infra: countInfraServices(),
+  commits: getRecentCommits(),
   date: formatDate(),
 }
 
@@ -139,6 +185,7 @@ console.log(`  Categories: ${stats.categories}`)
 console.log(`  Epics:      ${stats.epics.completed}/${stats.epics.total}`)
 console.log(`  Open Issues: ${stats.issues}`)
 console.log(`  Infra:      ${stats.infra}`)
+console.log(`  Commits:    ${stats.commits.length}`)
 console.log(`  Date:       ${stats.date}`)
 
 updateHTML(stats)
