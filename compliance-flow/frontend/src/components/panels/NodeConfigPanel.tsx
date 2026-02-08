@@ -1977,6 +1977,24 @@ function DocumentNodeConfig({
   const [isBatchProcessing, setIsBatchProcessing] = useState(false)
   const cancelRef = useRef({ current: false })
 
+  // Restore summary results when panel reopens with previously saved doc IDs
+  const savedDocIds = (config.documents as string[] | undefined) ?? []
+  useEffect(() => {
+    if (savedDocIds.length === 0 || summaryFields.length > 0 || isSummarizing) return
+
+    const { getSummaryForDocument } = useDocumentStore.getState()
+    for (const docId of savedDocIds) {
+      const summary = getSummaryForDocument(docId)
+      if (summary) {
+        setSummaryFields(summary.fields)
+        if (summary.chunkSummaries) {
+          setChunkSummariesData(summary.chunkSummaries)
+        }
+        return // Show first available summary
+      }
+    }
+  }, [savedDocIds.length, summaryFields.length, isSummarizing])
+
   const handleFileSelect = async (files: File[]) => {
     setUploadFiles(files)
     setUploadStatus('uploading')
@@ -2106,6 +2124,8 @@ function DocumentNodeConfig({
   }
 
   const handleSave = () => {
+    // Collect IDs of all documents currently in the store
+    const docIds = documents.map((d) => d.id)
     onUpdate({
       config: {
         ...config,
@@ -2113,6 +2133,7 @@ function DocumentNodeConfig({
         templateId: templateId || null,
         chunkSize,
         systemPromptOverride: systemPromptOverride || undefined,
+        documents: docIds,
       },
     })
     setShowSaved(true)
@@ -2155,6 +2176,25 @@ function DocumentNodeConfig({
           onFileSelect={handleFileSelect}
           onFileRemove={handleFileRemove}
         />
+        {/* Show previously attached documents when panel is reopened */}
+        {uploadFiles.length === 0 && savedDocIds.length > 0 && (
+          <div className="mt-3 space-y-1">
+            <p className="text-xs text-[var(--nomu-text-muted)]">Previously attached:</p>
+            {savedDocIds.map((docId) => {
+              const doc = documents.find((d) => d.id === docId)
+              if (!doc) return null
+              return (
+                <div key={docId} className="flex items-center gap-2 rounded bg-[var(--nomu-surface)] px-3 py-1.5">
+                  <FileText size={12} className="text-[var(--nomu-primary)] shrink-0" />
+                  <span className="text-xs text-[var(--nomu-text)] truncate flex-1">{doc.name}</span>
+                  <span className="text-xs text-[var(--nomu-text-muted)]">
+                    {(doc.fileSize / 1024).toFixed(0)}KB
+                  </span>
+                </div>
+              )
+            })}
+          </div>
+        )}
       </div>
 
       {/* Template Selector */}

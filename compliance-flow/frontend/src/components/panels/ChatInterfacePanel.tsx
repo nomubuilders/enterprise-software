@@ -1,8 +1,9 @@
-import { useState, useRef, useEffect } from 'react'
-import { X, Send, Loader2, MessageSquare, Database, Bot, Minimize2, Maximize2, GripHorizontal } from 'lucide-react'
+import { useState, useRef, useEffect, useMemo } from 'react'
+import { X, Send, Loader2, MessageSquare, Database, Bot, Minimize2, Maximize2, GripHorizontal, FileText } from 'lucide-react'
 import { Button } from '../common'
 import { api } from '../../services/api'
 import { useFlowStore } from '../../store/flowStore'
+import { useDocumentStore } from '../../store/documentStore'
 import ReactMarkdown from 'react-markdown'
 import type { Node } from '@xyflow/react'
 
@@ -18,6 +19,12 @@ interface Message {
 }
 
 type ResizeHandle = 'n' | 's' | 'e' | 'w' | 'ne' | 'nw' | 'se' | 'sw' | null
+
+/** Extract the config object from a node's data, returning null if absent. */
+function getNodeConfig(n: Node): Record<string, unknown> | null {
+  const data = n.data as Record<string, unknown> | undefined
+  return (data?.config as Record<string, unknown>) ?? null
+}
 
 export function ChatInterfacePanel({ node, onClose }: ChatInterfacePanelProps) {
   const { nodes, edges } = useFlowStore()
@@ -43,6 +50,7 @@ export function ChatInterfacePanel({ node, onClose }: ChatInterfacePanelProps) {
   const [dataSource, setDataSource] = useState<Node | null>(null)
   const [dbSchema, setDbSchema] = useState<any[]>([])
   const [sampleData, setSampleData] = useState<any[] | null>(null)
+  const [documentSources, setDocumentSources] = useState<Node[]>([])
 
   useEffect(() => {
     console.log('[ChatInterface] Finding connections for node:', node.id)
@@ -94,10 +102,23 @@ export function ChatInterfacePanel({ node, onClose }: ChatInterfacePanelProps) {
       setDbSchema([])
       setSampleData(null)
     }
+
+    // Find Document nodes in upstream nodes
+    const docNodes = upstreamNodes.filter(n => n.type === 'documentNode')
+    console.log('[ChatInterface] Found document nodes:', docNodes.length)
+    setDocumentSources(docNodes)
   }, [node.id, nodes, edges])
 
+  // Memoize document count to keep JSX readable
+  const totalDocumentCount = useMemo(() => {
+    return documentSources.reduce((count, n) => {
+      const cfg = getNodeConfig(n)
+      return count + ((cfg?.documents as string[] | undefined)?.length ?? 0)
+    }, 0)
+  }, [documentSources])
+
   const loadDatabaseContext = async (dbNode: Node) => {
-    const dbConfig = (dbNode.data as Record<string, unknown>).config as Record<string, unknown>
+    const dbConfig = getNodeConfig(dbNode)
     console.log('[ChatInterface] loadDatabaseContext called with config:', dbConfig)
 
     if (!dbConfig?.host || !dbConfig?.database) {
@@ -280,8 +301,8 @@ export function ChatInterfacePanel({ node, onClose }: ChatInterfacePanelProps) {
     let systemPrompt = 'You are a helpful data analyst assistant. Answer questions about the data provided.'
 
     if (dbSchema.length > 0 && dataSource) {
-      const dbConfig = (dataSource.data as Record<string, unknown>).config as Record<string, unknown>
-      systemPrompt += `\n\n## Database: ${dbConfig.database} (${dbConfig.dbType || 'PostgreSQL'})`
+      const dbConfig = getNodeConfig(dataSource)
+      systemPrompt += `\n\n## Database: ${dbConfig?.database ?? 'unknown'} (${dbConfig?.dbType ?? 'PostgreSQL'})`
       systemPrompt += `\n\n### Schema:`
       for (const table of dbSchema) {
         systemPrompt += `\n- **${table.name}**: ${table.columns?.map((c: any) => `${c.name} (${c.type})`).join(', ')}`
@@ -290,6 +311,26 @@ export function ChatInterfacePanel({ node, onClose }: ChatInterfacePanelProps) {
 
     if (sampleData && sampleData.length > 0) {
       systemPrompt += `\n\n### Sample Data (${sampleData.length} rows):\n\`\`\`json\n${JSON.stringify(sampleData.slice(0, 20), null, 2)}\n\`\`\``
+    }
+
+    // Add document context from upstream document nodes
+    if (documentSources.length > 0) {
+      const { getSummaryForDocument } = useDocumentStore.getState()
+      systemPrompt += `\n\n## Document Sources`
+
+      for (const docNode of documentSources) {
+        const docConfig = getNodeConfig(docNode)
+        const docIds = (docConfig?.documents as string[] | undefined) ?? []
+        for (const docId of docIds) {
+          const summary = getSummaryForDocument(docId)
+          if (!summary) continue
+          systemPrompt += `\n\n### Document Summary`
+          for (const field of summary.fields) {
+            const content = field.content.length > 3000 ? field.content.slice(0, 3000) + '...' : field.content
+            systemPrompt += `\n**${field.name}**: ${content}`
+          }
+        }
+      }
     }
 
     return systemPrompt
@@ -304,10 +345,10 @@ export function ChatInterfacePanel({ node, onClose }: ChatInterfacePanelProps) {
     setIsGenerating(true)
 
     try {
-      const agentConfig = (aiAgent.data as Record<string, unknown>).config as Record<string, unknown>
-      const model = (agentConfig.model as string) || 'llama3.2'
-      const temperature = (agentConfig.temperature as number) || 0.7
-      const maxTokens = (agentConfig.maxTokens as number) || 2048
+      const agentConfig = getNodeConfig(aiAgent)
+      const model = (agentConfig?.model as string) || 'llama3.2'
+      const temperature = (agentConfig?.temperature as number) || 0.7
+      const maxTokens = (agentConfig?.maxTokens as number) || 2048
 
       const result = await api.chat({
         model,
@@ -455,7 +496,7 @@ export function ChatInterfacePanel({ node, onClose }: ChatInterfacePanelProps) {
           <div className="flex items-center gap-2 text-xs text-green-400">
             <Database size={12} />
             <span>
-              Data: <strong>{((dataSource.data as Record<string, unknown>).config as Record<string, unknown>)?.database as string}</strong> ({dbSchema.length} tables
+              Data: <strong>{getNodeConfig(dataSource)?.database as string ?? 'unknown'}</strong> ({dbSchema.length} tables
               {sampleData ? `, ${sampleData.length} rows loaded` : ''})
             </span>
           </div>
@@ -464,7 +505,19 @@ export function ChatInterfacePanel({ node, onClose }: ChatInterfacePanelProps) {
             <Database size={12} />
             <span>Database connected, loading...</span>
           </div>
-        ) : (
+        ) : null}
+
+        {documentSources.length > 0 && (
+          <div className="flex items-center gap-2 text-xs text-green-400">
+            <FileText size={12} />
+            <span>
+              Documents: <strong>{documentSources.length} node(s)</strong>
+              {' '}({totalDocumentCount} documents)
+            </span>
+          </div>
+        )}
+
+        {!dataSource && documentSources.length === 0 && (
           <div className="flex items-center gap-2 text-xs text-[var(--nomu-text-muted)]">
             <Database size={12} />
             <span>No data source connected</span>
@@ -478,7 +531,7 @@ export function ChatInterfacePanel({ node, onClose }: ChatInterfacePanelProps) {
           <div className="flex flex-col items-center justify-center h-full text-center">
             <MessageSquare size={40} className="mb-3 text-[var(--nomu-border)]" />
             <p className="text-sm text-[var(--nomu-text-muted)] mb-1">Start a conversation</p>
-            {aiAgent && sampleData ? (
+            {aiAgent && (sampleData || documentSources.length > 0) ? (
               <p className="text-xs text-green-400">✓ Ready to answer questions about your data</p>
             ) : !aiAgent ? (
               <p className="text-xs text-red-400">⚠️ Connect an AI Agent node first</p>

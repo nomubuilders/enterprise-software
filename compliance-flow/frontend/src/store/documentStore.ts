@@ -207,6 +207,7 @@ export const useDocumentStore = create<DocumentState>()(
       name: 'compliance-document-storage',
       partialize: (state) => ({
         templates: state.templates,
+        documents: state.documents.map(({ extractedText: _, ...rest }) => ({ ...rest, extractedText: '' })),
         summaries: state.summaries.map(({ rawOutput: _, ...rest }) => ({ ...rest, rawOutput: '' })),
         evaluationResults: state.evaluationResults,
       }),
