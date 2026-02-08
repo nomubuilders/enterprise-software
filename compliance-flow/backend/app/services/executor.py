@@ -13,17 +13,20 @@ Handles:
 """
 
 import asyncio
+import ipaddress
 import re
 import uuid
 import traceback
 from typing import Any, Callable, Dict, List, Optional, Set, Tuple
 from datetime import datetime
 from collections import defaultdict, deque
+from urllib.parse import urlparse
 import logging
 
 import aiohttp
 from pydantic import ValidationError
 
+from app.core.config import settings
 from app.models.workflow import (
     Workflow,
     WorkflowNode,
@@ -75,6 +78,30 @@ class WorkflowExecutionEngine:
         """Validate on_error parameter."""
         if on_error not in ("stop", "continue"):
             raise ValueError("on_error must be 'stop' or 'continue'")
+
+    @staticmethod
+    def _validate_url(url: str, allowed_schemes: tuple = ("https",)) -> bool:
+        """Validate URL to prevent SSRF attacks. Blocks internal/private IPs and non-HTTPS schemes."""
+        try:
+            parsed = urlparse(url)
+            if parsed.scheme not in allowed_schemes:
+                return False
+            hostname = parsed.hostname
+            if not hostname:
+                return False
+            # Block private/internal IP ranges
+            try:
+                ip = ipaddress.ip_address(hostname)
+                if ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_reserved:
+                    return False
+            except ValueError:
+                # It's a hostname, not an IP — block known internal hostnames
+                blocked = ("localhost", "127.0.0.1", "0.0.0.0", "metadata.google.internal", "169.254.169.254")
+                if hostname.lower() in blocked or hostname.lower().endswith(".internal"):
+                    return False
+            return True
+        except Exception:
+            return False
 
     def _build_graph(self) -> None:
         """Build adjacency lists from workflow edges."""
@@ -495,8 +522,8 @@ class WorkflowExecutionEngine:
 
         logger.info(f"Database query: {node_data.database_type} - {node_data.query}")
 
-        # Template the query with input data
-        query = self._template_string(node_data.query, {**input_data, **self.execution_context.variables})
+        # Template the query with input data (sanitize=True to prevent SQL injection)
+        query = self._template_string(node_data.query, {**input_data, **self.execution_context.variables}, sanitize=True)
 
         # Placeholder: actual database query would happen here
         # For now, return mock data
@@ -710,13 +737,18 @@ class WorkflowExecutionEngine:
             "custom_prompt": node.data.get("customPrompt", node.data.get("custom_prompt", "")),
         }
 
+    _REDACTED_KEYS = frozenset({"password", "secret", "token", "api_key", "apikey", "secret_key", "access_token", "refresh_token", "credentials"})
+
     async def _execute_audit_node(self, node: WorkflowNode, input_data: Dict[str, Any]) -> Dict[str, Any]:
         """Execute an audit node - log execution state."""
         snapshot = {
             "timestamp": datetime.utcnow().isoformat(),
             "data_keys": list(input_data.keys()),
             "completed_nodes": list(self.execution_context.completed_nodes),
-            "input_snapshot": {k: str(v)[:500] for k, v in input_data.items()},
+            "input_snapshot": {
+                k: "**REDACTED**" if k.lower() in self._REDACTED_KEYS else str(v)[:500]
+                for k, v in input_data.items()
+            },
         }
         logger.info(f"Audit snapshot: {snapshot}")
         return {"audit_snapshot": snapshot}
@@ -751,6 +783,8 @@ class WorkflowExecutionEngine:
                     repo_match = _re.match(r"https?://github\.com/([^/]+)/([^/]+?)(?:\.git)?$", source_url)
                     if repo_match:
                         fetch_url = f"https://raw.githubusercontent.com/{repo_match.group(1)}/{repo_match.group(2)}/main/README.md"
+                if not self._validate_url(fetch_url):
+                    return {"review": "", "error": f"URL not allowed (must be HTTPS, public host): {fetch_url}"}
                 async with httpx.AsyncClient(timeout=30) as client:
                     resp = await client.get(fetch_url)
                     if resp.status_code == 200:
@@ -901,14 +935,18 @@ class WorkflowExecutionEngine:
         }
 
         if webhook_url and channel == "webhook":
-            try:
-                async with aiohttp.ClientSession() as session:
-                    async with session.post(webhook_url, json={"text": message}) as resp:
-                        result["status_code"] = resp.status
-                        result["notification_sent"] = resp.status < 400
-            except Exception as e:
+            if not self._validate_url(webhook_url):
                 result["notification_sent"] = False
-                result["error"] = str(e)
+                result["error"] = f"Webhook URL not allowed (must be HTTPS, public host): {webhook_url}"
+            else:
+                try:
+                    async with aiohttp.ClientSession() as session:
+                        async with session.post(webhook_url, json={"text": message}) as resp:
+                            result["status_code"] = resp.status
+                            result["notification_sent"] = resp.status < 400
+                except Exception as e:
+                    result["notification_sent"] = False
+                    result["error"] = str(e)
 
         return {**result, **input_data}
 
@@ -1251,9 +1289,9 @@ class WorkflowExecutionEngine:
 
         connection_strings = {
             "sqlite": f"sqlite:///./{database_name}.db",
-            "postgresql": f"postgresql://postgres:postgres@localhost:5432/{database_name}",
-            "mysql": f"mysql://root:root@localhost:3306/{database_name}",
-            "mongodb": f"mongodb://localhost:27017/{database_name}",
+            "postgresql": f"postgresql://{settings.POSTGRES_USER}:{settings.POSTGRES_PASSWORD}@{settings.POSTGRES_HOST}:{settings.POSTGRES_PORT}/{database_name}",
+            "mysql": f"mysql://{settings.MYSQL_USER}:{settings.MYSQL_PASSWORD}@{settings.MYSQL_HOST}:{settings.MYSQL_PORT}/{database_name}",
+            "mongodb": f"{settings.MONGODB_URL}/{database_name}",
         }
 
         return {
@@ -1362,16 +1400,20 @@ class WorkflowExecutionEngine:
         return patterns.get(pattern_type)
 
     @staticmethod
-    def _template_string(template: str, context: Dict[str, Any]) -> str:
+    def _template_string(template: str, context: Dict[str, Any], sanitize: bool = False) -> str:
         """
         Simple template string substitution.
 
         Replaces {key} with context values.
+        When sanitize=True, escapes single quotes to prevent SQL injection.
         """
         result = template
         for key, value in context.items():
             placeholder = "{" + str(key) + "}"
-            result = result.replace(placeholder, str(value))
+            str_value = str(value)
+            if sanitize:
+                str_value = str_value.replace("'", "''").replace("\\", "\\\\").replace(";", "").replace("--", "")
+            result = result.replace(placeholder, str_value)
         return result
 
     @staticmethod

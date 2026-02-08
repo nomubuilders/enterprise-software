@@ -1,6 +1,11 @@
+import logging
 from pydantic_settings import BaseSettings
 from typing import Optional
 from functools import lru_cache
+
+logger = logging.getLogger(__name__)
+
+_INSECURE_DEFAULT_KEY = "your-secret-key-change-in-production"
 
 
 class Settings(BaseSettings):
@@ -65,7 +70,13 @@ class Settings(BaseSettings):
 
 @lru_cache
 def get_settings() -> Settings:
-    return Settings()
+    s = Settings()
+    if s.SECRET_KEY == _INSECURE_DEFAULT_KEY:
+        if s.DEBUG:
+            logger.warning("SECRET_KEY is using the insecure default. Set SECRET_KEY env var before deploying to production.")
+        else:
+            raise RuntimeError("SECRET_KEY must be changed from the default value in production (DEBUG=False). Set the SECRET_KEY environment variable.")
+    return s
 
 
 settings = get_settings()
