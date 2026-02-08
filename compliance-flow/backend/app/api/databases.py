@@ -1,12 +1,59 @@
 """Database connection and query endpoints."""
 
+import os
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import Optional, Any
+from loguru import logger
 from app.services.database import DatabaseConnectorService, DatabaseConnectorFactory
 from app.models.database import DatabaseConfig, DatabaseType
 
 router = APIRouter(prefix="/databases")
+
+# Docker service names for each DB type
+_DOCKER_SERVICE_MAP = {
+    'postgresql': 'postgres',
+    'mongodb': 'mongo',
+}
+
+
+def _resolve_db_hosts(host: str, db_type: str) -> list[str]:
+    """When host is localhost inside Docker, return candidate hosts to try."""
+    if host not in ('localhost', '127.0.0.1') or not os.path.exists('/.dockerenv'):
+        return [host]
+    candidates = []
+    service = _DOCKER_SERVICE_MAP.get(db_type)
+    if service:
+        candidates.append(service)
+    candidates.append('host.docker.internal')
+    return candidates
+
+
+async def _connect_with_fallback(
+    db_type_str: str, host: str, port: int, database: str,
+    username: str, password: str, ssl: bool,
+):
+    """Try each candidate host in order, return the first working connector."""
+    db_type = DatabaseType(db_type_str)
+    hosts = _resolve_db_hosts(host, db_type_str)
+    last_error = None
+    for h in hosts:
+        config = DatabaseConfig(
+            type=db_type, host=h, port=port,
+            database=database, username=username, password=password, ssl=ssl,
+        )
+        connector = DatabaseConnectorFactory.create(config)
+        try:
+            await connector.initialize()
+            logger.debug(f"DB connected via host={h}")
+            return connector
+        except Exception as e:
+            last_error = e
+            try:
+                await connector.close()
+            except Exception:
+                pass
+    raise last_error or Exception(f"Could not connect on any host: {hosts}")
 
 
 class TestConnectionRequest(BaseModel):
@@ -52,25 +99,12 @@ class QueryResponse(BaseModel):
 async def test_connection(request: TestConnectionRequest):
     """Test database connection with provided credentials."""
     try:
-        # Map string type to enum
-        db_type = DatabaseType(request.type)
-
-        config = DatabaseConfig(
-            type=db_type,
-            host=request.host,
-            port=request.port,
-            database=request.database,
-            username=request.username,
-            password=request.password,
-            ssl=request.ssl,
+        connector = await _connect_with_fallback(
+            request.type, request.host, request.port, request.database,
+            request.username, request.password, request.ssl,
         )
-
-        # Create connector and test
-        connector = DatabaseConnectorFactory.create(config)
         try:
-            await connector.initialize()
             result = await connector.test_connection()
-
             return TestConnectionResponse(
                 success=result.success,
                 message="Connection successful" if result.success else "Connection failed",
@@ -99,22 +133,12 @@ async def test_connection(request: TestConnectionRequest):
 async def list_tables(request: TestConnectionRequest):
     """List all tables/collections in the database."""
     try:
-        db_type = DatabaseType(request.type)
-        config = DatabaseConfig(
-            type=db_type,
-            host=request.host,
-            port=request.port,
-            database=request.database,
-            username=request.username,
-            password=request.password,
-            ssl=request.ssl,
+        connector = await _connect_with_fallback(
+            request.type, request.host, request.port, request.database,
+            request.username, request.password, request.ssl,
         )
-
-        connector = DatabaseConnectorFactory.create(config)
         try:
-            await connector.initialize()
             result = await connector.list_tables()
-
             return {
                 "success": True,
                 "tables": [
@@ -141,22 +165,12 @@ async def list_tables(request: TestConnectionRequest):
 async def execute_query(request: QueryRequest):
     """Execute a SELECT query on the database."""
     try:
-        db_type = DatabaseType(request.type)
-        config = DatabaseConfig(
-            type=db_type,
-            host=request.host,
-            port=request.port,
-            database=request.database,
-            username=request.username,
-            password=request.password,
-            ssl=request.ssl,
+        connector = await _connect_with_fallback(
+            request.type, request.host, request.port, request.database,
+            request.username, request.password, request.ssl,
         )
-
-        connector = DatabaseConnectorFactory.create(config)
         try:
-            await connector.initialize()
             result = await connector.execute_query(request.query, limit=request.limit)
-
             return QueryResponse(
                 success=True,
                 rows=result.rows or [],
@@ -178,22 +192,12 @@ async def execute_query(request: QueryRequest):
 async def get_sample_data(request: TestConnectionRequest, table: str, limit: int = 100):
     """Get sample data from a table/collection."""
     try:
-        db_type = DatabaseType(request.type)
-        config = DatabaseConfig(
-            type=db_type,
-            host=request.host,
-            port=request.port,
-            database=request.database,
-            username=request.username,
-            password=request.password,
-            ssl=request.ssl,
+        connector = await _connect_with_fallback(
+            request.type, request.host, request.port, request.database,
+            request.username, request.password, request.ssl,
         )
-
-        connector = DatabaseConnectorFactory.create(config)
         try:
-            await connector.initialize()
             result = await connector.get_sample_data(table, limit)
-
             return {
                 "success": True,
                 "table": table,

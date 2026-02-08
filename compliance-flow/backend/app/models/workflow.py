@@ -54,6 +54,7 @@ class NodeType(str, Enum):
     CLOUD_DOCUMENT = "cloudDocumentNode"
     JIRA_COMPLIANCE = "jiraComplianceNode"
     SAP_ERP = "sapERPNode"
+    VOICE_ASSISTANT = "voiceAssistantNode"
 
 
 class TriggerType(str, Enum):

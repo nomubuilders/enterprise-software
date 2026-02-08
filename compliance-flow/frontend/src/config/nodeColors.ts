@@ -53,6 +53,8 @@ const nodeCategories: Record<string, NodeCategory> = {
   localFolderStorageNode: 'integration',
   cloudDocumentNode: 'integration',
   sapERPNode: 'integration',
+  voiceAssistantNode: 'integration',
+  personaPlexNode: 'primary',
 
   // Testing — AI Quality, Bias, Red Teaming
   biasTestingNode: 'testing',

@@ -2,7 +2,7 @@ import { execFile, spawn } from 'child_process'
 import type { ChildProcess } from 'child_process'
 import { promisify } from 'util'
 import { join } from 'path'
-import { app, BrowserWindow } from 'electron'
+import { BrowserWindow } from 'electron'
 import { is } from '@electron-toolkit/utils'
 import { createServer } from 'net'
 

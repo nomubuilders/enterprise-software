@@ -42,6 +42,8 @@ import {
   Cloud,
   Ticket,
   Building2,
+  Mic,
+  MessageSquareMore,
 } from 'lucide-react'
 import { useDockerStore } from '../../store/dockerStore'
 import { getNodeColorClass } from '../../config/nodeColors'
@@ -123,6 +125,18 @@ const nodeTemplates: NodeTemplate[] = [
     color: getNodeColorClass('llmNode'),
     category: 'AI Models',
     config: { model: 'llama3.2', temperature: 0.7, maxTokens: 2048 },
+  },
+  {
+    type: 'personaPlexNode',
+    label: 'PersonaPlex Assistant',
+    icon: <MessageSquareMore size={18} />,
+    color: getNodeColorClass('personaPlexNode'),
+    category: 'AI Models',
+    config: {
+      model: '', temperature: 0.7,
+      transcription_model: 'small', language: 'en',
+      personaplex_url: '', persona_prompt: '', voice_embedding: '',
+    },
   },
   // Compliance
   {
@@ -318,6 +332,14 @@ const nodeTemplates: NodeTemplate[] = [
     config: { metric: 'output_similarity', driftThreshold: 0.15, schedule: 'daily' },
   },
   // Communication
+  {
+    type: 'voiceAssistantNode',
+    label: 'Voice Assistant',
+    icon: <Mic size={18} />,
+    color: getNodeColorClass('voiceAssistantNode'),
+    category: 'Communication',
+    config: { transcription_model: 'small', language: 'en', realtime_preview: false, use_backend: false, personaplex_enabled: false, personaplex_url: '', persona_prompt: '', voice_embedding: '' },
+  },
   {
     type: 'notificationNode',
     label: 'Notification',

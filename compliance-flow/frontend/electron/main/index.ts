@@ -6,9 +6,12 @@ import { registerIpcHandlers } from './ipc-handlers'
 import { DockerManager } from './docker-manager'
 import { initAutoUpdater } from './auto-updater'
 import { registerFsHandlers } from './fs-handlers'
+import { WhisperManager } from './whisper-manager'
+import { registerWhisperHandlers } from './whisper-handlers'
 
 let mainWindow: BrowserWindow | null = null
 const dockerManager = new DockerManager()
+const whisperManager = new WhisperManager()
 
 app.whenReady().then(() => {
   // Set app user model id for Windows
@@ -28,6 +31,7 @@ app.whenReady().then(() => {
   // Register IPC handlers
   registerIpcHandlers(dockerManager)
   registerFsHandlers()
+  registerWhisperHandlers(whisperManager)
 
   // Create window
   mainWindow = createMainWindow()
@@ -42,8 +46,9 @@ app.whenReady().then(() => {
   })
 })
 
-// Stop Docker services on quit
+// Cleanup on quit — cancel any in-progress model download
 app.on('before-quit', async () => {
+  whisperManager.cancelDownload()
   await dockerManager.stopServices()
 })
 

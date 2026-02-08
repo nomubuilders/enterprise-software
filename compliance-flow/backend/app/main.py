@@ -10,9 +10,11 @@ from loguru import logger
 import sys
 
 from app.core.config import settings
-from app.api import health, databases, llm, workflows, outputs, docker, documents, spreadsheet, email_inbox, websearch, node_test
+from app.api import health, databases, llm, workflows, outputs, docker, documents, spreadsheet, email_inbox, websearch, node_test, voice
 from app.services.ollama import OllamaService
 from app.services.docker_service import DockerService
+from app.services.voice_service import VoiceService
+from app.services.tts_service import TTSService
 # Database connections are created on-demand via API endpoints
 
 
@@ -35,6 +37,8 @@ async def lifespan(app: FastAPI):
     app.state.ollama = OllamaService()
     app.state.db_connectors = {}  # Store active database connectors by ID
     app.state.docker = DockerService()
+    app.state.voice = VoiceService()
+    app.state.tts = TTSService()
     await app.state.docker.initialize()
 
     # Check Ollama connectivity
@@ -53,6 +57,8 @@ async def lifespan(app: FastAPI):
 
     # Cleanup
     logger.info("🛑 Shutting down ComplianceFlow API...")
+    await app.state.tts.close()
+    await app.state.voice.close()
     await app.state.docker.close()
     await app.state.ollama.close()
     logger.info("👋 Goodbye!")
@@ -91,6 +97,7 @@ app.include_router(spreadsheet.router, prefix=settings.API_PREFIX, tags=["Spread
 app.include_router(email_inbox.router, prefix=settings.API_PREFIX, tags=["Email"])
 app.include_router(websearch.router, prefix=settings.API_PREFIX, tags=["WebSearch"])
 app.include_router(node_test.router, prefix=settings.API_PREFIX, tags=["Node Test"])
+app.include_router(voice.router, prefix=settings.API_PREFIX, tags=["Voice"])
 
 
 @app.get("/")

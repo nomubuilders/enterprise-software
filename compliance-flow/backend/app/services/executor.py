@@ -424,6 +424,8 @@ class WorkflowExecutionEngine:
                 output_data = await self._execute_jira_compliance_node(node, input_data)
             elif node.type == NodeType.SAP_ERP:
                 output_data = await self._execute_sap_erp_node(node, input_data)
+            elif node.type == NodeType.VOICE_ASSISTANT:
+                output_data = await self._execute_voice_assistant_node(node, input_data)
             elif node.type in (NodeType.DOCKER_CONTAINER, NodeType.DOCUMENT):
                 # Handled by frontend execution engine
                 output_data = {"passthrough": True, **input_data}
@@ -1384,6 +1386,25 @@ class WorkflowExecutionEngine:
                 "include_budget": node.data.get("includeBudget", False),
                 "status": "configured",
                 "note": "Requires SAP S/4HANA OData v4 access for execution",
+            },
+            **input_data,
+        }
+
+    async def _execute_voice_assistant_node(self, node: WorkflowNode, input_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Execute a Voice Assistant node - transcribe audio via faster-whisper."""
+        model = node.data.get("transcription_model", node.data.get("model", "small"))
+        language = node.data.get("language", "en")
+
+        # In workflow context, audio comes from upstream node data or config
+        audio_source = node.data.get("audioSource", "upload")
+
+        return {
+            "voice_transcription": {
+                "model": model,
+                "language": language,
+                "audio_source": audio_source,
+                "status": "configured",
+                "note": "Audio transcription runs via POST /api/v1/voice/transcribe",
             },
             **input_data,
         }

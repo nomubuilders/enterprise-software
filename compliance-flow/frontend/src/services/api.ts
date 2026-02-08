@@ -465,6 +465,20 @@ class ApiClient {
     })
   }
 
+  // TTS — uses built-in Piper TTS by default; proxies to external server when url is provided
+  async tts(text: string, voiceEmbedding?: string, url?: string): Promise<Blob> {
+    const body: Record<string, string> = { text }
+    if (url) body.url = url
+    if (voiceEmbedding) body.voice_embedding = voiceEmbedding
+    const resp = await fetch(`${this.baseUrl}/voice/tts`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    })
+    if (!resp.ok) throw new Error(`TTS error: ${resp.status}`)
+    return resp.blob()
+  }
+
   // Node I/O Testing
   async testNode(
     nodeType: string,

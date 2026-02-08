@@ -46,6 +46,22 @@ const electronAPI = {
     checkExists: (filePath: string) => ipcRenderer.invoke('fs:check-exists', filePath),
   },
 
+  // Whisper voice transcription
+  whisper: {
+    listModels: () => ipcRenderer.invoke('whisper:list-models'),
+    getModelStatus: (modelName: string) => ipcRenderer.invoke('whisper:get-model-status', modelName),
+    downloadModel: (modelName: string) => ipcRenderer.invoke('whisper:download-model', modelName),
+    cancelDownload: () => ipcRenderer.invoke('whisper:cancel-download'),
+    deleteModel: (modelName: string) => ipcRenderer.invoke('whisper:delete-model', modelName),
+    transcribe: (audioBase64: string, options?: { model?: string; language?: string }) =>
+      ipcRenderer.invoke('whisper:transcribe', audioBase64, options),
+    onDownloadProgress: (callback: (data: { model: string; progress: number; downloadedBytes: number; totalBytes: number; status: string; error?: string }) => void) => {
+      const handler = (_event: IpcRendererEvent, data: { model: string; progress: number; downloadedBytes: number; totalBytes: number; status: string; error?: string }) => callback(data)
+      ipcRenderer.on('whisper:download-progress', handler)
+      return () => ipcRenderer.removeListener('whisper:download-progress', handler)
+    },
+  },
+
   // Auto-updater
   updater: {
     checkForUpdates: () => ipcRenderer.invoke('updater:check'),

@@ -36,6 +36,7 @@ import {
   Cloud,
   Ticket,
   Building2,
+  Mic,
 } from 'lucide-react'
 import { getNodeColorClass } from '../../../config/nodeColors'
 
@@ -82,6 +83,7 @@ export function NodeIcon({ type }: { type: string }) {
     cloudDocumentNode: <Cloud size={20} className="text-white" />,
     jiraComplianceNode: <Ticket size={20} className="text-white" />,
     sapERPNode: <Building2 size={20} className="text-white" />,
+    voiceAssistantNode: <Mic size={20} className="text-white" />,
   }
 
   const icon = icons[type]
