@@ -6,7 +6,7 @@ import { getNodeColorClass } from '../../config/nodeColors'
 
 export const OutputNode = memo(({ data, selected }: NodeProps) => {
   const nodeData = data as { label: string; config?: Record<string, unknown> }
-  const outputType = (nodeData.config?.outputType as string) || 'chat'
+  const outputType = (nodeData.config?.outputType as string) ?? 'chat'
 
   const outputIcons: Record<string, React.ReactNode> = {
     chat: <MessageSquare size={16} />,

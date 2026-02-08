@@ -7,9 +7,9 @@ import { getNodeColorClass } from '../../config/nodeColors'
 export const ConditionalNode = memo((props: NodeProps) => {
   const { data, selected } = props
   const nodeData = data as { label: string; config?: Record<string, unknown> }
-  const field = (nodeData.config?.field as string) || ''
-  const operator = (nodeData.config?.operator as string) || 'equals'
-  const value = (nodeData.config?.value as string) || ''
+  const field = (nodeData.config?.field as string) ?? ''
+  const operator = (nodeData.config?.operator as string) ?? 'equals'
+  const value = (nodeData.config?.value as string) ?? ''
 
   const operatorLabels: Record<string, string> = {
     equals: '==',

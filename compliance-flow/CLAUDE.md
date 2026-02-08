@@ -182,4 +182,5 @@ See [DISTRIBUTION.md](./DISTRIBUTION.md) for the full guide. Summary:
 - TypeScript strict mode
 - Functional components with hooks
 - Tailwind for all styling
+- Use `??` (nullish coalescing) for config defaults in `useState` initializers — never `||`, which treats `0`, `""`, and `false` as missing
 - Use console.log with prefixes like `[ChatInterface]` or `[AI Assistant]` for debugging

@@ -6,7 +6,7 @@ import { getNodeColorClass } from '../../config/nodeColors'
 
 export const NotificationNode = memo((props: NodeProps) => {
   const nodeData = props.data as { label: string; config?: Record<string, unknown> }
-  const channel = (nodeData.config?.channel as string) || 'webhook'
+  const channel = (nodeData.config?.channel as string) ?? 'webhook'
   const templateSet = !!(nodeData.config?.messageTemplate)
 
   const channelLabels: Record<string, string> = {

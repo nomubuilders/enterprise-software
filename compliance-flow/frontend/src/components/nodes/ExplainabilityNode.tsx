@@ -6,9 +6,9 @@ import { getNodeColorClass } from '../../config/nodeColors'
 
 export const ExplainabilityNode = memo((props: NodeProps) => {
   const nodeData = props.data as { label: string; config?: Record<string, unknown> }
-  const method = (nodeData.config?.method as string) || 'feature_importance'
-  const model = (nodeData.config?.model as string) || 'llama3.2'
-  const detailLevel = (nodeData.config?.detailLevel as string) || 'summary'
+  const method = (nodeData.config?.method as string) ?? 'feature_importance'
+  const model = (nodeData.config?.model as string) ?? 'llama3.2'
+  const detailLevel = (nodeData.config?.detailLevel as string) ?? 'summary'
 
   const methodLabels: Record<string, string> = {
     feature_importance: 'Feature Importance',

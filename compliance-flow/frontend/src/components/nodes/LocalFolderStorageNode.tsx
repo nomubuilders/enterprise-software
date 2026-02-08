@@ -13,8 +13,8 @@ const OPERATION_LABELS: Record<string, string> = {
 
 export const LocalFolderStorageNode = memo((props: NodeProps) => {
   const config = (props.data as { config?: Record<string, unknown> }).config
-  const operation = (config?.operation as string) || 'list'
-  const filePattern = (config?.filePattern as string) || '*'
+  const operation = (config?.operation as string) ?? 'list'
+  const filePattern = (config?.filePattern as string) ?? '*'
   const recursive = config?.recursive === true
 
   return (

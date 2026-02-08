@@ -6,9 +6,9 @@ import { getNodeColorClass } from '../../config/nodeColors'
 
 export const DriftDetectionNode = memo((props: NodeProps) => {
   const nodeData = props.data as { label: string; config?: Record<string, unknown> }
-  const metric = (nodeData.config?.metric as string) || 'output_similarity'
-  const threshold = (nodeData.config?.driftThreshold as number) || 0.15
-  const schedule = (nodeData.config?.schedule as string) || 'daily'
+  const metric = (nodeData.config?.metric as string) ?? 'output_similarity'
+  const threshold = (nodeData.config?.driftThreshold as number) ?? 0.15
+  const schedule = (nodeData.config?.schedule as string) ?? 'daily'
   const baselineSet = !!(nodeData.config?.baselineId)
 
   return (

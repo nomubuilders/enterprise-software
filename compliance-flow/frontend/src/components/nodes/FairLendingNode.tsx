@@ -6,9 +6,9 @@ import { getNodeColorClass } from '../../config/nodeColors'
 
 export const FairLendingNode = memo((props: NodeProps) => {
   const nodeData = props.data as { label: string; config?: Record<string, unknown> }
-  const regulation = (nodeData.config?.regulation as string) || 'ecoa'
-  const analysisType = (nodeData.config?.analysisType as string) || 'disparate_impact'
-  const protectedClasses = (nodeData.config?.protectedClasses as string[]) || []
+  const regulation = (nodeData.config?.regulation as string) ?? 'ecoa'
+  const analysisType = (nodeData.config?.analysisType as string) ?? 'disparate_impact'
+  const protectedClasses = (nodeData.config?.protectedClasses as string[]) ?? []
 
   const regLabels: Record<string, string> = {
     ecoa: 'ECOA',

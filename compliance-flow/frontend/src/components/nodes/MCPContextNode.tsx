@@ -7,8 +7,8 @@ import { getNodeColorClass } from '../../config/nodeColors'
 export const MCPContextNode = memo((props: NodeProps) => {
   const nodeData = props.data as { label: string; config?: Record<string, unknown> }
   const serverUrl = nodeData.config?.serverUrl as string | undefined
-  const toolCount = (nodeData.config?.toolCount as number) || 0
-  const protocol = (nodeData.config?.protocol as string) || 'stdio'
+  const toolCount = (nodeData.config?.toolCount as number) ?? 0
+  const protocol = (nodeData.config?.protocol as string) ?? 'stdio'
   const isConnected = nodeData.config?.isConnected === true
 
   const getStatus = () => {

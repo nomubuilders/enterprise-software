@@ -6,8 +6,8 @@ import { getNodeColorClass } from '../../config/nodeColors'
 
 export const SubWorkflowNode = memo((props: NodeProps) => {
   const nodeData = props.data as { label: string; config?: Record<string, unknown> }
-  const workflowId = (nodeData.config?.targetWorkflowId as string) || ''
-  const workflowName = (nodeData.config?.targetWorkflowName as string) || ''
+  const workflowId = (nodeData.config?.targetWorkflowId as string) ?? ''
+  const workflowName = (nodeData.config?.targetWorkflowName as string) ?? ''
   const passData = nodeData.config?.passData !== false
 
   return (

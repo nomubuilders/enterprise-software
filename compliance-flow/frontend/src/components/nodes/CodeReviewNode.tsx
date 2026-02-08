@@ -6,9 +6,9 @@ import { getNodeColorClass } from '../../config/nodeColors'
 
 export const CodeReviewNode = memo((props: NodeProps) => {
   const nodeData = props.data as { label: string; config?: Record<string, unknown> }
-  const language = (nodeData.config?.language as string) || 'auto'
-  const reviewType = (nodeData.config?.reviewType as string) || 'security'
-  const severity = (nodeData.config?.minSeverity as string) || 'medium'
+  const language = (nodeData.config?.language as string) ?? 'auto'
+  const reviewType = (nodeData.config?.reviewType as string) ?? 'security'
+  const severity = (nodeData.config?.minSeverity as string) ?? 'medium'
   const hasConfig = !!(nodeData.config?.sourceUrl || nodeData.config?.sourceText)
 
   const reviewLabels: Record<string, string> = {

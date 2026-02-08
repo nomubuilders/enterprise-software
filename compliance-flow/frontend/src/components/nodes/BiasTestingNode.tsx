@@ -6,9 +6,9 @@ import { getNodeColorClass } from '../../config/nodeColors'
 
 export const BiasTestingNode = memo((props: NodeProps) => {
   const nodeData = props.data as { label: string; config?: Record<string, unknown> }
-  const testType = (nodeData.config?.testType as string) || 'disparate_impact'
-  const protectedAttributes = (nodeData.config?.protectedAttributes as string[]) || []
-  const threshold = (nodeData.config?.threshold as number) || 0.8
+  const testType = (nodeData.config?.testType as string) ?? 'disparate_impact'
+  const protectedAttributes = (nodeData.config?.protectedAttributes as string[]) ?? []
+  const threshold = (nodeData.config?.threshold as number) ?? 0.8
 
   const testLabels: Record<string, string> = {
     disparate_impact: 'Disparate Impact',

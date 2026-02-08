@@ -6,7 +6,7 @@ import { getNodeColorClass } from '../../config/nodeColors'
 
 export const PIIFilterNode = memo((props: NodeProps) => {
   const nodeData = props.data as { label: string; config?: Record<string, unknown> }
-  const mode = (nodeData.config?.mode as string) || 'redact'
+  const mode = (nodeData.config?.mode as string) ?? 'redact'
 
   const modeDescriptions: Record<string, string> = {
     redact: 'Remove PII completely',

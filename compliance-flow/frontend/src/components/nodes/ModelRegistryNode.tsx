@@ -6,9 +6,9 @@ import { getNodeColorClass } from '../../config/nodeColors'
 
 export const ModelRegistryNode = memo((props: NodeProps) => {
   const nodeData = props.data as { label: string; config?: Record<string, unknown> }
-  const modelName = (nodeData.config?.modelName as string) || ''
-  const riskLevel = (nodeData.config?.riskLevel as string) || 'unclassified'
-  const version = (nodeData.config?.modelVersion as string) || '1.0'
+  const modelName = (nodeData.config?.modelName as string) ?? ''
+  const riskLevel = (nodeData.config?.riskLevel as string) ?? 'unclassified'
+  const version = (nodeData.config?.modelVersion as string) ?? '1.0'
 
   const riskColors: Record<string, string> = {
     unacceptable: 'text-red-500',

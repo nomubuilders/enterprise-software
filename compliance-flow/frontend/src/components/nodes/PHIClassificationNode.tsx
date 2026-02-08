@@ -6,8 +6,8 @@ import { getNodeColorClass } from '../../config/nodeColors'
 
 export const PHIClassificationNode = memo((props: NodeProps) => {
   const nodeData = props.data as { label: string; config?: Record<string, unknown> }
-  const method = (nodeData.config?.deidentMethod as string) || 'safe_harbor'
-  const identifierCount = (nodeData.config?.identifiers as string[])?.length || 18
+  const method = (nodeData.config?.deidentMethod as string) ?? 'safe_harbor'
+  const identifierCount = (nodeData.config?.identifiers as string[])?.length ?? 18
 
   const methodLabels: Record<string, string> = {
     safe_harbor: 'Safe Harbor (18 IDs)',

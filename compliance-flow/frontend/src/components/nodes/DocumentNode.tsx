@@ -6,8 +6,8 @@ import { getNodeColorClass } from '../../config/nodeColors'
 
 export const DocumentNode = memo((props: NodeProps) => {
   const nodeData = props.data as { label: string; config?: Record<string, unknown> }
-  const mode = (nodeData.config?.mode as string) || 'summarize'
-  const documents = (nodeData.config?.documents as unknown[]) || []
+  const mode = (nodeData.config?.mode as string) ?? 'summarize'
+  const documents = (nodeData.config?.documents as unknown[]) ?? []
 
   const getModeIcon = () => {
     if (mode === 'search') return <Search size={10} className="text-[var(--nomu-primary)]" />

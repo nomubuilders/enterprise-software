@@ -6,7 +6,7 @@ import { getNodeColorClass } from '../../config/nodeColors'
 
 export const DatabaseNode = memo((props: NodeProps) => {
   const nodeData = props.data as { label: string; config?: Record<string, unknown> }
-  const dbType = (nodeData.config?.dbType as string) || 'postgresql'
+  const dbType = (nodeData.config?.dbType as string) ?? 'postgresql'
   const isConnected = nodeData.config?.isConnected === true
   const hasConfig = !!(nodeData.config?.host && nodeData.config?.database)
 

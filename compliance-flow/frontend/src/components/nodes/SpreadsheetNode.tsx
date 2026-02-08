@@ -6,8 +6,8 @@ import { getNodeColorClass } from '../../config/nodeColors'
 
 export const SpreadsheetNode = memo((props: NodeProps) => {
   const nodeData = props.data as { label: string; config?: Record<string, unknown> }
-  const format = (nodeData.config?.format as string) || 'csv'
-  const operation = (nodeData.config?.operation as string) || 'import'
+  const format = (nodeData.config?.format as string) ?? 'csv'
+  const operation = (nodeData.config?.operation as string) ?? 'import'
   const rowCount = nodeData.config?.rowCount as number | undefined
   const hasConfig = !!(nodeData.config?.filePath || nodeData.config?.sheetName)
 

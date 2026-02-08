@@ -7,12 +7,12 @@ import { useDockerStore } from '../../store/dockerStore'
 
 export const DockerContainerNode = memo((props: NodeProps) => {
   const nodeData = props.data as { label: string; config?: Record<string, unknown> }
-  const image = (nodeData.config?.image as string) || 'Not selected'
-  const tag = (nodeData.config?.tag as string) || 'latest'
-  const cpuLimit = (nodeData.config?.cpuLimit as number) || 0.5
-  const memoryLimit = (nodeData.config?.memoryLimit as number) || 512
-  const networkMode = (nodeData.config?.networkMode as string) || 'none'
-  const status = (nodeData.config?.status as string) || 'idle'
+  const image = (nodeData.config?.image as string) ?? 'Not selected'
+  const tag = (nodeData.config?.tag as string) ?? 'latest'
+  const cpuLimit = (nodeData.config?.cpuLimit as number) ?? 0.5
+  const memoryLimit = (nodeData.config?.memoryLimit as number) ?? 512
+  const networkMode = (nodeData.config?.networkMode as string) ?? 'none'
+  const status = (nodeData.config?.status as string) ?? 'idle'
   const dockerAvailable = useDockerStore((s) => s.dockerAvailable)
 
   const getStatusDisplay = () => {

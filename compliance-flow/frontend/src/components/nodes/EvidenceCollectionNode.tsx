@@ -6,8 +6,8 @@ import { getNodeColorClass } from '../../config/nodeColors'
 
 export const EvidenceCollectionNode = memo((props: NodeProps) => {
   const nodeData = props.data as { label: string; config?: Record<string, unknown> }
-  const artifactTypes = (nodeData.config?.artifactTypes as string[]) || ['logs']
-  const targetFramework = (nodeData.config?.targetFramework as string) || 'soc2'
+  const artifactTypes = (nodeData.config?.artifactTypes as string[]) ?? ['logs']
+  const targetFramework = (nodeData.config?.targetFramework as string) ?? 'soc2'
   const autoPackage = nodeData.config?.autoPackage !== false
 
   const frameworkLabels: Record<string, string> = {

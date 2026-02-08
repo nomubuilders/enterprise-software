@@ -11,18 +11,18 @@ interface SAPERPConfigProps {
 export function SAPERPConfig({ node, onUpdate }: SAPERPConfigProps) {
   const config = ((node.data as Record<string, unknown>).config as Record<string, unknown>) || {}
 
-  const [sapUrl, setSapUrl] = useState((config.sapUrl as string) || '')
-  const [clientNumber, setClientNumber] = useState((config.clientNumber as string) || '100')
-  const [authType, setAuthType] = useState((config.authType as string) || 'oauth')
-  const [username, setUsername] = useState((config.username as string) || '')
-  const [password, setPassword] = useState((config.password as string) || '')
-  const [reportType, setReportType] = useState((config.reportType as string) || 'balance_sheet')
-  const [fiscalYear, setFiscalYear] = useState((config.fiscalYear as string) || new Date().getFullYear().toString())
-  const [companyCode, setCompanyCode] = useState((config.companyCode as string) || '1000')
-  const [costCenters, setCostCenters] = useState((config.costCenters as string) || '')
+  const [sapUrl, setSapUrl] = useState((config.sapUrl as string) ?? '')
+  const [clientNumber, setClientNumber] = useState((config.clientNumber as string) ?? '100')
+  const [authType, setAuthType] = useState((config.authType as string) ?? 'oauth')
+  const [username, setUsername] = useState((config.username as string) ?? '')
+  const [password, setPassword] = useState((config.password as string) ?? '')
+  const [reportType, setReportType] = useState((config.reportType as string) ?? 'balance_sheet')
+  const [fiscalYear, setFiscalYear] = useState((config.fiscalYear as string) ?? new Date().getFullYear().toString())
+  const [companyCode, setCompanyCode] = useState((config.companyCode as string) ?? '1000')
+  const [costCenters, setCostCenters] = useState((config.costCenters as string) ?? '')
   const [includeActuals, setIncludeActuals] = useState((config.includeActuals as boolean) ?? true)
   const [includeBudget, setIncludeBudget] = useState((config.includeBudget as boolean) ?? false)
-  const [customQuery, setCustomQuery] = useState((config.customQuery as string) || '')
+  const [customQuery, setCustomQuery] = useState((config.customQuery as string) ?? '')
   const [showSaved, setShowSaved] = useState(false)
 
   const handleSave = () => {

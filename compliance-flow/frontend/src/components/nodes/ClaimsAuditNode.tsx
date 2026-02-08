@@ -6,7 +6,7 @@ import { getNodeColorClass } from '../../config/nodeColors'
 
 export const ClaimsAuditNode = memo((props: NodeProps) => {
   const nodeData = props.data as { label: string; config?: Record<string, unknown> }
-  const auditType = (nodeData.config?.auditType as string) || 'full'
+  const auditType = (nodeData.config?.auditType as string) ?? 'full'
   const flagAutoDenials = nodeData.config?.flagAutoDenials !== false
   const generateExplanation = nodeData.config?.generateExplanation !== false
 

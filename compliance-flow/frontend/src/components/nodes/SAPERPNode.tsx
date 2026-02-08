@@ -14,8 +14,8 @@ const REPORT_TYPE_LABELS: Record<string, string> = {
 
 export const SAPERPNode = memo((props: NodeProps) => {
   const config = (props.data as { config?: Record<string, unknown> }).config
-  const reportType = (config?.reportType as string) || 'balance_sheet'
-  const fiscalYear = (config?.fiscalYear as string) || new Date().getFullYear().toString()
+  const reportType = (config?.reportType as string) ?? 'balance_sheet'
+  const fiscalYear = (config?.fiscalYear as string) ?? new Date().getFullYear().toString()
 
   return (
     <BaseNode {...props} icon={<Building2 size={16} />} color={getNodeColorClass('sapERPNode')}>

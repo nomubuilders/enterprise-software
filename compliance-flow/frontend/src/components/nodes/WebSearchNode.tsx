@@ -6,10 +6,10 @@ import { getNodeColorClass } from '../../config/nodeColors'
 
 export const WebSearchNode = memo((props: NodeProps) => {
   const nodeData = props.data as { label: string; config?: Record<string, unknown> }
-  const engine = (nodeData.config?.engine as string) || 'searxng'
+  const engine = (nodeData.config?.engine as string) ?? 'searxng'
   const engineUrl = nodeData.config?.engineUrl as string | undefined
-  const maxResults = (nodeData.config?.maxResults as number) || 10
-  const categories = (nodeData.config?.categories as string[]) || []
+  const maxResults = (nodeData.config?.maxResults as number) ?? 10
+  const categories = (nodeData.config?.categories as string[]) ?? []
 
   const hasConfig = !!engineUrl
 

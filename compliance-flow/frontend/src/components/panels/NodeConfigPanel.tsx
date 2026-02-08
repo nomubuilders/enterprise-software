@@ -674,8 +674,8 @@ function TriggerNodeConfig({
   const config = (node.data as Record<string, unknown>).config as Record<string, unknown> || {}
   const triggerType = (config.triggerType as string) || 'manual'
 
-  const [schedule, setSchedule] = useState((config.schedule as string) || '0 * * * *')
-  const [webhookPath, setWebhookPath] = useState((config.webhookPath as string) || '/webhook/trigger')
+  const [schedule, setSchedule] = useState((config.schedule as string) ?? '0 * * * *')
+  const [webhookPath, setWebhookPath] = useState((config.webhookPath as string) ?? '/webhook/trigger')
   const [showSaved, setShowSaved] = useState(false)
 
   const handleSave = () => {
@@ -813,15 +813,15 @@ function DatabaseNodeConfig({
   const dbType = (config.dbType as string) || 'postgresql'
 
   const [connection, setConnection] = useState({
-    host: (config.host as string) || 'localhost',
-    port: (config.port as number) || (dbType === 'postgresql' ? 5432 : dbType === 'mysql' ? 3306 : 27017),
-    database: (config.database as string) || '',
-    username: (config.username as string) || '',
-    password: (config.password as string) || '',
-    ssl: (config.ssl as boolean) || false,
+    host: (config.host as string) ?? 'localhost',
+    port: (config.port as number) ?? (dbType === 'postgresql' ? 5432 : dbType === 'mysql' ? 3306 : 27017),
+    database: (config.database as string) ?? '',
+    username: (config.username as string) ?? '',
+    password: (config.password as string) ?? '',
+    ssl: (config.ssl as boolean) ?? false,
   })
 
-  const [query, setQuery] = useState((config.query as string) || 'SELECT * FROM users LIMIT 10')
+  const [query, setQuery] = useState((config.query as string) ?? 'SELECT * FROM users LIMIT 10')
   const [isTesting, setIsTesting] = useState(false)
   const [testResult, setTestResult] = useState<{ success: boolean; message: string; version?: string } | null>(null)
   const [tables, setTables] = useState<string[]>([])
@@ -1013,9 +1013,9 @@ function LLMNodeConfig({
 }) {
   const config = (node.data as Record<string, unknown>).config as Record<string, unknown> || {}
 
-  const [model, setModel] = useState((config.model as string) || 'llama3.2')
-  const [temperature, setTemperature] = useState((config.temperature as number) || 0.7)
-  const [maxTokens, setMaxTokens] = useState((config.maxTokens as number) || 2048)
+  const [model, setModel] = useState((config.model as string) ?? 'llama3.2')
+  const [temperature, setTemperature] = useState((config.temperature as number) ?? 0.7)
+  const [maxTokens, setMaxTokens] = useState((config.maxTokens as number) ?? 2048)
   const [availableModels, setAvailableModels] = useState<string[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [showSaved, setShowSaved] = useState(false)
@@ -1044,9 +1044,6 @@ function LLMNodeConfig({
         temperature,
         maxTokens,
       },
-    })
-    // Update label to show model name
-    onUpdate({
       label: `AI Agent (${model})`,
     })
     setShowSaved(true)
@@ -1187,9 +1184,9 @@ function PIIFilterNodeConfig({
 }) {
   const config = (node.data as Record<string, unknown>).config as Record<string, unknown> || {}
 
-  const [mode, setMode] = useState((config.mode as string) || 'redact')
+  const [mode, setMode] = useState((config.mode as string) ?? 'redact')
   const [entities, setEntities] = useState<string[]>(
-    (config.entities as string[]) || ['EMAIL', 'PHONE', 'SSN', 'CREDIT_CARD', 'NAME']
+    (config.entities as string[]) ?? ['EMAIL', 'PHONE', 'SSN', 'CREDIT_CARD', 'NAME']
   )
   const [showSaved, setShowSaved] = useState(false)
 
@@ -1343,17 +1340,17 @@ function EmailOutputConfig({
   config: Record<string, unknown>
   onUpdate: (data: Record<string, unknown>) => void
 }) {
-  const [smtpHost, setSmtpHost] = useState((config.smtpHost as string) || 'smtp.gmail.com')
-  const [smtpPort, setSmtpPort] = useState((config.smtpPort as number) || 587)
-  const [smtpUsername, setSmtpUsername] = useState((config.smtpUsername as string) || '')
-  const [smtpPassword, setSmtpPassword] = useState((config.smtpPassword as string) || '')
+  const [smtpHost, setSmtpHost] = useState((config.smtpHost as string) ?? 'smtp.gmail.com')
+  const [smtpPort, setSmtpPort] = useState((config.smtpPort as number) ?? 587)
+  const [smtpUsername, setSmtpUsername] = useState((config.smtpUsername as string) ?? '')
+  const [smtpPassword, setSmtpPassword] = useState((config.smtpPassword as string) ?? '')
   const [useTls, setUseTls] = useState((config.useTls as boolean) ?? true)
-  const [fromName, setFromName] = useState((config.fromName as string) || '')
-  const [toEmail, setToEmail] = useState((config.toEmail as string) || '')
-  const [ccEmail, setCcEmail] = useState((config.ccEmail as string) || '')
-  const [subject, setSubject] = useState((config.subject as string) || '')
-  const [bodyType, setBodyType] = useState((config.bodyType as string) || 'html')
-  const [format, setFormat] = useState((config.format as string) || 'text')
+  const [fromName, setFromName] = useState((config.fromName as string) ?? '')
+  const [toEmail, setToEmail] = useState((config.toEmail as string) ?? '')
+  const [ccEmail, setCcEmail] = useState((config.ccEmail as string) ?? '')
+  const [subject, setSubject] = useState((config.subject as string) ?? '')
+  const [bodyType, setBodyType] = useState((config.bodyType as string) ?? 'html')
+  const [format, setFormat] = useState((config.format as string) ?? 'text')
   const [showSaved, setShowSaved] = useState(false)
   const [isTesting, setIsTesting] = useState(false)
   const [testResult, setTestResult] = useState<{ success: boolean; message: string } | null>(null)
@@ -1455,11 +1452,11 @@ function SpreadsheetOutputConfig({
   config: Record<string, unknown>
   onUpdate: (data: Record<string, unknown>) => void
 }) {
-  const [fileFormat, setFileFormat] = useState((config.fileFormat as string) || 'csv')
-  const [filename, setFilename] = useState((config.filename as string) || 'output-{timestamp}')
+  const [fileFormat, setFileFormat] = useState((config.fileFormat as string) ?? 'csv')
+  const [filename, setFilename] = useState((config.filename as string) ?? 'output-{timestamp}')
   const [includeHeaders, setIncludeHeaders] = useState((config.includeHeaders as boolean) ?? true)
-  const [maxRows, setMaxRows] = useState((config.maxRows as number) || 1000)
-  const [encoding, setEncoding] = useState((config.encoding as string) || 'utf-8')
+  const [maxRows, setMaxRows] = useState((config.maxRows as number) ?? 1000)
+  const [encoding, setEncoding] = useState((config.encoding as string) ?? 'utf-8')
   const [showSaved, setShowSaved] = useState(false)
 
   const handleSave = () => {
@@ -1516,11 +1513,11 @@ function TelegramOutputConfig({
   config: Record<string, unknown>
   onUpdate: (data: Record<string, unknown>) => void
 }) {
-  const [botToken, setBotToken] = useState((config.botToken as string) || '')
-  const [chatId, setChatId] = useState((config.chatId as string) || '')
-  const [parseMode, setParseMode] = useState((config.parseMode as string) || 'Markdown')
-  const [messageTemplate, setMessageTemplate] = useState((config.messageTemplate as string) || 'Workflow Results:\n\n{output}')
-  const [disableNotification, setDisableNotification] = useState((config.disableNotification as boolean) || false)
+  const [botToken, setBotToken] = useState((config.botToken as string) ?? '')
+  const [chatId, setChatId] = useState((config.chatId as string) ?? '')
+  const [parseMode, setParseMode] = useState((config.parseMode as string) ?? 'Markdown')
+  const [messageTemplate, setMessageTemplate] = useState((config.messageTemplate as string) ?? 'Workflow Results:\n\n{output}')
+  const [disableNotification, setDisableNotification] = useState((config.disableNotification as boolean) ?? false)
   const [showSaved, setShowSaved] = useState(false)
   const [isTesting, setIsTesting] = useState(false)
   const [testResult, setTestResult] = useState<{ success: boolean; message: string } | null>(null)
@@ -1616,11 +1613,11 @@ function ChatOutputConfig({
   onUpdate: (data: Record<string, unknown>) => void
   onOpenChat?: () => void
 }) {
-  const [systemPrompt, setSystemPrompt] = useState((config.systemPrompt as string) || '')
-  const [maxHistory, setMaxHistory] = useState((config.maxHistory as number) || 50)
+  const [systemPrompt, setSystemPrompt] = useState((config.systemPrompt as string) ?? '')
+  const [maxHistory, setMaxHistory] = useState((config.maxHistory as number) ?? 50)
   const [showDataSources, setShowDataSources] = useState((config.showDataSources as boolean) ?? true)
-  const [autoOpen, setAutoOpen] = useState((config.autoOpen as boolean) || false)
-  const [displayFormat, setDisplayFormat] = useState((config.displayFormat as string) || 'bubbles')
+  const [autoOpen, setAutoOpen] = useState((config.autoOpen as boolean) ?? false)
+  const [displayFormat, setDisplayFormat] = useState((config.displayFormat as string) ?? 'bubbles')
   const [showSaved, setShowSaved] = useState(false)
 
   const handleSave = () => {
@@ -1699,18 +1696,18 @@ function DockerContainerNodeConfig({
   const { dockerAvailable, dockerHealth } = useDockerStore()
   const config = (node.data as Record<string, unknown>).config as Record<string, unknown> || {}
 
-  const [image, setImage] = useState((config.image as string) || '')
-  const [tag, setTag] = useState((config.tag as string) || 'latest')
+  const [image, setImage] = useState((config.image as string) ?? '')
+  const [tag, setTag] = useState((config.tag as string) ?? 'latest')
   const [command, setCommand] = useState(
-    Array.isArray(config.command) ? (config.command as string[]).join(' ') : (config.command as string) || ''
+    Array.isArray(config.command) ? (config.command as string[]).join(' ') : (config.command as string) ?? ''
   )
   const [envVars, setEnvVars] = useState<Array<{key: string, value: string}>>(
-    Object.entries((config.envVars as Record<string, string>) || {}).map(([key, value]) => ({ key, value }))
+    Object.entries((config.envVars as Record<string, string>) ?? {}).map(([key, value]) => ({ key, value }))
   )
-  const [cpuLimit, setCpuLimit] = useState((config.cpuLimit as number) || 0.5)
-  const [memoryLimit, setMemoryLimit] = useState((config.memoryLimit as number) || 512)
-  const [timeoutSecs, setTimeoutSecs] = useState((config.timeout as number) || 300)
-  const [networkMode, setNetworkMode] = useState<'none' | 'internal'>((config.networkMode as 'none' | 'internal') || 'none')
+  const [cpuLimit, setCpuLimit] = useState((config.cpuLimit as number) ?? 0.5)
+  const [memoryLimit, setMemoryLimit] = useState((config.memoryLimit as number) ?? 512)
+  const [timeoutSecs, setTimeoutSecs] = useState((config.timeout as number) ?? 300)
+  const [networkMode, setNetworkMode] = useState<'none' | 'internal'>((config.networkMode as 'none' | 'internal') ?? 'none')
   const [showSaved, setShowSaved] = useState(false)
 
   const addEnvVar = () => setEnvVars([...envVars, { key: '', value: '' }])
@@ -1950,10 +1947,10 @@ function DocumentNodeConfig({
   const documents = useDocumentStore((s) => s.documents)
   const { addDocument } = useDocumentStore()
 
-  const [mode, setMode] = useState((config.mode as string) || 'summarize')
-  const [templateId, setTemplateId] = useState((config.templateId as string) || '')
-  const [chunkSize, setChunkSize] = useState((config.chunkSize as number) || 20000)
-  const [systemPromptOverride, setSystemPromptOverride] = useState((config.systemPromptOverride as string) || '')
+  const [mode, setMode] = useState((config.mode as string) ?? 'summarize')
+  const [templateId, setTemplateId] = useState((config.templateId as string) ?? '')
+  const [chunkSize, setChunkSize] = useState((config.chunkSize as number) ?? 20000)
+  const [systemPromptOverride, setSystemPromptOverride] = useState((config.systemPromptOverride as string) ?? '')
   const [uploadFiles, setUploadFiles] = useState<File[]>([])
   const [uploadStatus, setUploadStatus] = useState<'idle' | 'uploading' | 'parsing' | 'parsed' | 'error'>('idle')
   const [uploadError, setUploadError] = useState<string | undefined>()

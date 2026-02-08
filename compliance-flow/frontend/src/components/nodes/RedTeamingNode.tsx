@@ -6,9 +6,9 @@ import { getNodeColorClass } from '../../config/nodeColors'
 
 export const RedTeamingNode = memo((props: NodeProps) => {
   const nodeData = props.data as { label: string; config?: Record<string, unknown> }
-  const attackVectors = (nodeData.config?.attackVectors as string[]) || ['prompt_injection']
-  const severity = (nodeData.config?.minSeverity as string) || 'medium'
-  const iterations = (nodeData.config?.iterations as number) || 10
+  const attackVectors = (nodeData.config?.attackVectors as string[]) ?? ['prompt_injection']
+  const severity = (nodeData.config?.minSeverity as string) ?? 'medium'
+  const iterations = (nodeData.config?.iterations as number) ?? 10
 
   const severityColors: Record<string, string> = {
     low: 'text-green-400',

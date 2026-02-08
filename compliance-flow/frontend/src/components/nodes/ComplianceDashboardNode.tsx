@@ -6,8 +6,8 @@ import { getNodeColorClass } from '../../config/nodeColors'
 
 export const ComplianceDashboardNode = memo((props: NodeProps) => {
   const nodeData = props.data as { label: string; config?: Record<string, unknown> }
-  const frameworks = (nodeData.config?.frameworks as string[]) || []
-  const reportFormat = (nodeData.config?.reportFormat as string) || 'pdf'
+  const frameworks = (nodeData.config?.frameworks as string[]) ?? []
+  const reportFormat = (nodeData.config?.reportFormat as string) ?? 'pdf'
   const autoGenerate = nodeData.config?.autoGenerate !== false
 
   return (

@@ -22,8 +22,8 @@ const OPERATION_LABELS: Record<string, string> = {
 
 export const CloudDocumentNode = memo((props: NodeProps) => {
   const config = (props.data as { config?: Record<string, unknown> }).config
-  const provider = (config?.provider as string) || 'google_drive'
-  const operation = (config?.operation as string) || 'list'
+  const provider = (config?.provider as string) ?? 'google_drive'
+  const operation = (config?.operation as string) ?? 'list'
 
   return (
     <BaseNode {...props} icon={<Cloud size={16} />} color={getNodeColorClass('cloudDocumentNode')}>

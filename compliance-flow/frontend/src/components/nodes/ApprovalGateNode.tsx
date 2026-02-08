@@ -6,9 +6,9 @@ import { getNodeColorClass } from '../../config/nodeColors'
 
 export const ApprovalGateNode = memo((props: NodeProps) => {
   const nodeData = props.data as { label: string; config?: Record<string, unknown> }
-  const approvalType = (nodeData.config?.approvalType as string) || 'single'
-  const approvers = (nodeData.config?.approvers as string[]) || []
-  const status = (nodeData.config?.approvalStatus as string) || 'pending'
+  const approvalType = (nodeData.config?.approvalType as string) ?? 'single'
+  const approvers = (nodeData.config?.approvers as string[]) ?? []
+  const status = (nodeData.config?.approvalStatus as string) ?? 'pending'
   const requireAll = nodeData.config?.requireAll !== false
 
   const getStatusDisplay = () => {

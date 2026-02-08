@@ -6,9 +6,9 @@ import { getNodeColorClass } from '../../config/nodeColors'
 
 export const AuditNode = memo((props: NodeProps) => {
   const nodeData = props.data as { label: string; config?: Record<string, unknown> }
-  const auditLevel = (nodeData.config?.auditLevel as string) || 'full'
-  const retention = (nodeData.config?.retentionDays as number) || 90
-  const logFormat = (nodeData.config?.logFormat as string) || 'json'
+  const auditLevel = (nodeData.config?.auditLevel as string) ?? 'full'
+  const retention = (nodeData.config?.retentionDays as number) ?? 90
+  const logFormat = (nodeData.config?.logFormat as string) ?? 'json'
   const isEnabled = nodeData.config?.enabled !== false
 
   const getStatus = () => {

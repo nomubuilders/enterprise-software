@@ -6,8 +6,8 @@ import { getNodeColorClass } from '../../config/nodeColors'
 
 export const EncryptionNode = memo((props: NodeProps) => {
   const nodeData = props.data as { label: string; config?: Record<string, unknown> }
-  const algorithm = (nodeData.config?.algorithm as string) || 'aes-256-gcm'
-  const operation = (nodeData.config?.operation as string) || 'encrypt'
+  const algorithm = (nodeData.config?.algorithm as string) ?? 'aes-256-gcm'
+  const operation = (nodeData.config?.operation as string) ?? 'encrypt'
   const keyManaged = !!(nodeData.config?.keyId)
 
   const algLabels: Record<string, string> = {

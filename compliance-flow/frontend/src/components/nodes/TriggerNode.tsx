@@ -6,7 +6,7 @@ import { getNodeColorClass } from '../../config/nodeColors'
 
 export const TriggerNode = memo(({ data, selected }: NodeProps) => {
   const nodeData = data as { label: string; config?: Record<string, unknown> }
-  const triggerType = (nodeData.config?.triggerType as string) || 'manual'
+  const triggerType = (nodeData.config?.triggerType as string) ?? 'manual'
 
   const triggerIcons: Record<string, React.ReactNode> = {
     manual: <Play size={16} />,

@@ -6,9 +6,9 @@ import { getNodeColorClass } from '../../config/nodeColors'
 
 export const WebhookGatewayNode = memo((props: NodeProps) => {
   const nodeData = props.data as { label: string; config?: Record<string, unknown> }
-  const method = (nodeData.config?.method as string) || 'POST'
-  const authType = (nodeData.config?.authType as string) || 'api_key'
-  const endpointPath = (nodeData.config?.endpointPath as string) || ''
+  const method = (nodeData.config?.method as string) ?? 'POST'
+  const authType = (nodeData.config?.authType as string) ?? 'api_key'
+  const endpointPath = (nodeData.config?.endpointPath as string) ?? ''
 
   return (
     <BaseNode {...props} icon={<Radio size={16} />} color={getNodeColorClass('webhookGatewayNode')}>

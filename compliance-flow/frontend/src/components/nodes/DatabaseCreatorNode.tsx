@@ -13,9 +13,9 @@ const DB_TYPE_LABELS: Record<string, string> = {
 
 export const DatabaseCreatorNode = memo((props: NodeProps) => {
   const config = (props.data as { config?: Record<string, unknown> }).config
-  const dbType = (config?.dbType as string) || 'sqlite'
+  const dbType = (config?.dbType as string) ?? 'sqlite'
   const encrypted = config?.encrypted === true
-  const databaseName = (config?.databaseName as string) || ''
+  const databaseName = (config?.databaseName as string) ?? ''
 
   return (
     <BaseNode {...props} icon={<DatabaseZap size={16} />} color={getNodeColorClass('databaseCreatorNode')}>

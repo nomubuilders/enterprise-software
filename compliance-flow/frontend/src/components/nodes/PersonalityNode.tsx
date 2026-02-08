@@ -6,9 +6,9 @@ import { getNodeColorClass } from '../../config/nodeColors'
 
 export const PersonalityNode = memo((props: NodeProps) => {
   const nodeData = props.data as { label: string; config?: Record<string, unknown> }
-  const persona = (nodeData.config?.persona as string) || 'professional'
-  const tone = (nodeData.config?.tone as string) || 'formal'
-  const language = (nodeData.config?.language as string) || 'en'
+  const persona = (nodeData.config?.persona as string) ?? 'professional'
+  const tone = (nodeData.config?.tone as string) ?? 'formal'
+  const language = (nodeData.config?.language as string) ?? 'en'
 
   const personaLabels: Record<string, string> = {
     professional: 'Professional',

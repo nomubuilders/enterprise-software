@@ -6,8 +6,8 @@ import { getNodeColorClass } from '../../config/nodeColors'
 
 export const ConsentManagementNode = memo((props: NodeProps) => {
   const nodeData = props.data as { label: string; config?: Record<string, unknown> }
-  const regulation = (nodeData.config?.regulation as string) || 'gdpr'
-  const consentType = (nodeData.config?.consentType as string) || 'explicit'
+  const regulation = (nodeData.config?.regulation as string) ?? 'gdpr'
+  const consentType = (nodeData.config?.consentType as string) ?? 'explicit'
   const blockOnMissing = nodeData.config?.blockOnMissing !== false
 
   const regLabels: Record<string, string> = {

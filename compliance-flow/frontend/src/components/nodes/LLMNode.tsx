@@ -6,20 +6,22 @@ import { getNodeColorClass } from '../../config/nodeColors'
 
 export const LLMNode = memo((props: NodeProps) => {
   const nodeData = props.data as { label: string; config?: Record<string, unknown> }
-  const model = (nodeData.config?.model as string) || 'llama3.2'
-  const temperature = (nodeData.config?.temperature as number) || 0.7
+  const model = (nodeData.config?.model as string) ?? 'llama3.2'
+  const temperature = (nodeData.config?.temperature as number) ?? 0.7
 
-  // Temperature indicator
+  // Temperature indicator — thresholds match NodeConfigPanel getTempDescription
   const getTempColor = () => {
     if (temperature < 0.3) return 'text-[var(--nomu-primary)]'
     if (temperature < 0.7) return 'text-[var(--nomu-accent)]'
-    return 'text-[var(--nomu-accent)]'
+    if (temperature < 1.2) return 'text-[var(--nomu-accent)]'
+    return 'text-red-400'
   }
 
   const getTempLabel = () => {
     if (temperature < 0.3) return 'Precise'
     if (temperature < 0.7) return 'Balanced'
-    return 'Creative'
+    if (temperature < 1.2) return 'Creative'
+    return 'Unpredictable'
   }
 
   return (

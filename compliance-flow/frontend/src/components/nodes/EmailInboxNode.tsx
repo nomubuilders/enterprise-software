@@ -6,7 +6,7 @@ import { getNodeColorClass } from '../../config/nodeColors'
 
 export const EmailInboxNode = memo((props: NodeProps) => {
   const nodeData = props.data as { label: string; config?: Record<string, unknown> }
-  const protocol = (nodeData.config?.protocol as string) || 'imap'
+  const protocol = (nodeData.config?.protocol as string) ?? 'imap'
   const email = nodeData.config?.email as string | undefined
   const host = nodeData.config?.host as string | undefined
   const isConnected = nodeData.config?.isConnected === true

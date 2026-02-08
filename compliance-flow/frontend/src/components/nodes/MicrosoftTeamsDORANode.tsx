@@ -13,8 +13,8 @@ const MONITORING_MODE_LABELS: Record<string, string> = {
 
 export const MicrosoftTeamsDORANode = memo((props: NodeProps) => {
   const config = (props.data as { config?: Record<string, unknown> }).config
-  const monitoringMode = (config?.monitoringMode as string) || 'ict_incidents'
-  const alertWindow = (config?.alertWindow as number) || 240
+  const monitoringMode = (config?.monitoringMode as string) ?? 'ict_incidents'
+  const alertWindow = (config?.alertWindow as number) ?? 240
 
   return (
     <BaseNode {...props} icon={<ShieldAlert size={16} />} color={getNodeColorClass('microsoftTeamsDORANode')}>

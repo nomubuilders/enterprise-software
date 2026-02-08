@@ -12,7 +12,7 @@ const SCAN_MODE_LABELS: Record<string, string> = {
 
 export const SlackComplianceNode = memo((props: NodeProps) => {
   const config = (props.data as { config?: Record<string, unknown> }).config
-  const scanMode = (config?.scanMode as string) || 'batch'
+  const scanMode = (config?.scanMode as string) ?? 'batch'
   const detectPII = config?.detectPII !== false
   const extractDocs = config?.extractDocs === true
 
