@@ -146,6 +146,14 @@ function updateHTML(stats) {
     html = html.replace(re, `$1${value}$2`)
   }
 
+  // Update timeline Current milestone
+  const today = new Date().toISOString().slice(0, 10)
+  const milestoneLabel = `${stats.nodes} nodes, ${stats.issues} open issues`
+  html = html.replace(
+    /section Current\n\s+.+:milestone, now, \d{4}-\d{2}-\d{2}, 0d/,
+    `section Current\n    ${milestoneLabel}                :milestone, now, ${today}, 0d`
+  )
+
   // Inject recent activity commit cards
   if (stats.commits.length > 0) {
     const cards = stats.commits.map(c => {
