@@ -1,0 +1,10 @@
+node_modules
+dist
+out
+.git
+.gitignore
+*.md
+electron
+electron-builder.yml
+electron.vite.config.ts
+tsconfig.electron.json

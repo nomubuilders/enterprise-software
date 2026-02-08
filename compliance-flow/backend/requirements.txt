@@ -50,8 +50,8 @@ msgraph-core>=1.0.0          # Microsoft Graph SDK
 google-auth>=2.29.0          # Google OAuth
 google-api-python-client>=2.118.0  # Google Drive API
 dropbox>=12.0.2              # Dropbox SDK
-mega.py>=1.0.8               # MEGA cloud storage
-sqlcipher3>=0.5.3            # SQLite encryption
+# mega.py removed — conflicts with tenacity>=8 (requires tenacity<6)
+# sqlcipher3 removed — requires libsqlcipher-dev build dep
 watchdog>=4.0.0              # Filesystem monitoring
 jira>=3.8.0                  # Jira REST API client
 requests-oauthlib>=2.0.0     # OAuth for SAP/general

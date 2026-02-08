@@ -1,4 +1,3 @@
-version: '3.8'
 
 services:
   # Frontend - React PWA
@@ -9,12 +8,13 @@ services:
     ports:
       - "5173:5173"
     volumes:
-      - ./frontend/src:/app/src
-      - ./frontend/public:/app/public
+      - ./frontend:/app
+      - /app/node_modules
     environment:
       - VITE_API_URL=http://localhost:8000/api/v1
     depends_on:
-      - backend
+      backend:
+        condition: service_started
 
   # Backend - FastAPI
   backend:
@@ -36,15 +36,16 @@ services:
     volumes:
       - ./backend/app:/app/app
     depends_on:
-      - postgres
-      - redis
-      - ollama
+      postgres:
+        condition: service_started
+      redis:
+        condition: service_started
 
   # PostgreSQL Database
   postgres:
     image: postgres:16-alpine
     ports:
-      - "5432:5432"
+      - "5433:5432"
     environment:
       - POSTGRES_DB=compliance_flow
       - POSTGRES_USER=postgres
@@ -75,13 +76,6 @@ services:
       - "11434:11434"
     volumes:
       - ollama_data:/root/.ollama
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: all
-              capabilities: [gpu]
 
 volumes:
   postgres_data:
