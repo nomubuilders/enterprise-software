@@ -464,6 +464,22 @@ class ApiClient {
       body: JSON.stringify(config),
     })
   }
+
+  // Node I/O Testing
+  async testNode(
+    nodeType: string,
+    payload: { config: Record<string, unknown>; input: unknown }
+  ): Promise<{
+    success: boolean
+    output?: unknown
+    error?: string
+    duration_ms?: number
+  }> {
+    return this.fetch(`/nodes/${nodeType}/test`, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    })
+  }
 }
 
 // Export singleton instance

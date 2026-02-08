@@ -60,6 +60,7 @@ import { getNodeColorClass } from '../../config/nodeColors'
 import { DockerTerminal } from './DockerTerminal'
 import { SAPERPConfig } from './SAPERPConfig'
 import { EvaluationPanel } from './EvaluationPanel'
+import { NodeIOTestPane } from './NodeIOTestPane'
 import { useFlowStore } from '../../store/flowStore'
 import { useWorkflowStore } from '../../store/workflowStore'
 import { useDockerStore } from '../../store/dockerStore'
@@ -576,6 +577,12 @@ export function NodeConfigPanel({ node, onClose, onRunWorkflow, onOpenChat }: No
             onUpdate={(data) => updateNodeData(node.id, data)}
           />
         )}
+
+        {/* Node I/O Test Pane */}
+        <NodeIOTestPane
+          nodeType={nodeType}
+          nodeConfig={(nodeData.config as Record<string, unknown>) ?? {}}
+        />
       </div>
 
       {/* Footer */}
