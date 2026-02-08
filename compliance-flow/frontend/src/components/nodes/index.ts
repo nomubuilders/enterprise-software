@@ -36,6 +36,7 @@ import { LocalFolderStorageNode } from './LocalFolderStorageNode'
 import { CloudDocumentNode } from './CloudDocumentNode'
 import { JiraComplianceNode } from './JiraComplianceNode'
 import { SAPERPNode } from './SAPERPNode'
+import { VoiceAssistantNode } from './VoiceAssistantNode'
 
 export {
   LLMNode,
@@ -76,6 +77,7 @@ export {
   CloudDocumentNode,
   JiraComplianceNode,
   SAPERPNode,
+  VoiceAssistantNode,
 }
 
 export const nodeTypes = {
@@ -117,4 +119,5 @@ export const nodeTypes = {
   cloudDocumentNode: CloudDocumentNode,
   jiraComplianceNode: JiraComplianceNode,
   sapERPNode: SAPERPNode,
+  voiceAssistantNode: VoiceAssistantNode,
 }

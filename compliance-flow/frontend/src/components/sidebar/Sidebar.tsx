@@ -42,6 +42,7 @@ import {
   Cloud,
   Ticket,
   Building2,
+  Mic,
 } from 'lucide-react'
 import { useDockerStore } from '../../store/dockerStore'
 import { getNodeColorClass } from '../../config/nodeColors'
@@ -318,6 +319,14 @@ const nodeTemplates: NodeTemplate[] = [
     config: { metric: 'output_similarity', driftThreshold: 0.15, schedule: 'daily' },
   },
   // Communication
+  {
+    type: 'voiceAssistantNode',
+    label: 'Voice Assistant',
+    icon: <Mic size={18} />,
+    color: getNodeColorClass('voiceAssistantNode'),
+    category: 'Communication',
+    config: { transcription_model: 'small', language: 'en', realtime_preview: false, use_backend: false, personaplex_enabled: false, personaplex_url: '', persona_prompt: '', voice_embedding: '' },
+  },
   {
     type: 'notificationNode',
     label: 'Notification',

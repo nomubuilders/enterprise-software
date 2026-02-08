@@ -119,6 +119,291 @@ function formatDate() {
   })
 }
 
+// --- Timeline phase detection ---
+
+function humanizeEpicName(name) {
+  return name
+    .replace(/[-_]/g, ' ')
+    .replace(/\b\w/g, (c) => c.toUpperCase())
+    .replace(/\s+Implementation$/i, '')
+    .trim()
+}
+
+function humanizeBranchName(name) {
+  return name
+    .replace(/[-_]/g, ' ')
+    .replace(/\b\w/g, (c) => c.toUpperCase())
+    .replace(/\s+Roadmap$/i, '')
+    .trim()
+}
+
+function clusterLabel(commits, date) {
+  const adds = commits.filter((c) =>
+    /^(Add|Create|feat)/i.test(c.message)
+  ).length
+  const fixes = commits.filter((c) => /^Fix/i.test(c.message)).length
+  const cleanup = commits.filter((c) =>
+    /^(Remove|Move|chore|Simplify|Unify|Removed)/i.test(c.message)
+  ).length
+
+  let label
+  if (cleanup > adds && cleanup > fixes) label = 'Cleanup & Restructure'
+  else if (cleanup > 0 && adds > 0 && fixes === 0) label = 'Features & Cleanup'
+  else if (fixes > adds) label = 'Bug Fixes'
+  else if (adds > 0 && fixes > 0) label = 'Features & Fixes'
+  else if (adds > 0) label = 'New Features'
+  else label = 'Improvements'
+
+  // Append short date for uniqueness across days
+  const d = new Date(date + 'T12:00:00Z')
+  const monthDay = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+  return `${label} (${monthDay})`
+}
+
+function buildTimelinePhases() {
+  let raw
+  try {
+    raw = execSync('git log --format="%aI;;%s" --reverse', {
+      cwd: ROOT,
+      encoding: 'utf-8',
+      timeout: 15000,
+    })
+  } catch {
+    return []
+  }
+
+  const commits = raw
+    .trim()
+    .split('\n')
+    .filter(Boolean)
+    .map((line) => {
+      const sep = line.indexOf(';;')
+      return { date: line.slice(0, 10), message: line.slice(sep + 2) }
+    })
+  if (!commits.length) return []
+
+  // Build issue→epic mapping from task files
+  const epicsDir = join(ROOT, '.claude/epics')
+  const issueToEpic = new Map()
+  const epicMeta = new Map()
+
+  if (existsSync(epicsDir)) {
+    for (const d of readdirSync(epicsDir)) {
+      const epicDir = join(epicsDir, d)
+      if (!statSync(epicDir).isDirectory()) continue
+      const epicPath = join(epicDir, 'epic.md')
+      if (!existsSync(epicPath)) continue
+
+      const content = readFileSync(epicPath, 'utf-8')
+      const name = (content.match(/name:\s*(.+)/)?.[1] || d).trim()
+      const status = (content.match(/status:\s*(.+)/)?.[1] || 'unknown').trim()
+      const created = (content.match(/created:\s*(.+)/)?.[1] || '').trim().slice(0, 10)
+      epicMeta.set(d, { name, status, created })
+
+      for (const f of readdirSync(epicDir)) {
+        if (/^\d+\.md$/.test(f)) {
+          issueToEpic.set(parseInt(f.replace('.md', ''), 10), d)
+        }
+      }
+    }
+  }
+
+  // Pre-scan: find merge commits that create new phases (not matching any epic dir)
+  const mergePhases = []
+  for (const c of commits) {
+    const m = c.message.match(
+      /Merge (?:pull request #\d+ from \S+\/|branch ')epic\/(.+?)(?:'|$)/
+    )
+    if (!m) continue
+    const branchNorm = m[1].toLowerCase().replace(/-/g, '')
+    const matchingEpic = [...epicMeta.keys()].find(
+      (d) => d.toLowerCase().replace(/-/g, '') === branchNorm
+    )
+    if (!matchingEpic) {
+      mergePhases.push({
+        label: humanizeBranchName(m[1]),
+        startDate: c.date,
+        endDate: c.date,
+        status: 'done',
+        commitCount: 1,
+      })
+    }
+  }
+
+  // Assign commits to epics or merge phases
+  const epicCommits = new Map()
+  const unassigned = []
+
+  for (const c of commits) {
+    // Skip merge commits — assign epic merges to their epic
+    if (/^Merge /.test(c.message)) {
+      const m = c.message.match(
+        /Merge (?:pull request #\d+ from \S+\/|branch ')epic\/(.+?)(?:'|$)/
+      )
+      if (m) {
+        const branchNorm = m[1].toLowerCase().replace(/-/g, '')
+        const matchingEpic = [...epicMeta.keys()].find(
+          (d) => d.toLowerCase().replace(/-/g, '') === branchNorm
+        )
+        if (matchingEpic) {
+          if (!epicCommits.has(matchingEpic)) epicCommits.set(matchingEpic, [])
+          epicCommits.get(matchingEpic).push(c)
+        }
+      }
+      continue
+    }
+
+    // 1. "Issue #N:" → epic via task file mapping
+    const issueMatch = c.message.match(/Issue #(\d+):/)
+    if (issueMatch) {
+      const epicDir = issueToEpic.get(parseInt(issueMatch[1], 10))
+      if (epicDir) {
+        if (!epicCommits.has(epicDir)) epicCommits.set(epicDir, [])
+        epicCommits.get(epicDir).push(c)
+        continue
+      }
+    }
+
+    // 2. "Epic N:" → nearest merge phase (pre-scanned)
+    if (/^Epic \d+:/.test(c.message)) {
+      const nearest = mergePhases
+        .filter(
+          (p) =>
+            Math.abs(new Date(c.date) - new Date(p.startDate)) <=
+            2 * 86400000
+        )
+        .sort(
+          (a, b) =>
+            Math.abs(new Date(c.date) - new Date(a.startDate)) -
+            Math.abs(new Date(c.date) - new Date(b.startDate))
+        )[0]
+      if (nearest) {
+        nearest.commitCount++
+        if (c.date < nearest.startDate) nearest.startDate = c.date
+        if (c.date > nearest.endDate) nearest.endDate = c.date
+        continue
+      }
+    }
+
+    // 3. Commit message contains epic directory name → that epic
+    const msgLower = c.message.toLowerCase()
+    let epicMatched = false
+    for (const [epicDir] of epicMeta) {
+      const phrase = epicDir.replace(/-/g, ' ')
+      if (msgLower.includes(phrase)) {
+        if (!epicCommits.has(epicDir)) epicCommits.set(epicDir, [])
+        epicCommits.get(epicDir).push(c)
+        epicMatched = true
+        break
+      }
+    }
+    if (epicMatched) continue
+
+    unassigned.push(c)
+  }
+
+  // Build phases from epics
+  const phases = []
+  for (const [epicDir, meta] of epicMeta) {
+    const eCommits = epicCommits.get(epicDir) || []
+    const dates = eCommits.map((c) => c.date).sort()
+    phases.push({
+      label: humanizeEpicName(meta.name),
+      startDate: dates.length ? dates[0] : meta.created,
+      endDate: dates.length ? dates[dates.length - 1] : meta.created,
+      status: meta.status === 'completed' ? 'done' : 'active',
+      commitCount: eCommits.length,
+    })
+  }
+
+  // Add merge-detected phases
+  phases.push(...mergePhases)
+  phases.sort((a, b) => a.startDate.localeCompare(b.startDate))
+
+  // Cluster unassigned commits
+  if (unassigned.length > 0) {
+    const sorted = [...unassigned].sort((a, b) =>
+      a.date.localeCompare(b.date)
+    )
+    const firstPhaseDate =
+      phases.length > 0 ? phases[0].startDate : sorted[sorted.length - 1].date
+
+    // Foundation: commits before any named phase
+    const foundation = sorted.filter((c) => c.date < firstPhaseDate)
+    if (foundation.length > 0) {
+      const dates = foundation.map((c) => c.date).sort()
+      phases.unshift({
+        label: 'Foundation',
+        startDate: dates[0],
+        endDate: dates[dates.length - 1],
+        status: 'done',
+        commitCount: foundation.length,
+      })
+    }
+
+    // Remaining: group by calendar day (each day = own cluster)
+    const remaining = sorted.filter((c) => c.date >= firstPhaseDate)
+    if (remaining.length > 0) {
+      const dayMap = new Map()
+      for (const c of remaining) {
+        if (!dayMap.has(c.date)) dayMap.set(c.date, [])
+        dayMap.get(c.date).push(c)
+      }
+
+      for (const [date, dayCommits] of [...dayMap].sort(([a], [b]) =>
+        a.localeCompare(b)
+      )) {
+        phases.push({
+          label: clusterLabel(dayCommits, date),
+          startDate: date,
+          endDate: date,
+          status: 'done',
+          commitCount: dayCommits.length,
+        })
+      }
+    }
+  }
+
+  phases.sort((a, b) => a.startDate.localeCompare(b.startDate))
+  return phases
+}
+
+function generateGanttMarkup(phases, stats) {
+  const today = new Date().toISOString().slice(0, 10)
+  const lines = [
+    "%%{init: {'theme': 'dark', 'themeVariables': {'primaryColor': '#4004DA', 'primaryTextColor': '#FEFCFD', 'lineColor': '#FF6C1D', 'background': '#36312E', 'mainBkg': '#36312E'}}}%%",
+    'gantt',
+    '    title ComplianceFlow Development Timeline',
+    '    dateFormat YYYY-MM-DD',
+    '    axisFormat %b %d',
+  ]
+
+  for (let i = 0; i < phases.length; i++) {
+    const p = phases[i]
+    const id = `p${i + 1}`
+    const desc =
+      p.commitCount > 1
+        ? `${p.label} — ${p.commitCount} commits`
+        : p.label
+    const statusTag = p.status === 'done' ? 'done, ' : ''
+    lines.push('')
+    lines.push(`    section ${p.label}`)
+    lines.push(
+      `    ${desc.padEnd(44)}:${statusTag}${id}, ${p.startDate}, ${p.endDate}`
+    )
+  }
+
+  // Current milestone
+  const milestoneLabel = `${stats.nodes} nodes, ${stats.issues} open issues`
+  lines.push('')
+  lines.push('    section Current')
+  lines.push(
+    `    ${milestoneLabel.padEnd(44)}:milestone, now, ${today}, 0d`
+  )
+
+  return lines.join('\n')
+}
+
 // --- HTML updater ---
 
 function updateHTML(stats) {
@@ -146,13 +431,14 @@ function updateHTML(stats) {
     html = html.replace(re, `$1${value}$2`)
   }
 
-  // Update timeline Current milestone
-  const today = new Date().toISOString().slice(0, 10)
-  const milestoneLabel = `${stats.nodes} nodes, ${stats.issues} open issues`
-  html = html.replace(
-    /section Current\n\s+.+:milestone, now, \d{4}-\d{2}-\d{2}, 0d/,
-    `section Current\n    ${milestoneLabel}                :milestone, now, ${today}, 0d`
-  )
+  // Replace entire gantt chart in timeline section
+  if (stats.phases.length > 0) {
+    const ganttMarkup = generateGanttMarkup(stats.phases, stats)
+    html = html.replace(
+      /(id="chart-timeline"[\s\S]*?<pre class="mermaid">\n)[\s\S]*?(\n\s*<\/pre>)/,
+      `$1${ganttMarkup}$2`
+    )
+  }
 
   // Inject recent activity commit cards
   if (stats.commits.length > 0) {
@@ -185,6 +471,7 @@ const stats = {
   issues: countOpenIssues(),
   infra: countInfraServices(),
   commits: getRecentCommits(),
+  phases: buildTimelinePhases(),
   date: formatDate(),
 }
 
@@ -194,6 +481,7 @@ console.log(`  Epics:      ${stats.epics.completed}/${stats.epics.total}`)
 console.log(`  Open Issues: ${stats.issues}`)
 console.log(`  Infra:      ${stats.infra}`)
 console.log(`  Commits:    ${stats.commits.length}`)
+console.log(`  Phases:     ${stats.phases.length}`)
 console.log(`  Date:       ${stats.date}`)
 
 updateHTML(stats)

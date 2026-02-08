@@ -13,6 +13,7 @@
 #   ./scripts/launch-team.sh --core           # Core: architect + frontend + backend
 #   ./scripts/launch-team.sh --research       # Research: architect + n8n-scout + analyzer
 #   ./scripts/launch-team.sh --node-io        # Node I/O: test input/output pane for all 38 nodes
+#   ./scripts/launch-team.sh --voice          # Voice: VoiceAssistantNode with Whisper + PersonaPlex
 #   ./scripts/launch-team.sh "custom task"    # Custom task for the team
 # ============================================================================
 
@@ -139,6 +140,9 @@ Phase 3: code-simplifier refines, code-analyzer reviews
 
 Use delegate mode. Track everything via TaskCreate/TaskUpdate/TaskList.
 PROMPT
+      ;;
+    --voice)
+      exec "$PROJECT_DIR/scripts/launch-voice-team.sh"
       ;;
     ""|--full)
       cat << 'PROMPT'

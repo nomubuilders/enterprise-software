@@ -96,6 +96,7 @@ const SAMPLE_INPUTS: Record<string, object> = {
   microsoftTeamsDORANode: { tenant_id: 'demo-tenant', channel: 'General' },
   jiraComplianceNode: { jql: 'project = COMP AND status != Closed', max_results: 20 },
   sapERPNode: { report_type: 'balance_sheet', company_code: '1000', fiscal_year: '2026' },
+  voiceAssistantNode: { audio_source: 'microphone', model: 'small', language: 'en' },
 
   // Cloud & Storage
   cloudDocumentNode: { provider: 'google_drive', folder_id: 'root', operation: 'list' },
