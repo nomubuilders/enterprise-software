@@ -18,6 +18,8 @@ dist/
 # Agent/tool directories
 .agent/
 .agents/
-.claude/
 .cursor/
 .env.telegram
+
+# Claude Code - track shared config, ignore local/private files
+.claude/settings.local.json
