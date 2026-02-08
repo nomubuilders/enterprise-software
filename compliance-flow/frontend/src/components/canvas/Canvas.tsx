@@ -32,6 +32,8 @@ export function Canvas() {
     selectedEdgeId,
     setSelectedEdge,
     deleteEdge,
+    deleteNode,
+    updateNodeData,
   } = useFlowStore()
 
   const onInit = useCallback((instance: ReactFlowInstance) => {
@@ -118,17 +120,59 @@ export function Canvas() {
     }
   }, [nodes])
 
-  // Keyboard listener for edge deletion
+  // Keyboard shortcuts: Delete, D (disable), Ctrl+D (duplicate)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (isEditMode && selectedEdgeId && (e.key === 'Delete' || e.key === 'Backspace')) {
-        e.preventDefault()
-        deleteEdge(selectedEdgeId)
+      // Ignore when typing in inputs
+      const tag = (e.target as HTMLElement).tagName
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return
+
+      const { selectedNodeId, nodes: currentNodes, selectedEdgeId: currentEdgeId } = useFlowStore.getState()
+
+      // Delete / Backspace — remove selected node or edge
+      if (e.key === 'Delete' || e.key === 'Backspace') {
+        if (selectedNodeId) {
+          e.preventDefault()
+          deleteNode(selectedNodeId)
+        } else if (isEditMode && currentEdgeId) {
+          e.preventDefault()
+          deleteEdge(currentEdgeId)
+        }
+      }
+
+      // D — toggle node disabled
+      if (e.key === 'd' || e.key === 'D') {
+        if (selectedNodeId && !e.metaKey && !e.ctrlKey) {
+          e.preventDefault()
+          const node = currentNodes.find((n) => n.id === selectedNodeId)
+          if (node) {
+            const nodeData = node.data as Record<string, unknown>
+            updateNodeData(selectedNodeId, { disabled: !nodeData.disabled })
+          }
+        }
+      }
+
+      // Ctrl/Cmd+D — duplicate selected node
+      if ((e.metaKey || e.ctrlKey) && (e.key === 'd' || e.key === 'D')) {
+        if (selectedNodeId) {
+          e.preventDefault()
+          const node = currentNodes.find((n) => n.id === selectedNodeId)
+          if (node) {
+            const newNode = {
+              id: getId(),
+              type: node.type,
+              position: { x: node.position.x + 30, y: node.position.y + 30 },
+              data: { ...node.data },
+            }
+            addNode(newNode)
+            setSelectedNode(newNode.id)
+          }
+        }
       }
     }
     document.addEventListener('keydown', handleKeyDown)
     return () => document.removeEventListener('keydown', handleKeyDown)
-  }, [isEditMode, selectedEdgeId, deleteEdge])
+  }, [isEditMode, deleteEdge, deleteNode, addNode, setSelectedNode, updateNodeData])
 
   // Enhance edges with visual feedback based on node configuration
   const enhancedEdges = useMemo(() => {

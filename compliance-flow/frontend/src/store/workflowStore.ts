@@ -312,13 +312,13 @@ export const useWorkflowStore = create<WorkflowState>()(
                   try {
                     const result = await api.executeQuery(
                       {
-                        type: (config.dbType as 'postgresql' | 'mysql' | 'mongodb') || 'postgresql',
+                        type: (config.dbType as 'postgresql' | 'mysql' | 'mongodb') ?? 'postgresql',
                         host: config.host as string,
-                        port: config.port as number || 5432,
+                        port: (config.port as number) ?? 5432,
                         database: config.database as string,
-                        username: config.username as string || '',
-                        password: config.password as string || '',
-                        ssl: config.ssl as boolean || false,
+                        username: (config.username as string) ?? '',
+                        password: (config.password as string) ?? '',
+                        ssl: (config.ssl as boolean) ?? false,
                       },
                       config.query as string,
                       100
@@ -431,7 +431,7 @@ export const useWorkflowStore = create<WorkflowState>()(
                   const result = await api.generate({
                     model,
                     prompt,
-                    temperature: (config.temperature as number) || 0.7,
+                    temperature: (config.temperature as number) ?? 0.7,
                     max_tokens: (config.maxTokens as number) || 2048,
                   })
 
@@ -480,8 +480,8 @@ export const useWorkflowStore = create<WorkflowState>()(
                       tag,
                       command: (config.command as string[]) || [],
                       envVars: (config.envVars as Record<string, string>) || {},
-                      cpuLimit: (config.cpuLimit as number) || 0.5,
-                      memoryLimit: (config.memoryLimit as number) || 512,
+                      cpuLimit: (config.cpuLimit as number) ?? 0.5,
+                      memoryLimit: (config.memoryLimit as number) ?? 512,
                       timeout: (config.timeout as number) || 300,
                       networkMode: (config.networkMode as 'none' | 'internal') || 'none',
                       inputData: workflowData,
@@ -732,7 +732,7 @@ export const useWorkflowStore = create<WorkflowState>()(
                       chat_id: config.chatId as string,
                       text,
                       parse_mode: (config.parseMode as 'Markdown' | 'HTML') || 'Markdown',
-                      disable_notification: (config.disableNotification as boolean) || false,
+                      disable_notification: (config.disableNotification as boolean) ?? false,
                     })
                     addLog(node.id, nodeName, result.success ? 'info' : 'error', result.message)
                   } catch (err) {
@@ -778,7 +778,7 @@ export const useWorkflowStore = create<WorkflowState>()(
                       },
                       {
                         folder: (config.folder as string) || 'INBOX',
-                        filter_unread: (config.filterUnread as boolean) || false,
+                        filter_unread: (config.filterUnread as boolean) ?? false,
                         filter_from: config.filterFrom as string | undefined,
                         filter_since: config.filterSince as string | undefined,
                         limit: (config.limit as number) || 50,
@@ -1014,7 +1014,7 @@ export const useWorkflowStore = create<WorkflowState>()(
               else if (node.type === 'biasTestingNode') {
                 addLog(node.id, nodeName, 'info', 'Running bias & fairness tests...')
                 const testType = config.testType as string || 'disparate_impact'
-                const threshold = config.threshold as number || 0.8
+                const threshold = (config.threshold as number) ?? 0.8
                 workflowData.biasTestResults = {
                   testType,
                   threshold,
@@ -1047,7 +1047,7 @@ export const useWorkflowStore = create<WorkflowState>()(
               }
               else if (node.type === 'driftDetectionNode') {
                 addLog(node.id, nodeName, 'info', 'Checking for output drift...')
-                const driftThreshold = config.driftThreshold as number || 0.15
+                const driftThreshold = (config.driftThreshold as number) ?? 0.15
                 workflowData.driftAnalysis = {
                   currentDrift: 0.05,
                   threshold: driftThreshold,

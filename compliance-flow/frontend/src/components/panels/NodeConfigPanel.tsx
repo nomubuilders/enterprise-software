@@ -87,6 +87,18 @@ export function NodeConfigPanel({ node, onClose, onRunWorkflow, onOpenChat }: No
   const panelRef = useRef<HTMLDivElement>(null)
 
   // Handle resize drag
+  const handleMouseMove = useRef((e: MouseEvent) => {
+    if (!isResizing.current) return
+    const newWidth = window.innerWidth - e.clientX
+    setPanelWidth(Math.min(Math.max(320, newWidth), 800)) // Min 320, Max 800
+  }).current
+
+  const handleMouseUp = useRef(() => {
+    isResizing.current = false
+    document.removeEventListener('mousemove', handleMouseMove)
+    document.removeEventListener('mouseup', handleMouseUp)
+  }).current
+
   const handleMouseDown = (e: React.MouseEvent) => {
     isResizing.current = true
     document.addEventListener('mousemove', handleMouseMove)
@@ -94,17 +106,13 @@ export function NodeConfigPanel({ node, onClose, onRunWorkflow, onOpenChat }: No
     e.preventDefault()
   }
 
-  const handleMouseMove = (e: MouseEvent) => {
-    if (!isResizing.current) return
-    const newWidth = window.innerWidth - e.clientX
-    setPanelWidth(Math.min(Math.max(320, newWidth), 800)) // Min 320, Max 800
-  }
-
-  const handleMouseUp = () => {
-    isResizing.current = false
-    document.removeEventListener('mousemove', handleMouseMove)
-    document.removeEventListener('mouseup', handleMouseUp)
-  }
+  // Cleanup: remove orphaned listeners if panel unmounts mid-drag
+  useEffect(() => {
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove)
+      document.removeEventListener('mouseup', handleMouseUp)
+    }
+  }, [handleMouseMove, handleMouseUp])
 
   if (!node) return null
 

@@ -128,13 +128,13 @@ export function ChatInterfacePanel({ node, onClose }: ChatInterfacePanelProps) {
 
     try {
       const config = {
-        type: (dbConfig.dbType as 'postgresql' | 'mysql' | 'mongodb') || 'postgresql',
+        type: (dbConfig.dbType as 'postgresql' | 'mysql' | 'mongodb') ?? 'postgresql',
         host: dbConfig.host as string,
-        port: (dbConfig.port as number) || 5432,
+        port: (dbConfig.port as number) ?? 5432,
         database: dbConfig.database as string,
-        username: (dbConfig.username as string) || '',
-        password: (dbConfig.password as string) || '',
-        ssl: (dbConfig.ssl as boolean) || false,
+        username: (dbConfig.username as string) ?? '',
+        password: (dbConfig.password as string) ?? '',
+        ssl: (dbConfig.ssl as boolean) ?? false,
       }
 
       console.log('[ChatInterface] Fetching tables with config:', config)

@@ -21,14 +21,14 @@ export function DatabaseConfigModal({ isOpen, onClose, editConfig }: DatabaseCon
   const { addDatabaseConfig, updateDatabaseConfig } = useWorkflowStore()
 
   const [formData, setFormData] = useState({
-    name: editConfig?.name || '',
-    type: editConfig?.type || 'postgresql',
-    host: editConfig?.host || 'localhost',
-    port: editConfig?.port || 5432,
-    database: editConfig?.database || '',
-    username: editConfig?.username || '',
-    password: editConfig?.password || '',
-    ssl: editConfig?.ssl || false,
+    name: editConfig?.name ?? '',
+    type: editConfig?.type ?? 'postgresql',
+    host: editConfig?.host ?? 'localhost',
+    port: editConfig?.port ?? 5432,
+    database: editConfig?.database ?? '',
+    username: editConfig?.username ?? '',
+    password: editConfig?.password ?? '',
+    ssl: editConfig?.ssl ?? false,
   })
 
   const [isTesting, setIsTesting] = useState(false)

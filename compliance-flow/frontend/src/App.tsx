@@ -42,6 +42,7 @@ import { useDockerStore } from './store/dockerStore'
 import { useElectronStore } from './store/electronStore'
 import { useTutorialStore } from './store/tutorialStore'
 import { isElectron, getElectronBridge } from './services/electronBridge'
+import { api } from './services/api'
 
 function App() {
   // Modal states
@@ -74,6 +75,13 @@ function App() {
       setSetupComplete(!first)
     })
   }, [setIsFirstRun])
+
+  // Ollama health check (non-Electron mode)
+  const [ollamaConnected, setOllamaConnected] = useState(false)
+  useEffect(() => {
+    if (isElectron()) return
+    api.getOllamaHealth().then(() => setOllamaConnected(true)).catch(() => setOllamaConnected(false))
+  }, [])
 
   // Store hooks
   const { nodes, edges, clearFlow, setSelectedNode, isEditMode, toggleEditMode } = useFlowStore()
@@ -334,8 +342,8 @@ function App() {
                 </>
               )}
               <div className="flex items-center gap-2 text-xs">
-                <div className="h-2 w-2 rounded-full bg-green-500" />
-                <span className="text-[var(--nomu-text-muted)]">Ollama Connected</span>
+                <div className={`h-2 w-2 rounded-full ${ollamaConnected ? 'bg-green-500' : 'bg-red-500'}`} />
+                <span className="text-[var(--nomu-text-muted)]">{ollamaConnected ? 'Ollama Connected' : 'Ollama Disconnected'}</span>
               </div>
               <div className="h-4 w-px bg-[var(--nomu-border)]" />
               <div className="flex items-center gap-2 text-xs">
