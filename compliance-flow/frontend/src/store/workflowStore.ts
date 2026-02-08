@@ -842,9 +842,38 @@ export const useWorkflowStore = create<WorkflowState>()(
                 const minSeverity = (config.minSeverity as string) || 'medium'
 
                 // Gather code from upstream data
-                const codeContent = (workflowData.llmResponse as string)
+                let codeContent = (workflowData.llmResponse as string)
                   || (workflowData.filteredResponse as string)
                   || (workflowData.containerOutput ? String(workflowData.containerOutput) : '')
+
+                // Fallback: fetch from sourceUrl if no upstream code
+                if (!codeContent && config.sourceUrl) {
+                  try {
+                    const srcUrl = config.sourceUrl as string
+                    addLog(node.id, nodeName, 'info', `Fetching code from ${srcUrl}...`)
+                    let fetchUrl = srcUrl
+                    // GitHub blob URL → raw
+                    const blobMatch = srcUrl.match(/github\.com\/([^/]+)\/([^/]+)\/blob\/(.+)/)
+                    if (blobMatch) {
+                      fetchUrl = `https://raw.githubusercontent.com/${blobMatch[1]}/${blobMatch[2]}/${blobMatch[3]}`
+                    } else {
+                      // Repo root → README
+                      const repoMatch = srcUrl.match(/github\.com\/([^/]+)\/([^/]+?)(?:\.git)?$/)
+                      if (repoMatch) {
+                        fetchUrl = `https://raw.githubusercontent.com/${repoMatch[1]}/${repoMatch[2]}/main/README.md`
+                      }
+                    }
+                    const resp = await fetch(fetchUrl)
+                    if (resp.ok) {
+                      codeContent = await resp.text()
+                      addLog(node.id, nodeName, 'info', `Fetched ${codeContent.length} chars from URL`)
+                    } else {
+                      addLog(node.id, nodeName, 'warn', `URL fetch failed: ${resp.status}`)
+                    }
+                  } catch (err) {
+                    addLog(node.id, nodeName, 'warn', `URL fetch error: ${err instanceof Error ? err.message : 'Unknown'}`)
+                  }
+                }
 
                 if (!codeContent) {
                   addLog(node.id, nodeName, 'warn', 'No code content available for review - skipping')

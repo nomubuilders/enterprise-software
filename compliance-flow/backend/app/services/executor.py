@@ -737,6 +737,25 @@ class WorkflowExecutionEngine:
                 code_content = input_data[key]
                 break
 
+        # Fallback: fetch from sourceUrl if no upstream code
+        if not code_content:
+            source_url = node.data.get("sourceUrl", node.data.get("source_url", ""))
+            if source_url:
+                import re as _re
+                import httpx
+                fetch_url = source_url
+                blob_match = _re.match(r"https?://github\.com/([^/]+)/([^/]+)/blob/(.+)", source_url)
+                if blob_match:
+                    fetch_url = f"https://raw.githubusercontent.com/{blob_match.group(1)}/{blob_match.group(2)}/{blob_match.group(3)}"
+                else:
+                    repo_match = _re.match(r"https?://github\.com/([^/]+)/([^/]+?)(?:\.git)?$", source_url)
+                    if repo_match:
+                        fetch_url = f"https://raw.githubusercontent.com/{repo_match.group(1)}/{repo_match.group(2)}/main/README.md"
+                async with httpx.AsyncClient(timeout=30) as client:
+                    resp = await client.get(fetch_url)
+                    if resp.status_code == 200:
+                        code_content = resp.text
+
         if not code_content:
             return {"review": "", "error": "No code content available for review"}
 
