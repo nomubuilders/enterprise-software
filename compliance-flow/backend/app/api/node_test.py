@@ -8,10 +8,10 @@ reusing the WorkflowExecutionEngine's node dispatch logic.
 import asyncio
 import time
 import uuid
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Literal, Optional
 
 from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, ValidationError
 from loguru import logger
 
 from app.models.workflow import (
@@ -36,11 +36,16 @@ class NodeTestRequest(BaseModel):
     input: Any = None
 
 
+ErrorType = Literal["config_error", "input_error", "service_unavailable", "timeout", "runtime_error"]
+
+
 class NodeTestResponse(BaseModel):
     """Response from a single-node test execution."""
     success: bool
     output: Any = None
     error: Optional[str] = None
+    error_type: Optional[ErrorType] = None
+    suggestions: List[str] = []
     duration_ms: float = 0
 
 
@@ -131,17 +136,104 @@ async def test_node(node_type: str, body: NodeTestRequest) -> NodeTestResponse:
             success=False,
             output=None,
             error="Node execution timed out (30s limit)",
+            error_type="timeout",
+            suggestions=[
+                "Check that required services (Ollama, databases) are running",
+                "Reduce input data size or prompt length",
+                "Try a smaller/faster model if using an LLM node",
+            ],
             duration_ms=duration_ms,
         )
     except Exception as e:
         duration_ms = round((time.perf_counter() - start) * 1000, 2)
+        error_type, suggestions = _classify_error(e, node_type)
         logger.warning(f"Node test failed for {node_type}: {e}")
         return NodeTestResponse(
             success=False,
             output=None,
             error=str(e),
+            error_type=error_type,
+            suggestions=suggestions,
             duration_ms=duration_ms,
         )
+
+
+# ---------------------------------------------------------------------------
+# Error classification
+# ---------------------------------------------------------------------------
+
+# Node types that depend on external services
+_SERVICE_NODES = {
+    "databaseNode", "llmNode", "emailInboxNode", "slackComplianceNode",
+    "microsoftTeamsDORANode", "jiraComplianceNode", "sapERPNode",
+    "cloudDocumentNode", "webhookGatewayNode", "webSearchNode",
+}
+
+
+def _classify_error(exc: Exception, node_type: str) -> tuple[ErrorType, list[str]]:
+    """Classify an exception into an error_type and provide fix suggestions."""
+    error_msg = str(exc).lower()
+
+    # --- Validation / config errors ---
+    if isinstance(exc, (ValidationError, KeyError)):
+        return "config_error", [
+            "Check that all required configuration fields are filled in",
+            "Verify field values match the expected types",
+        ]
+
+    if isinstance(exc, ValueError):
+        # Heuristic: if the message mentions input/data it's likely input_error
+        if any(kw in error_msg for kw in ("input", "data", "payload", "empty", "missing key")):
+            return "input_error", [
+                "Provide sample input data in the Input tab",
+                "Ensure input matches the format this node expects",
+            ]
+        return "config_error", [
+            "Review the node configuration for invalid values",
+            "Check that all required fields are set",
+        ]
+
+    if isinstance(exc, TypeError):
+        return "input_error", [
+            "Input data type doesn't match what this node expects",
+            "Try passing a JSON object instead of a plain value",
+        ]
+
+    # --- Connection / service errors ---
+    if isinstance(exc, (ConnectionError, ConnectionRefusedError, ConnectionResetError, OSError)):
+        suggestions = ["Verify the service is running and accessible"]
+        if node_type in ("llmNode", "personalityNode", "codeReviewNode"):
+            suggestions.append("Check that Ollama is running on port 11434")
+        elif node_type == "databaseNode":
+            suggestions.append("Verify database host, port, and credentials in config")
+        elif node_type in ("slackComplianceNode", "jiraComplianceNode", "sapERPNode"):
+            suggestions.append("Check API credentials and network connectivity")
+        return "service_unavailable", suggestions
+
+    if isinstance(exc, TimeoutError):
+        return "service_unavailable", [
+            "The external service did not respond in time",
+            "Check network connectivity and service health",
+        ]
+
+    # --- Catch-all: check error message for common patterns ---
+    if any(kw in error_msg for kw in ("connection", "connect", "refused", "unreachable", "dns")):
+        return "service_unavailable", [
+            "Cannot reach the required service",
+            "Check that Docker services are running (PostgreSQL, Redis, Ollama, etc.)",
+        ]
+
+    if any(kw in error_msg for kw in ("credential", "auth", "token", "api key", "unauthorized", "forbidden")):
+        return "config_error", [
+            "Authentication credentials are missing or invalid",
+            "Verify API keys, tokens, or passwords in the node configuration",
+        ]
+
+    # --- Default ---
+    return "runtime_error", [
+        "An unexpected error occurred during node execution",
+        "Check the backend logs for more details",
+    ]
 
 
 async def _dispatch_node(

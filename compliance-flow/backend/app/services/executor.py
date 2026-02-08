@@ -765,13 +765,15 @@ class WorkflowExecutionEngine:
             f"{code_language} code. Focus on issues of {min_severity} severity or higher."
         )
 
-        result = await ollama.generate(
+        from app.services.ollama import CompletionRequest
+
+        request = CompletionRequest(
             model=model,
-            prompt=f"Review this code:\n```\n{code_content[:4000]}\n```\n\nProvide a structured review.",
-            system=system_prompt,
+            prompt=f"{system_prompt}\n\nReview this code:\n```\n{code_content[:4000]}\n```\n\nProvide a structured review.",
             temperature=0.3,
         )
-        return {"review": result.get("response", ""), "model": model}
+        result = await ollama.generate(request)
+        return {"review": result.response, "model": model}
 
     async def _execute_mcp_context_node(self, node: WorkflowNode, input_data: Dict[str, Any]) -> Dict[str, Any]:
         """Execute an MCP context node - returns MCP config as context."""

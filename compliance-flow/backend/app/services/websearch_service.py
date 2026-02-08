@@ -1,5 +1,7 @@
 """Web search service for ComplianceFlow."""
 
+from __future__ import annotations
+
 import httpx
 from typing import Any, Optional
 

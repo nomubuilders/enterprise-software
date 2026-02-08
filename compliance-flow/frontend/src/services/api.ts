@@ -473,6 +473,8 @@ class ApiClient {
     success: boolean
     output?: unknown
     error?: string
+    error_type?: string
+    suggestions?: string[]
     duration_ms?: number
   }> {
     return this.fetch(`/nodes/${nodeType}/test`, {
