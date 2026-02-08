@@ -61,7 +61,7 @@ function App() {
   const [setupComplete, setSetupComplete] = useState(!isElectron())
 
   // Tutorial state
-  const { isActive: tutorialActive, start: startTutorial, completed: tutorialCompleted } = useTutorialStore()
+  const { isActive: tutorialActive, start: startTutorial, completed: _tutorialCompleted } = useTutorialStore()
 
   // Check first run on mount (Electron only)
   useEffect(() => {

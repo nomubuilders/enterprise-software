@@ -43,6 +43,7 @@ import {
   Ticket,
   Building2,
   Mic,
+  MessageSquareMore,
 } from 'lucide-react'
 import { useDockerStore } from '../../store/dockerStore'
 import { getNodeColorClass } from '../../config/nodeColors'
@@ -124,6 +125,18 @@ const nodeTemplates: NodeTemplate[] = [
     color: getNodeColorClass('llmNode'),
     category: 'AI Models',
     config: { model: 'llama3.2', temperature: 0.7, maxTokens: 2048 },
+  },
+  {
+    type: 'personaPlexNode',
+    label: 'PersonaPlex Assistant',
+    icon: <MessageSquareMore size={18} />,
+    color: getNodeColorClass('personaPlexNode'),
+    category: 'AI Models',
+    config: {
+      model: '', temperature: 0.7,
+      transcription_model: 'small', language: 'en',
+      personaplex_url: '', persona_prompt: '', voice_embedding: '',
+    },
   },
   // Compliance
   {

@@ -16,8 +16,9 @@ httpx>=0.26.0            # Async HTTP client for Ollama
 aiofiles>=23.2.1         # Async file operations
 docker>=7.0.0            # Docker SDK for container execution
 
-# Voice Transcription
+# Voice Transcription & TTS
 faster-whisper>=1.0.0    # CTranslate2-optimized Whisper
+piper-tts>=1.2.0         # Local neural TTS (CPU, offline)
 numpy>=1.24.0            # Audio array processing
 
 # PII Detection & Compliance
@@ -54,7 +55,8 @@ msgraph-core>=1.0.0          # Microsoft Graph SDK
 google-auth>=2.29.0          # Google OAuth
 google-api-python-client>=2.118.0  # Google Drive API
 dropbox>=12.0.2              # Dropbox SDK
-mega.py>=1.0.8               # MEGA cloud storage
+# mega.py installed separately (--no-deps) due to tenacity version conflict
+# mega.py>=1.0.8             # MEGA cloud storage
 sqlcipher3>=0.5.3            # SQLite encryption
 watchdog>=4.0.0              # Filesystem monitoring
 jira>=3.8.0                  # Jira REST API client

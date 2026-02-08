@@ -54,6 +54,7 @@ const nodeCategories: Record<string, NodeCategory> = {
   cloudDocumentNode: 'integration',
   sapERPNode: 'integration',
   voiceAssistantNode: 'integration',
+  personaPlexNode: 'primary',
 
   // Testing — AI Quality, Bias, Red Teaming
   biasTestingNode: 'testing',

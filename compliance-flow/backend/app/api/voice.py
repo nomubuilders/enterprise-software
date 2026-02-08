@@ -1,8 +1,10 @@
-"""Voice transcription API routes."""
+"""Voice transcription and TTS proxy API routes."""
 
 from fastapi import APIRouter, Request, UploadFile, File, HTTPException
+from fastapi.responses import Response
 from pydantic import BaseModel
 from typing import Optional
+import httpx
 
 router = APIRouter(prefix="/voice")
 
@@ -60,6 +62,45 @@ async def transcribe_audio(
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Transcription failed: {e}")
+
+
+@router.post("/tts")
+async def text_to_speech(request: Request):
+    """Synthesize speech. Uses built-in Piper TTS by default, or proxies to an
+    external server when a ``url`` field is provided in the JSON body."""
+    try:
+        body = await request.json()
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid JSON body")
+
+    url = body.pop("url", None)
+    text = body.get("text", "")
+
+    if not text:
+        raise HTTPException(status_code=400, detail="Missing 'text' field")
+
+    # External TTS server (PersonaPlex or other) — fall back to built-in on failure
+    if url:
+        try:
+            async with httpx.AsyncClient(timeout=10) as client:
+                resp = await client.post(url, json=body)
+                resp.raise_for_status()
+            return Response(
+                content=resp.content,
+                media_type=resp.headers.get("content-type", "audio/wav"),
+            )
+        except (httpx.HTTPStatusError, httpx.RequestError):
+            pass  # fall through to built-in Piper TTS
+
+    # Built-in Piper TTS
+    try:
+        tts_service = request.app.state.tts
+        audio_bytes = await tts_service.synthesize(text)
+        return Response(content=audio_bytes, media_type="audio/wav")
+    except RuntimeError as e:
+        raise HTTPException(status_code=503, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"TTS synthesis failed: {e}")
 
 
 @router.get("/models")

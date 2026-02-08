@@ -37,6 +37,7 @@ import { CloudDocumentNode } from './CloudDocumentNode'
 import { JiraComplianceNode } from './JiraComplianceNode'
 import { SAPERPNode } from './SAPERPNode'
 import { VoiceAssistantNode } from './VoiceAssistantNode'
+import { PersonaPlexNode } from './PersonaPlexNode'
 
 export {
   LLMNode,
@@ -78,6 +79,7 @@ export {
   JiraComplianceNode,
   SAPERPNode,
   VoiceAssistantNode,
+  PersonaPlexNode,
 }
 
 export const nodeTypes = {
@@ -120,4 +122,5 @@ export const nodeTypes = {
   jiraComplianceNode: JiraComplianceNode,
   sapERPNode: SAPERPNode,
   voiceAssistantNode: VoiceAssistantNode,
+  personaPlexNode: PersonaPlexNode,
 }

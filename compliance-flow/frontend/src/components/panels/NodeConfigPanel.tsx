@@ -19,6 +19,7 @@ import {
   DockerContainerNodeConfig,
   DocumentNodeConfig,
   VoiceAssistantNodeConfig,
+  PersonaPlexNodeConfig,
   type NodeConfigProps,
 } from './configs'
 
@@ -92,6 +93,7 @@ export function NodeConfigPanel({ node, onClose, onRunWorkflow, onOpenChat }: No
     documentNode: DocumentNodeConfig,
     sapERPNode: SAPERPConfig,
     voiceAssistantNode: VoiceAssistantNodeConfig,
+    personaPlexNode: PersonaPlexNodeConfig,
   }
 
   const renderConfig = () => {

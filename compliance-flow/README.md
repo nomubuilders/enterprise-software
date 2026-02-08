@@ -160,6 +160,7 @@ compliance-flow/
 | Styling | Tailwind CSS 4.1 |
 | Backend | FastAPI, Uvicorn, Python 3.10+ |
 | LLM | Ollama (Llama 3.2, Mistral, CodeLlama) |
+| Voice | faster-whisper (STT), Piper TTS (local) |
 | PII Detection | Presidio + spaCy |
 | Databases | PostgreSQL 16, MySQL, MongoDB 7, Redis 7 |
 | Containers | Docker Compose |
@@ -191,6 +192,7 @@ Click the AI Assistant button to open the floating assistant window. Describe wh
 | AI Models | Ollama LLM (Llama 3.2, Mistral, CodeLlama) |
 | Compliance | PII Redact, PII Mask (GDPR Article 17) |
 | Outputs | Chat Interface, Spreadsheet, Email, Telegram |
+| Voice | Voice Assistant (Whisper transcription, Piper TTS), PersonaPlex Chat |
 | Containers | Docker Container |
 | Data Processing | Spreadsheet, Email Inbox, Web Search |
 | AI Configuration | AI Personality, Code Review, MCP Context |
@@ -205,6 +207,17 @@ Click the AI Assistant button to open the floating assistant window. Describe wh
 | Fintech | Fair Lending, SAP ERP |
 | Insurance | Claims Audit |
 
+### Voice Assistant
+
+The Voice Assistant node provides:
+- **Speech-to-text** via faster-whisper (local Whisper transcription)
+- **Text-to-speech** via built-in Piper TTS (no external API needed)
+- **PersonaPlex** chat interface with configurable AI personas
+
+### Database Context Loading
+
+Database nodes automatically load schema and sample data from upstream nodes in the workflow chain. When a Chat Interface or LLM node is connected downstream of a database node, it receives the table structure and sample rows as context for accurate data queries.
+
 ### Docker Service Dashboard (Desktop)
 
 The desktop app includes a service dashboard that manages:
@@ -212,9 +225,10 @@ The desktop app includes a service dashboard that manages:
 - **PostgreSQL** (port 5432)
 - **Redis** (port 6379)
 - **MongoDB** (port 27017)
-- **Ollama** (port 11434)
 
-Services start automatically via Docker Compose. Health status is polled every 10 seconds.
+Ollama runs locally on the host (port 11434) for direct GPU access. Services start automatically via Docker Compose. Health status is polled every 10 seconds.
+
+When running inside Docker, the backend resolves database hosts using Docker service names (e.g., `postgres` instead of `localhost`).
 
 ## Configuration
 

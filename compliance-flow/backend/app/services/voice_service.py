@@ -285,9 +285,10 @@ class VoiceService:
                 n_frames = wf.getnframes()
                 raw = wf.readframes(n_frames)
         except Exception:
-            # Not a valid WAV — pass raw bytes to faster-whisper which
-            # uses ffmpeg internally via its own decoder
-            return audio_bytes
+            # Not a valid WAV (or unsupported format like IEEE float) —
+            # pass as file-like object for faster-whisper's internal decoder
+            buf.seek(0)
+            return buf
 
         # Convert raw PCM to float32
         if sampwidth == 4:
