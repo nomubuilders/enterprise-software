@@ -21,7 +21,7 @@ from app.services.executor import WorkflowExecutionEngine, execute_workflow
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/api/v1/workflows", tags=["workflows"])
+router = APIRouter(prefix="/workflows", tags=["workflows"])
 
 # In-memory workflow storage (replace with database in production)
 WORKFLOWS: Dict[str, Workflow] = {}

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { X, CheckCircle2, XCircle, BarChart3, Sparkles } from 'lucide-react'
 import { Button } from '../common'
 import { useDocumentStore } from '../../store/documentStore'
+import { API_BASE_URL } from '../../services/api'
 import type { EvaluationResult } from '../../types/document'
 
 interface EvaluationPanelProps {
@@ -27,7 +28,7 @@ export function EvaluationPanel({ isOpen, onClose }: EvaluationPanelProps) {
     setIsEvaluating(true)
     try {
       const generatedText = summary.fields.map((f) => `${f.name}: ${f.content}`).join('\n')
-      const response = await fetch('http://localhost:8000/api/v1/documents/evaluate', {
+      const response = await fetch(`${API_BASE_URL}/documents/evaluate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

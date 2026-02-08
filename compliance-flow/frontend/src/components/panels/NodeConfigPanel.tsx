@@ -65,7 +65,7 @@ import { useFlowStore } from '../../store/flowStore'
 import { useWorkflowStore } from '../../store/workflowStore'
 import { useDockerStore } from '../../store/dockerStore'
 import { useDocumentStore } from '../../store/documentStore'
-import { api } from '../../services/api'
+import { api, API_BASE_URL } from '../../services/api'
 import { summarizeDocument, summarizeBatch, searchDocuments, indexDocumentForSearch } from '../../services/summarizationService'
 import type { DocumentSummary } from '../../types/document'
 
@@ -2010,7 +2010,7 @@ function DocumentNodeConfig({
         const formData = new FormData()
         formData.append('file', file)
 
-        const response = await fetch('http://localhost:8000/api/v1/documents/parse', {
+        const response = await fetch(`${API_BASE_URL}/documents/parse`, {
           method: 'POST',
           body: formData,
         })

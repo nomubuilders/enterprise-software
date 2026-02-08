@@ -196,17 +196,24 @@ export const useWorkflowStore = create<WorkflowState>()(
         const config = get().databaseConfigs.find((c) => c.id === id)
         if (!config) return false
 
-        // Update status to connecting
         get().updateDatabaseConfig(id, { status: 'connecting' })
 
-        // Simulate connection test (will be replaced with real backend call)
-        await new Promise((resolve) => setTimeout(resolve, 1500))
-
-        // For now, simulate success
-        const success = Math.random() > 0.2 // 80% success rate for demo
-        get().updateDatabaseConfig(id, { status: success ? 'connected' : 'error' })
-
-        return success
+        try {
+          const result = await api.testDatabaseConnection({
+            type: config.type,
+            host: config.host,
+            port: config.port,
+            database: config.database,
+            username: config.username,
+            password: config.password,
+            ssl: config.ssl,
+          })
+          get().updateDatabaseConfig(id, { status: result.success ? 'connected' : 'error' })
+          return result.success
+        } catch {
+          get().updateDatabaseConfig(id, { status: 'error' })
+          return false
+        }
       },
 
       // Version Control
@@ -1140,7 +1147,7 @@ export const useWorkflowStore = create<WorkflowState>()(
 
           set({
             currentExecution: completedExecution,
-            executionHistory: [...get().executionHistory, completedExecution],
+            executionHistory: [...get().executionHistory, completedExecution].slice(-50),
             isRunning: false,
             workflows: get().workflows.map(w =>
               w.id === workflowId ? { ...w, status: 'completed' as const } : w
@@ -1165,7 +1172,7 @@ export const useWorkflowStore = create<WorkflowState>()(
           }
           set({
             currentExecution: errorExecution,
-            executionHistory: [...get().executionHistory, errorExecution],
+            executionHistory: [...get().executionHistory, errorExecution].slice(-50),
             isRunning: false,
           })
           toast.error('Workflow failed')
@@ -1191,7 +1198,7 @@ export const useWorkflowStore = create<WorkflowState>()(
           }
           set({
             currentExecution: stoppedExecution,
-            executionHistory: [...get().executionHistory, stoppedExecution],
+            executionHistory: [...get().executionHistory, stoppedExecution].slice(-50),
             isRunning: false,
           })
         }

@@ -1,4 +1,4 @@
-import { api } from './api'
+import { api, API_BASE_URL } from './api'
 import { useDocumentStore } from '../store/documentStore'
 import type { ExtractionTemplate, SummaryField, DocumentSummary } from '../types/document'
 
@@ -283,7 +283,7 @@ export async function summarizeBatch(
  * Generate an embedding vector for text via backend.
  */
 export async function embedText(text: string): Promise<number[]> {
-  const response = await fetch('http://localhost:8000/api/v1/documents/embed', {
+  const response = await fetch(`${API_BASE_URL}/documents/embed`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ text }),
