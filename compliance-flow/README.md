@@ -141,7 +141,10 @@ compliance-flow/
 │   │   ├── models/          # Pydantic models
 │   │   └── core/            # Settings, config
 │   └── requirements.txt
+├── scripts/                 # Tooling
+│   └── generate-overview.js # Auto-update project overview dashboard
 ├── config/                  # App configuration
+├── project-overview.html    # Interactive project dashboard (dark/light themes)
 ├── docker-compose.yml       # Development services
 └── docs/                    # Architecture and planning documentation
 ```
@@ -240,6 +243,23 @@ Backend configuration via environment variables or `.env`:
 | `POSTGRES_DB` | `compliance_flow` | Database name |
 | `REDIS_URL` | `redis://localhost:6379` | Redis connection URL |
 | `MONGODB_URL` | `mongodb://localhost:27017` | MongoDB connection URL |
+
+## Project Overview Dashboard
+
+Open `project-overview.html` in any browser for an interactive dashboard featuring:
+
+- Architecture diagrams (Mermaid)
+- Node type catalog with color-coded categories
+- Development timeline
+- Mermaid code generator (10 chart types with quick templates)
+- Dark/light theme toggle with brand styling
+
+Stats auto-update via a git post-commit hook, or manually:
+
+```bash
+cd frontend
+npm run overview
+```
 
 ## Compliance
 

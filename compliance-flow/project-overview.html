@@ -1,0 +1,1142 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ComplianceFlow - Project Overview</title>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;600;700;800&family=Work+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    /* === BRAND CONSTANTS === */
+    :root {
+      --nomu-purple: #4004DA;
+      --nomu-orange: #FF6C1D;
+      --nomu-black: #000000;
+      --nomu-dark-gray: #36312E;
+      --nomu-off-white: #FEFCFD;
+      --nomu-gray: #4D4D4D;
+    }
+
+    /* === DARK THEME (default) === */
+    [data-theme="dark"] {
+      --bg-page: #000000;
+      --bg-surface: #000000;
+      --bg-elevated: #36312E;
+      --bg-input: #000000;
+      --text-primary: #FEFCFD;
+      --text-secondary: rgba(254, 252, 253, 0.5);
+      --text-muted: #4D4D4D;
+      --border-subtle: rgba(254, 252, 253, 0.06);
+      --border-medium: rgba(254, 252, 253, 0.1);
+      --chip-bg: rgba(64, 4, 218, 0.15);
+      --chip-border: rgba(64, 4, 218, 0.2);
+      --chip-text: rgba(254, 252, 253, 0.6);
+      --badge-bg: rgba(255, 108, 29, 0.15);
+      --copy-bg: rgba(64, 4, 218, 0.3);
+      --copy-border: rgba(64, 4, 218, 0.5);
+      --ghost-border: rgba(254, 252, 253, 0.15);
+      --mermaid-filter: none;
+    }
+
+    /* === LIGHT THEME === */
+    [data-theme="light"] {
+      --bg-page: #FEFCFD;
+      --bg-surface: #FFFFFF;
+      --bg-elevated: #F0EDEC;
+      --bg-input: #FFFFFF;
+      --text-primary: #000000;
+      --text-secondary: rgba(0, 0, 0, 0.5);
+      --text-muted: #4D4D4D;
+      --border-subtle: rgba(0, 0, 0, 0.08);
+      --border-medium: rgba(0, 0, 0, 0.12);
+      --chip-bg: rgba(64, 4, 218, 0.08);
+      --chip-border: rgba(64, 4, 218, 0.15);
+      --chip-text: #4D4D4D;
+      --badge-bg: rgba(255, 108, 29, 0.1);
+      --copy-bg: rgba(64, 4, 218, 0.1);
+      --copy-border: rgba(64, 4, 218, 0.25);
+      --ghost-border: rgba(0, 0, 0, 0.15);
+      --mermaid-filter: none;
+    }
+
+    /* === LIGHT MODE MERMAID OVERRIDES === */
+    [data-theme="light"] .mermaid-container {
+      background: #FFFFFF;
+    }
+    /* Gantt chart text */
+    [data-theme="light"] .mermaid svg .titleText { fill: #000000 !important; }
+    [data-theme="light"] .mermaid svg .sectionTitle { fill: #000000 !important; }
+    [data-theme="light"] .mermaid svg .taskText { fill: #000000 !important; }
+    [data-theme="light"] .mermaid svg .taskTextOutsideRight,
+    [data-theme="light"] .mermaid svg .taskTextOutsideLeft { fill: #000000 !important; }
+    [data-theme="light"] .mermaid svg .tick text { fill: #000000 !important; }
+    [data-theme="light"] .mermaid svg .grid .tick line { stroke: rgba(0,0,0,0.1) !important; }
+    [data-theme="light"] .mermaid svg .domain { stroke: #000000 !important; }
+    [data-theme="light"] .mermaid svg .todayMarker { stroke: var(--nomu-orange) !important; }
+    /* Gantt bars */
+    [data-theme="light"] .mermaid svg .task.done0,
+    [data-theme="light"] .mermaid svg .task.done1,
+    [data-theme="light"] .mermaid svg .task.done2,
+    [data-theme="light"] .mermaid svg .task.done3 {
+      fill: var(--nomu-purple) !important;
+      stroke: #2a0390 !important;
+    }
+    [data-theme="light"] .mermaid svg .task.active0,
+    [data-theme="light"] .mermaid svg .task.active1,
+    [data-theme="light"] .mermaid svg .task.active2 {
+      fill: var(--nomu-orange) !important;
+      stroke: #cc5617 !important;
+    }
+    [data-theme="light"] .mermaid svg .section0,
+    [data-theme="light"] .mermaid svg .section2 { fill: rgba(64,4,218,0.06) !important; }
+    [data-theme="light"] .mermaid svg .section1,
+    [data-theme="light"] .mermaid svg .section3 { fill: rgba(64,4,218,0.12) !important; }
+    [data-theme="light"] .mermaid svg .milestone { fill: var(--nomu-orange) !important; stroke: var(--nomu-orange) !important; }
+    /* Flowcharts / general nodes */
+    [data-theme="light"] .mermaid svg .nodeLabel,
+    [data-theme="light"] .mermaid svg .label,
+    [data-theme="light"] .mermaid svg .edgeLabel { color: #000000 !important; fill: #000000 !important; }
+    [data-theme="light"] .mermaid svg .cluster-label .nodeLabel { fill: #000000 !important; }
+    [data-theme="light"] .mermaid svg .node rect,
+    [data-theme="light"] .mermaid svg .node polygon,
+    [data-theme="light"] .mermaid svg .node circle { fill: #F0EDEC !important; stroke: var(--nomu-purple) !important; }
+    [data-theme="light"] .mermaid svg .cluster rect { fill: rgba(64,4,218,0.05) !important; stroke: rgba(64,4,218,0.2) !important; }
+    [data-theme="light"] .mermaid svg .edgePath .path { stroke: var(--nomu-gray) !important; }
+    [data-theme="light"] .mermaid svg .edgeLabel rect { fill: #FFFFFF !important; }
+    [data-theme="light"] .mermaid svg .flowchart-link { stroke: var(--nomu-gray) !important; }
+    [data-theme="light"] .mermaid svg marker path { fill: var(--nomu-gray) !important; }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: var(--bg-page);
+      color: var(--text-primary);
+      font-family: 'Work Sans', sans-serif;
+      font-weight: 400;
+      min-height: 100vh;
+      line-height: 1.5;
+      transition: background 0.3s, color 0.3s;
+    }
+
+    /* === GRID LINE AESTHETIC === */
+    .grid-bg {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      background:
+        linear-gradient(90deg, var(--border-subtle) 1px, transparent 1px),
+        linear-gradient(180deg, var(--border-subtle) 1px, transparent 1px);
+      background-size: 200px 200px;
+    }
+
+    .content { position: relative; z-index: 1; }
+
+    /* === HERO === */
+    .hero {
+      background: var(--nomu-purple);
+      padding: 3rem 2rem;
+      position: relative;
+      overflow: hidden;
+      border-bottom: 1px solid rgba(254, 252, 253, 0.1);
+    }
+    .hero::after {
+      content: '';
+      position: absolute;
+      bottom: -60px;
+      right: -60px;
+      width: 300px;
+      height: 300px;
+      border-radius: 50%;
+      border: 1px solid rgba(254, 252, 253, 0.1);
+    }
+    .hero-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: center;
+      gap: 2rem;
+    }
+    .hero h1 {
+      font-family: 'Barlow', sans-serif;
+      font-weight: 700;
+      font-size: 3rem;
+      letter-spacing: -0.02em;
+      color: var(--nomu-off-white);
+      line-height: 1.1;
+    }
+    .hero .tagline {
+      font-family: 'Work Sans', sans-serif;
+      font-weight: 300;
+      font-size: 1.1rem;
+      color: rgba(254, 252, 253, 0.7);
+      margin-top: 0.5rem;
+    }
+    .hero-controls {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    .hero-arrow {
+      width: 48px;
+      height: 48px;
+      color: var(--nomu-orange);
+    }
+    .hero-date {
+      font-family: 'Work Sans', sans-serif;
+      font-weight: 500;
+      font-size: 0.8rem;
+      color: rgba(254, 252, 253, 0.5);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-top: 1rem;
+    }
+
+    /* === THEME TOGGLE === */
+    .theme-toggle {
+      width: 52px;
+      height: 28px;
+      border-radius: 14px;
+      border: 2px solid rgba(254, 252, 253, 0.3);
+      background: rgba(254, 252, 253, 0.1);
+      cursor: pointer;
+      position: relative;
+      transition: all 0.3s;
+      flex-shrink: 0;
+    }
+    .theme-toggle:hover { border-color: var(--nomu-orange); }
+    .theme-toggle .toggle-knob {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--nomu-off-white);
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      transition: transform 0.3s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    [data-theme="light"] .theme-toggle .toggle-knob {
+      transform: translateX(24px);
+      background: var(--nomu-orange);
+    }
+    .toggle-icon {
+      width: 12px;
+      height: 12px;
+    }
+    .toggle-icon .icon-moon,
+    .toggle-icon .icon-sun { transition: opacity 0.3s; }
+    [data-theme="dark"] .toggle-icon .icon-sun { opacity: 0; }
+    [data-theme="dark"] .toggle-icon .icon-moon { opacity: 1; }
+    [data-theme="light"] .toggle-icon .icon-sun { opacity: 1; }
+    [data-theme="light"] .toggle-icon .icon-moon { opacity: 0; }
+
+    /* === MAIN LAYOUT === */
+    .main {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 2rem;
+    }
+
+    /* === SECTION DIVIDER === */
+    .section {
+      padding: 2.5rem 0;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+    .section:last-child { border-bottom: none; }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    .section-header h2 {
+      font-family: 'Barlow', sans-serif;
+      font-weight: 700;
+      font-size: 1.5rem;
+      letter-spacing: -0.01em;
+      color: var(--text-primary);
+    }
+    .section-header .line {
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(90deg, var(--nomu-orange), transparent);
+    }
+    .section-header .arrow-icon {
+      width: 20px;
+      height: 20px;
+      color: var(--nomu-orange);
+      flex-shrink: 0;
+    }
+
+    /* === STATS ROW === */
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 1px;
+      background: var(--border-subtle);
+      border: 1px solid var(--border-subtle);
+    }
+    .stat {
+      background: var(--bg-surface);
+      padding: 1.5rem;
+      text-align: center;
+      transition: background 0.3s;
+    }
+    .stat-value {
+      font-family: 'Barlow', sans-serif;
+      font-size: 2.2rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      line-height: 1;
+    }
+    .stat-value.purple { color: var(--nomu-purple); }
+    .stat-value.orange { color: var(--nomu-orange); }
+    .stat-label {
+      font-family: 'Work Sans', sans-serif;
+      font-weight: 500;
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      margin-top: 0.4rem;
+    }
+
+    /* === EPIC CARDS === */
+    .epic-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1px;
+      background: var(--border-subtle);
+      border: 1px solid var(--border-subtle);
+    }
+    .epic-card {
+      background: var(--bg-surface);
+      padding: 1.5rem;
+      position: relative;
+      transition: background 0.3s;
+    }
+    .epic-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 2px;
+      background: var(--nomu-orange);
+    }
+    .epic-card h3 {
+      font-family: 'Barlow', sans-serif;
+      font-weight: 600;
+      font-size: 1rem;
+      color: var(--text-primary);
+      margin-bottom: 0.5rem;
+    }
+    .badge {
+      display: inline-block;
+      font-family: 'Work Sans', sans-serif;
+      font-weight: 600;
+      font-size: 0.6rem;
+      padding: 0.2rem 0.6rem;
+      border-radius: 2px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      background: var(--badge-bg);
+      color: var(--nomu-orange);
+    }
+    .epic-card .meta {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 0.75rem;
+      font-weight: 500;
+    }
+    .epic-card .desc {
+      font-size: 0.82rem;
+      color: var(--text-secondary);
+      margin-top: 0.5rem;
+      line-height: 1.5;
+    }
+
+    /* === MERMAID CONTAINERS === */
+    .mermaid-container {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-subtle);
+      padding: 2rem;
+      overflow-x: auto;
+      position: relative;
+      transition: background 0.3s;
+    }
+    .mermaid-container .copy-btn {
+      position: absolute;
+      top: 0.75rem;
+      right: 0.75rem;
+      background: var(--copy-bg);
+      border: 1px solid var(--copy-border);
+      color: var(--text-primary);
+      font-family: 'Work Sans', sans-serif;
+      font-size: 0.7rem;
+      font-weight: 500;
+      padding: 0.35rem 0.75rem;
+      cursor: pointer;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      transition: all 0.2s;
+    }
+    .mermaid-container .copy-btn:hover {
+      background: var(--nomu-purple);
+      color: var(--nomu-off-white);
+    }
+
+    /* === COLOR PALETTE === */
+    .palette {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 1px;
+      background: var(--border-subtle);
+      border: 1px solid var(--border-subtle);
+    }
+    .palette-swatch {
+      padding: 2rem 1rem 1rem;
+      min-height: 120px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+    }
+    .palette-swatch .hex {
+      font-family: 'Barlow', sans-serif;
+      font-weight: 700;
+      font-size: 1rem;
+    }
+    .palette-swatch .label {
+      font-family: 'Work Sans', sans-serif;
+      font-weight: 500;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-top: 0.25rem;
+      opacity: 0.7;
+    }
+
+    /* === MERMAID GENERATOR === */
+    .generator {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-subtle);
+      padding: 2rem;
+      transition: background 0.3s;
+    }
+    .generator-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+    }
+    .gen-col h3 {
+      font-family: 'Barlow', sans-serif;
+      font-weight: 600;
+      font-size: 1rem;
+      margin-bottom: 1rem;
+      color: var(--text-primary);
+    }
+    .gen-field { margin-bottom: 1rem; }
+    .gen-field label {
+      display: block;
+      font-family: 'Work Sans', sans-serif;
+      font-weight: 500;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 0.4rem;
+    }
+    .gen-field select,
+    .gen-field textarea {
+      width: 100%;
+      background: var(--bg-input);
+      border: 1px solid var(--border-medium);
+      color: var(--text-primary);
+      font-family: 'Work Sans', sans-serif;
+      font-size: 0.85rem;
+      padding: 0.6rem 0.8rem;
+      outline: none;
+      transition: border-color 0.2s, background 0.3s;
+    }
+    .gen-field select:focus,
+    .gen-field textarea:focus { border-color: var(--nomu-purple); }
+    .gen-field textarea {
+      resize: vertical;
+      min-height: 100px;
+      font-family: 'Barlow', monospace;
+      font-size: 0.8rem;
+      line-height: 1.5;
+    }
+    .gen-buttons {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 0.5rem;
+    }
+    .btn {
+      font-family: 'Work Sans', sans-serif;
+      font-weight: 600;
+      font-size: 0.75rem;
+      padding: 0.6rem 1.2rem;
+      border: none;
+      cursor: pointer;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      transition: all 0.2s;
+    }
+    .btn-primary {
+      background: var(--nomu-purple);
+      color: var(--nomu-off-white);
+    }
+    .btn-primary:hover { background: #5215e8; }
+    .btn-accent {
+      background: var(--nomu-orange);
+      color: var(--nomu-off-white);
+    }
+    .btn-accent:hover { background: #e85f15; }
+    .btn-ghost {
+      background: transparent;
+      color: var(--text-primary);
+      border: 1px solid var(--ghost-border);
+    }
+    .btn-ghost:hover { border-color: var(--nomu-orange); color: var(--nomu-orange); }
+
+    .preview-area {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      min-height: 200px;
+      padding: 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.3s;
+    }
+    .preview-area .placeholder {
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      font-style: italic;
+    }
+
+    .template-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      margin-top: 0.5rem;
+    }
+    .chip {
+      font-family: 'Work Sans', sans-serif;
+      font-weight: 500;
+      font-size: 0.65rem;
+      padding: 0.3rem 0.7rem;
+      background: var(--chip-bg);
+      color: var(--chip-text);
+      border: 1px solid var(--chip-border);
+      cursor: pointer;
+      transition: all 0.2s;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .chip:hover {
+      background: var(--nomu-purple);
+      color: var(--nomu-off-white);
+      border-color: var(--nomu-purple);
+    }
+
+    /* === FOOTER === */
+    .footer {
+      border-top: 1px solid var(--border-subtle);
+      padding: 1.5rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .footer-left {
+      font-family: 'Barlow', sans-serif;
+      font-weight: 600;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+    .footer-right {
+      font-family: 'Work Sans', sans-serif;
+      font-weight: 400;
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+    }
+
+    /* === TOAST === */
+    .toast {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      background: var(--nomu-purple);
+      color: var(--nomu-off-white);
+      font-family: 'Work Sans', sans-serif;
+      font-size: 0.8rem;
+      font-weight: 500;
+      padding: 0.75rem 1.25rem;
+      transform: translateY(100px);
+      opacity: 0;
+      transition: all 0.3s;
+      z-index: 999;
+    }
+    .toast.show { transform: translateY(0); opacity: 1; }
+
+    /* === RESPONSIVE === */
+    @media (max-width: 900px) {
+      .stats { grid-template-columns: repeat(3, 1fr); }
+      .epic-grid { grid-template-columns: 1fr; }
+      .generator-grid { grid-template-columns: 1fr; }
+      .palette { grid-template-columns: repeat(3, 1fr); }
+      .hero h1 { font-size: 2rem; }
+      .hero-inner { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 600px) {
+      .stats { grid-template-columns: repeat(2, 1fr); }
+      .palette { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+
+<div class="grid-bg"></div>
+
+<div class="content">
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-inner">
+      <div>
+        <h1>COMPLIANCEFLOW</h1>
+        <div class="tagline">Project Overview &mdash; "We Make Data Speak."</div>
+        <div class="hero-date" data-stat="date">February 8, 2026</div>
+      </div>
+      <div class="hero-controls">
+        <div class="theme-toggle" onclick="toggleTheme()" title="Toggle light/dark mode">
+          <div class="toggle-knob">
+            <svg class="toggle-icon" viewBox="0 0 24 24" fill="none">
+              <g class="icon-moon"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" fill="#36312E"/></g>
+              <g class="icon-sun"><circle cx="12" cy="12" r="5" fill="#FEFCFD"/><g stroke="#FEFCFD" stroke-width="2"><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></g></g>
+            </svg>
+          </div>
+        </div>
+        <svg class="hero-arrow" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.5">
+          <line x1="8" y1="40" x2="40" y2="8"/>
+          <polyline points="20,8 40,8 40,28"/>
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <div class="main">
+
+    <!-- STATS -->
+    <div class="section" style="padding-top: 0; border-bottom: none;">
+      <div class="stats">
+        <div class="stat">
+          <div class="stat-value purple" data-stat="nodes">38</div>
+          <div class="stat-label">Node Types</div>
+        </div>
+        <div class="stat">
+          <div class="stat-value orange" data-stat="categories">19</div>
+          <div class="stat-label">Categories</div>
+        </div>
+        <div class="stat">
+          <div class="stat-value" data-stat="epics">3/3</div>
+          <div class="stat-label">Epics Done</div>
+        </div>
+        <div class="stat">
+          <div class="stat-value purple" data-stat="issues">0</div>
+          <div class="stat-label">Open Issues</div>
+        </div>
+        <div class="stat">
+          <div class="stat-value orange" data-stat="infra">6</div>
+          <div class="stat-label">Infra Services</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BRAND PALETTE -->
+    <div class="section">
+      <div class="section-header">
+        <h2>Brand Palette</h2>
+        <div class="line"></div>
+        <svg class="arrow-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="20" x2="20" y2="4"/><polyline points="10,4 20,4 20,14"/></svg>
+      </div>
+      <div class="palette">
+        <div class="palette-swatch" style="background: #36312E; color: #FEFCFD;">
+          <div class="hex">#36312E</div>
+          <div class="label">Dark Gray</div>
+        </div>
+        <div class="palette-swatch" style="background: #000000; color: #FEFCFD;">
+          <div class="hex">#000000</div>
+          <div class="label">Black</div>
+        </div>
+        <div class="palette-swatch" style="background: #FEFCFD; color: #000000; border-left: 1px solid rgba(0,0,0,0.08); border-right: 1px solid rgba(0,0,0,0.08);">
+          <div class="hex">#FEFCFD</div>
+          <div class="label">Off-White</div>
+        </div>
+        <div class="palette-swatch" style="background: #4004DA; color: #FEFCFD;">
+          <div class="hex">#4004DA</div>
+          <div class="label">Brand Purple</div>
+        </div>
+        <div class="palette-swatch" style="background: #FF6C1D; color: #FEFCFD;">
+          <div class="hex">#FF6C1D</div>
+          <div class="label">Brand Orange</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- COMPLETED EPICS -->
+    <div class="section" id="epics-section">
+      <div class="section-header">
+        <h2>Completed Epics</h2>
+        <div class="line"></div>
+        <svg class="arrow-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="20" x2="20" y2="4"/><polyline points="10,4 20,4 20,14"/></svg>
+      </div>
+      <div class="epic-grid" id="epic-grid">
+        <div class="epic-card">
+          <h3>Brand Guidelines Implementation</h3>
+          <span class="badge">Completed</span>
+          <div class="meta">GitHub #1 &middot; 11 tasks &middot; Merged</div>
+          <div class="desc">Full rebrand: Nomu palette, Barlow + Work Sans typography, dark/light theming, SVG logo, CSS custom properties.</div>
+        </div>
+        <div class="epic-card">
+          <h3>Docker Container Node</h3>
+          <span class="badge">Completed</span>
+          <div class="meta">GitHub #12 &middot; 10 tasks &middot; Merged</div>
+          <div class="desc">Containerized tool execution. Image allowlist, resource caps, air-gapped networking, audit logging. DORA/GDPR safe.</div>
+        </div>
+        <div class="epic-card">
+          <h3>Legal Summarization</h3>
+          <span class="badge">Completed</span>
+          <div class="meta">GitHub #23 &middot; 10 tasks &middot; Merged</div>
+          <div class="desc">Document upload, PDF/DOCX parsing, structured summarization via Ollama, chunking, RAG search, ROUGE/BLEU evaluation.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SYSTEM ARCHITECTURE -->
+    <div class="section">
+      <div class="section-header">
+        <h2>System Architecture</h2>
+        <div class="line"></div>
+        <svg class="arrow-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="20" x2="20" y2="4"/><polyline points="10,4 20,4 20,14"/></svg>
+      </div>
+      <div class="mermaid-container" id="chart-architecture">
+        <button class="copy-btn" onclick="copyMermaidCode('architecture')">Copy Code</button>
+        <pre class="mermaid">
+%%{init: {'theme': 'dark', 'themeVariables': {'primaryColor': '#4004DA', 'primaryTextColor': '#FEFCFD', 'primaryBorderColor': '#4004DA', 'lineColor': '#FF6C1D', 'secondaryColor': '#36312E', 'tertiaryColor': '#000000', 'background': '#36312E', 'mainBkg': '#36312E', 'nodeBorder': '#4004DA', 'clusterBkg': '#000000', 'clusterBorder': 'rgba(254,252,253,0.1)', 'edgeLabelBackground': '#36312E', 'nodeTextColor': '#FEFCFD'}}}%%
+graph TB
+    subgraph ELECTRON["Electron Desktop Shell"]
+        direction TB
+        MAIN["Main Process\nWindow Manager | Docker Manager\nIPC Handlers | FS Handlers | Auto-Updater"]
+        PRELOAD["Preload / Context Bridge\nelectronAPI: docker, app, filesystem, updater"]
+    end
+
+    subgraph REACT["React 19 + TypeScript Frontend"]
+        direction TB
+        subgraph STATE["State Management — Zustand"]
+            FS1["flowStore"]
+            WS["workflowStore"]
+            TS["themeStore"]
+            DS["dockerStore"]
+            DOC["documentStore"]
+        end
+        subgraph UI["UI Layer"]
+            CANVAS["React Flow Canvas\nDrag and Drop Workflow Builder"]
+            SIDEBAR["Sidebar\n19 Categories | 38 Nodes"]
+            PANELS["Floating Panels\nChat | AI Assistant | Config"]
+        end
+        subgraph SVC["Frontend Services"]
+            API_C["API Client"]
+            INTENT["AI Intent Detector"]
+            BUILDER["Workflow Builder"]
+            BRIDGE["Electron Bridge"]
+        end
+    end
+
+    subgraph BACKEND["FastAPI Backend"]
+        direction TB
+        subgraph ROUTES["API Routes /api/v1/"]
+            R1["health | databases | llm"]
+            R2["workflows | outputs | docker"]
+            R3["documents | spreadsheet | email | websearch"]
+        end
+        subgraph SERVICES["Core Services"]
+            S1["Database: PostgreSQL, MySQL, MongoDB"]
+            S2["Ollama LLM: Inference and Streaming"]
+            S3["Workflow Engine: DAG Execution"]
+            S4["PII: Presidio + spaCy"]
+        end
+        subgraph ENTERPRISE["Enterprise Integrations"]
+            E1["Slack SDK | MS Graph"]
+            E2["Jira REST | SAP OData"]
+            E3["Google Drive | Dropbox | OneDrive | MEGA"]
+            E4["OAuth Token Manager"]
+        end
+    end
+
+    subgraph INFRA["Docker Compose Infrastructure"]
+        direction LR
+        PG["PostgreSQL 16\n:5432"]
+        REDIS["Redis 7\n:6379"]
+        MONGO["MongoDB 7\n:27017"]
+        OLLAMA["Ollama\n:11434\nGPU"]
+    end
+
+    MAIN --> PRELOAD
+    PRELOAD --> BRIDGE
+    BRIDGE --> STATE
+    UI --> STATE
+    SVC --> API_C
+    API_C --> ROUTES
+    ROUTES --> SERVICES
+    ROUTES --> ENTERPRISE
+    SERVICES --> INFRA
+        </pre>
+      </div>
+    </div>
+
+    <!-- NODE TYPES -->
+    <div class="section">
+      <div class="section-header">
+        <h2>Node Types by Category</h2>
+        <div class="line"></div>
+        <svg class="arrow-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="20" x2="20" y2="4"/><polyline points="10,4 20,4 20,14"/></svg>
+      </div>
+      <div class="mermaid-container" id="chart-nodes">
+        <button class="copy-btn" onclick="copyMermaidCode('nodes')">Copy Code</button>
+        <pre class="mermaid">
+%%{init: {'theme': 'dark', 'themeVariables': {'primaryColor': '#4004DA', 'primaryTextColor': '#FEFCFD', 'primaryBorderColor': '#4004DA', 'lineColor': '#4D4D4D', 'background': '#36312E', 'mainBkg': '#36312E', 'clusterBkg': '#000000', 'clusterBorder': 'rgba(254,252,253,0.1)', 'nodeTextColor': '#FEFCFD'}}}%%
+graph LR
+    subgraph PRIMARY["Primary #4004DA — 9 Nodes"]
+        P1["LLM | Database | Document"]
+        P2["Spreadsheet | Web Search | Docker"]
+        P3["Personality | Code Review | MCP Context"]
+    end
+
+    subgraph ACCENT["Accent #FF6C1D — 6 Nodes"]
+        A1["Trigger | PII Filter | Conditional"]
+        A2["Approval Gate | Output | Email Inbox"]
+    end
+
+    subgraph COMPLIANCE["Compliance — 5 Nodes"]
+        C1["Audit | Jira Compliance"]
+        C2["Dashboard | Model Registry | Evidence"]
+    end
+
+    subgraph SECURITY["Security — 5 Nodes"]
+        S1["Encryption | PHI Classification"]
+        S2["Consent | Fair Lending | Claims Audit"]
+    end
+
+    subgraph INTEGRATION["Integration — 9 Nodes"]
+        I1["Notification | Webhook | Sub-Workflow"]
+        I2["Slack | MS Teams | SAP ERP"]
+        I3["DB Creator | Local Folder | Cloud Docs"]
+    end
+
+    subgraph TESTING["Testing — 4 Nodes"]
+        T1["Bias Testing | Explainability"]
+        T2["Red Teaming | Drift Detection"]
+    end
+        </pre>
+      </div>
+    </div>
+
+    <!-- DATA FLOW -->
+    <div class="section">
+      <div class="section-header">
+        <h2>Typical Compliance Workflow</h2>
+        <div class="line"></div>
+        <svg class="arrow-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="20" x2="20" y2="4"/><polyline points="10,4 20,4 20,14"/></svg>
+      </div>
+      <div class="mermaid-container" id="chart-dataflow">
+        <button class="copy-btn" onclick="copyMermaidCode('dataflow')">Copy Code</button>
+        <pre class="mermaid">
+%%{init: {'theme': 'dark', 'themeVariables': {'primaryColor': '#4004DA', 'primaryTextColor': '#FEFCFD', 'lineColor': '#FF6C1D', 'background': '#36312E', 'mainBkg': '#36312E', 'clusterBkg': '#000000', 'clusterBorder': 'rgba(254,252,253,0.1)', 'nodeTextColor': '#FEFCFD'}}}%%
+flowchart LR
+    A["Trigger\nManual / Schedule / Webhook"] --> B["Data Source\nDatabase / Upload / Cloud"]
+    B --> C["PII Filter\nPresidio + spaCy"]
+    C --> D["AI Processing\nLocal Ollama LLM"]
+    D --> E{"Conditional\nLogic"}
+    E -->|Pass| F["Audit Trail\nCompliance Log"]
+    E -->|Fail| G["Approval Gate\nHuman Review"]
+    G --> D
+    F --> H["Output\nChat / Email / Spreadsheet"]
+    D --> I["Enterprise\nSlack / Teams / Jira / SAP"]
+        </pre>
+      </div>
+    </div>
+
+    <!-- TIMELINE -->
+    <div class="section">
+      <div class="section-header">
+        <h2>Project Timeline</h2>
+        <div class="line"></div>
+        <svg class="arrow-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="20" x2="20" y2="4"/><polyline points="10,4 20,4 20,14"/></svg>
+      </div>
+      <div class="mermaid-container" id="chart-timeline">
+        <button class="copy-btn" onclick="copyMermaidCode('timeline')">Copy Code</button>
+        <pre class="mermaid">
+%%{init: {'theme': 'dark', 'themeVariables': {'primaryColor': '#4004DA', 'primaryTextColor': '#FEFCFD', 'lineColor': '#FF6C1D', 'background': '#36312E', 'mainBkg': '#36312E'}}}%%
+gantt
+    title ComplianceFlow Development Timeline
+    dateFormat YYYY-MM-DD
+    axisFormat %b %d
+
+    section Foundation
+    Initial app setup and core nodes      :done, f1, 2026-01-20, 2026-02-04
+    9 UI bug fixes via Playwright          :done, f2, 2026-02-04, 2026-02-04
+
+    section Epic 1 — Brand Guidelines
+    Nomu rebrand — 11 tasks                :done, e1, 2026-02-05, 2026-02-05
+
+    section Epic 2 — Docker Container
+    Docker node — 10 tasks                 :done, e2, 2026-02-05, 2026-02-06
+
+    section Epic 3 — Legal Summarization
+    Document summarization — 10 tasks      :done, e3, 2026-02-06, 2026-02-06
+
+    section Regulated Industries
+    5 sub-epics, 20 new nodes              :done, ri, 2026-02-06, 2026-02-07
+
+    section Enterprise Integrations
+    7 enterprise nodes + color unification :done, ei, 2026-02-07, 2026-02-08
+
+    section Current
+    38 nodes, 0 open issues                :milestone, now, 2026-02-08, 0d
+        </pre>
+      </div>
+    </div>
+
+    <!-- MERMAID CODE GENERATOR -->
+    <div class="section">
+      <div class="section-header">
+        <h2>Mermaid Code Generator</h2>
+        <div class="line"></div>
+        <svg class="arrow-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="20" x2="20" y2="4"/><polyline points="10,4 20,4 20,14"/></svg>
+      </div>
+      <div class="generator">
+        <div class="generator-grid">
+          <div class="gen-col">
+            <h3>Configure</h3>
+            <div class="gen-field">
+              <label>Chart Type</label>
+              <select id="chartType" onchange="onChartTypeChange()">
+                <option value="flowchart">Flowchart (LR)</option>
+                <option value="flowchart-td">Flowchart (TD)</option>
+                <option value="sequence">Sequence Diagram</option>
+                <option value="gantt">Gantt Chart</option>
+                <option value="pie">Pie Chart</option>
+                <option value="mindmap">Mind Map</option>
+                <option value="stateDiagram">State Diagram</option>
+                <option value="erDiagram">ER Diagram</option>
+                <option value="classDiagram">Class Diagram</option>
+                <option value="gitGraph">Git Graph</option>
+              </select>
+            </div>
+            <div class="gen-field">
+              <label>Quick Templates</label>
+              <div class="template-chips" id="templateChips"></div>
+            </div>
+            <div class="gen-field">
+              <label>Mermaid Code</label>
+              <textarea id="codeEditor" placeholder="Edit your Mermaid code here..."></textarea>
+            </div>
+            <div class="gen-buttons">
+              <button class="btn btn-primary" onclick="renderPreview()">Render Preview</button>
+              <button class="btn btn-accent" onclick="copyGeneratedCode()">Copy Code</button>
+              <button class="btn btn-ghost" onclick="resetGenerator()">Clear</button>
+            </div>
+          </div>
+          <div class="gen-col">
+            <h3>Live Preview</h3>
+            <div class="preview-area" id="previewArea">
+              <span class="placeholder">Select a chart type and click "Render Preview"</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- FOOTER -->
+  <div class="footer">
+    <div class="footer-left">NOMU</div>
+    <div class="footer-right">ComplianceFlow v1.0 &middot; <span data-stat="date">February 8, 2026</span></div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  // ============================
+  // Theme Toggle
+  // ============================
+  function getStoredTheme() {
+    return localStorage.getItem('nomu-overview-theme') || 'dark';
+  }
+  function applyTheme(theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('nomu-overview-theme', theme);
+  }
+  function toggleTheme() {
+    const current = document.documentElement.getAttribute('data-theme');
+    applyTheme(current === 'dark' ? 'light' : 'dark');
+  }
+  // Apply stored theme immediately
+  applyTheme(getStoredTheme());
+
+  // ============================
+  // Mermaid Init
+  // ============================
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: 'dark',
+    securityLevel: 'loose',
+    flowchart: { curve: 'basis', padding: 15 },
+    gantt: { fontSize: 12 }
+  });
+
+  const NOMU_THEME = `%%{init: {'theme': 'dark', 'themeVariables': {'primaryColor': '#4004DA', 'primaryTextColor': '#FEFCFD', 'primaryBorderColor': '#4004DA', 'lineColor': '#FF6C1D', 'secondaryColor': '#36312E', 'background': '#36312E', 'mainBkg': '#36312E', 'nodeBorder': '#4004DA', 'clusterBkg': '#000000', 'clusterBorder': 'rgba(254,252,253,0.1)', 'nodeTextColor': '#FEFCFD'}}}%%`;
+
+  // ============================
+  // Templates (unchanged)
+  // ============================
+  const templates = {
+    'flowchart': {
+      'API Flow': `flowchart LR\n    A[Client Request] --> B{Auth Check}\n    B -->|Valid| C[Process Request]\n    B -->|Invalid| D[401 Unauthorized]\n    C --> E[Database Query]\n    E --> F[Return Response]`,
+      'CI/CD Pipeline': `flowchart LR\n    A[Push Code] --> B[Run Tests]\n    B --> C{Tests Pass?}\n    C -->|Yes| D[Build Image]\n    C -->|No| E[Notify Team]\n    D --> F[Deploy Staging]\n    F --> G{QA Approved?}\n    G -->|Yes| H[Deploy Production]\n    G -->|No| E`,
+      'Decision Tree': `flowchart TD\n    A[Start] --> B{Is it urgent?}\n    B -->|Yes| C{Is it important?}\n    B -->|No| D{Is it important?}\n    C -->|Yes| E[Do it now]\n    C -->|No| F[Delegate it]\n    D -->|Yes| G[Schedule it]\n    D -->|No| H[Eliminate it]`,
+      'Blank': `flowchart LR\n    A[Start] --> B[Step 1]\n    B --> C[Step 2]\n    C --> D[End]`
+    },
+    'flowchart-td': {
+      'System Design': `flowchart TD\n    LB[Load Balancer] --> S1[Server 1]\n    LB --> S2[Server 2]\n    LB --> S3[Server 3]\n    S1 --> DB[(Database)]\n    S2 --> DB\n    S3 --> DB\n    S1 --> CACHE[(Redis Cache)]\n    S2 --> CACHE\n    S3 --> CACHE`,
+      'Org Chart': `flowchart TD\n    CEO[CEO] --> CTO[CTO]\n    CEO --> CFO[CFO]\n    CEO --> COO[COO]\n    CTO --> ENG[Engineering]\n    CTO --> PROD[Product]\n    ENG --> FE[Frontend]\n    ENG --> BE[Backend]`,
+      'Blank': `flowchart TD\n    A[Top] --> B[Middle]\n    B --> C[Left]\n    B --> D[Right]`
+    },
+    'sequence': {
+      'Auth Flow': `sequenceDiagram\n    participant U as User\n    participant A as App\n    participant S as Server\n    participant DB as Database\n    U->>A: Enter credentials\n    A->>S: POST /auth/login\n    S->>DB: Validate user\n    DB-->>S: User data\n    S-->>A: JWT Token\n    A-->>U: Redirect to dashboard`,
+      'Webhook': `sequenceDiagram\n    participant SRC as Source System\n    participant WH as Webhook Endpoint\n    participant Q as Queue\n    participant W as Worker\n    SRC->>WH: POST /webhook\n    WH->>Q: Enqueue event\n    WH-->>SRC: 200 OK\n    Q->>W: Process event\n    W->>W: Execute logic`,
+      'Blank': `sequenceDiagram\n    participant A as Alice\n    participant B as Bob\n    A->>B: Hello Bob\n    B-->>A: Hi Alice`
+    },
+    'gantt': {
+      'Sprint Plan': `gantt\n    title Sprint Plan\n    dateFormat YYYY-MM-DD\n    axisFormat %b %d\n\n    section Backend\n    API endpoints     :a1, 2026-02-10, 3d\n    Database schema   :a2, after a1, 2d\n\n    section Frontend\n    UI components     :b1, 2026-02-10, 4d\n    Integration       :b2, after b1, 2d\n\n    section Testing\n    Unit tests        :c1, after a2, 2d\n    E2E tests         :c2, after b2, 2d`,
+      'Roadmap': `gantt\n    title Product Roadmap Q1 2026\n    dateFormat YYYY-MM-DD\n    axisFormat %b\n\n    section Phase 1\n    Research          :done, p1, 2026-01-01, 2026-01-15\n    Design            :done, p2, 2026-01-15, 2026-02-01\n\n    section Phase 2\n    Development       :active, p3, 2026-02-01, 2026-03-01\n    Testing           :p4, after p3, 14d\n\n    section Phase 3\n    Launch            :milestone, launch, 2026-03-15, 0d`,
+      'Blank': `gantt\n    title My Timeline\n    dateFormat YYYY-MM-DD\n    axisFormat %b %d\n\n    section Tasks\n    Task 1    :a1, 2026-02-10, 5d\n    Task 2    :a2, after a1, 3d`
+    },
+    'pie': {
+      'Node Distribution': `pie title Node Types by Category\n    "Primary" : 9\n    "Accent" : 6\n    "Compliance" : 5\n    "Security" : 5\n    "Integration" : 9\n    "Testing" : 4`,
+      'Tech Stack': `pie title Tech Stack Distribution\n    "Frontend" : 35\n    "Backend" : 30\n    "Infrastructure" : 20\n    "Enterprise" : 15`,
+      'Blank': `pie title My Chart\n    "Category A" : 40\n    "Category B" : 30\n    "Category C" : 30`
+    },
+    'mindmap': {
+      'ComplianceFlow': `mindmap\n  root((ComplianceFlow))\n    Frontend\n      React 19\n      TypeScript\n      Tailwind CSS\n      Zustand\n      React Flow\n    Backend\n      FastAPI\n      Ollama\n      Presidio\n      PostgreSQL\n    Desktop\n      Electron 40\n      Auto-Update\n      Docker Manager\n    Enterprise\n      Slack\n      MS Teams\n      Jira\n      SAP ERP`,
+      'Feature Map': `mindmap\n  root((Features))\n    Compliance\n      PII Filtering\n      Audit Trail\n      Evidence Collection\n    AI\n      Local LLM\n      Bias Testing\n      Explainability\n    Integration\n      Cloud Storage\n      Team Chat\n      ERP Systems\n    Security\n      Encryption\n      Air-gapped\n      DORA/GDPR`,
+      'Blank': `mindmap\n  root((Topic))\n    Branch 1\n      Leaf A\n      Leaf B\n    Branch 2\n      Leaf C\n      Leaf D`
+    },
+    'stateDiagram': {
+      'Workflow States': `stateDiagram-v2\n    [*] --> Draft\n    Draft --> Configured : Configure nodes\n    Configured --> Running : Execute\n    Running --> Completed : Success\n    Running --> Failed : Error\n    Failed --> Configured : Fix and retry\n    Completed --> [*]`,
+      'Container Lifecycle': `stateDiagram-v2\n    [*] --> Created\n    Created --> Running : start\n    Running --> Paused : pause\n    Paused --> Running : unpause\n    Running --> Stopped : stop\n    Stopped --> Running : restart\n    Stopped --> Removed : remove\n    Removed --> [*]`,
+      'Blank': `stateDiagram-v2\n    [*] --> State1\n    State1 --> State2\n    State2 --> [*]`
+    },
+    'erDiagram': {
+      'Workflow Schema': `erDiagram\n    WORKFLOW ||--o{ NODE : contains\n    WORKFLOW ||--o{ EDGE : contains\n    WORKFLOW {\n        string id PK\n        string name\n        string status\n        datetime created\n    }\n    NODE {\n        string id PK\n        string type\n        json config\n        string workflow_id FK\n    }\n    EDGE {\n        string id PK\n        string source FK\n        string target FK\n    }\n    NODE ||--o{ EXECUTION : produces\n    EXECUTION {\n        string id PK\n        string node_id FK\n        json result\n        datetime timestamp\n    }`,
+      'Blank': `erDiagram\n    TABLE_A ||--o{ TABLE_B : has\n    TABLE_A {\n        string id PK\n        string name\n    }\n    TABLE_B {\n        string id PK\n        string a_id FK\n    }`
+    },
+    'classDiagram': {
+      'Node Hierarchy': `classDiagram\n    class BaseNode {\n        +string id\n        +string type\n        +object data\n        +render()\n    }\n    class LLMNode {\n        +string model\n        +float temperature\n        +generate()\n    }\n    class DatabaseNode {\n        +string connectionString\n        +query()\n    }\n    class PIIFilterNode {\n        +string[] entities\n        +filter()\n    }\n    BaseNode <|-- LLMNode\n    BaseNode <|-- DatabaseNode\n    BaseNode <|-- PIIFilterNode`,
+      'Blank': `classDiagram\n    class ClassA {\n        +string field1\n        +method1()\n    }\n    class ClassB {\n        +string field2\n        +method2()\n    }\n    ClassA <|-- ClassB`
+    },
+    'gitGraph': {
+      'Feature Branch': `gitGraph\n    commit id: "init"\n    commit id: "setup"\n    branch epic/feature\n    commit id: "task-1"\n    commit id: "task-2"\n    commit id: "task-3"\n    checkout main\n    merge epic/feature id: "merge PR"\n    commit id: "post-merge fix"`,
+      'Release Flow': `gitGraph\n    commit id: "v1.0"\n    branch develop\n    commit id: "feat-1"\n    commit id: "feat-2"\n    branch release/v1.1\n    commit id: "bump version"\n    checkout main\n    merge release/v1.1 id: "v1.1" tag: "v1.1"\n    checkout develop\n    commit id: "feat-3"`,
+      'Blank': `gitGraph\n    commit id: "initial"\n    branch feature\n    commit id: "change"\n    checkout main\n    merge feature`
+    }
+  };
+
+  // ============================
+  // Generator functions (unchanged)
+  // ============================
+  function onChartTypeChange() {
+    const type = document.getElementById('chartType').value;
+    const chipsContainer = document.getElementById('templateChips');
+    const typeTemplates = templates[type] || {};
+    chipsContainer.innerHTML = '';
+    for (const [name] of Object.entries(typeTemplates)) {
+      const chip = document.createElement('span');
+      chip.className = 'chip';
+      chip.textContent = name;
+      chip.onclick = () => loadTemplate(type, name);
+      chipsContainer.appendChild(chip);
+    }
+    const firstKey = Object.keys(typeTemplates)[0];
+    if (firstKey) loadTemplate(type, firstKey);
+  }
+
+  function loadTemplate(type, name) {
+    const code = templates[type]?.[name];
+    if (code) document.getElementById('codeEditor').value = code;
+  }
+
+  let previewCounter = 0;
+  async function renderPreview() {
+    const code = document.getElementById('codeEditor').value.trim();
+    if (!code) return;
+    const previewArea = document.getElementById('previewArea');
+    const fullCode = NOMU_THEME + '\n' + code;
+    try {
+      previewCounter++;
+      const { svg } = await mermaid.render(`preview-${previewCounter}`, fullCode);
+      previewArea.innerHTML = svg;
+    } catch (err) {
+      previewArea.innerHTML = `<span class="placeholder" style="color: #FF6C1D;">Syntax error: ${err.message || 'Check your Mermaid code'}</span>`;
+    }
+  }
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2000);
+  }
+
+  function copyGeneratedCode() {
+    const code = document.getElementById('codeEditor').value;
+    if (!code) return;
+    navigator.clipboard.writeText(NOMU_THEME + '\n' + code).then(() => showToast('Mermaid code copied'));
+  }
+
+  function copyMermaidCode(chartId) {
+    const map = { architecture: 'chart-architecture', nodes: 'chart-nodes', dataflow: 'chart-dataflow', timeline: 'chart-timeline' };
+    const container = document.getElementById(map[chartId]);
+    if (!container) return;
+    const pre = container.querySelector('pre.mermaid');
+    if (!pre) return;
+    const code = pre.getAttribute('data-original') || pre.textContent;
+    navigator.clipboard.writeText(code.trim()).then(() => showToast('Mermaid code copied'));
+  }
+
+  function resetGenerator() {
+    document.getElementById('codeEditor').value = '';
+    document.getElementById('previewArea').innerHTML = '<span class="placeholder">Select a chart type and click "Render Preview"</span>';
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('pre.mermaid').forEach(pre => {
+      pre.setAttribute('data-original', pre.textContent.trim());
+    });
+    onChartTypeChange();
+  });
+</script>
+</body>
+</html>

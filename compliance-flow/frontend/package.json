@@ -15,7 +15,8 @@
     "preview": "vite preview",
     "package:mac": "electron-vite build && electron-builder --mac",
     "package:win": "electron-vite build && electron-builder --win",
-    "package:linux": "electron-vite build && electron-builder --linux"
+    "package:linux": "electron-vite build && electron-builder --linux",
+    "overview": "node ../scripts/generate-overview.js"
   },
   "dependencies": {
     "@emotion/is-prop-valid": "^1.4.0",

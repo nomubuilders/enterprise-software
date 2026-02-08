@@ -64,8 +64,17 @@ compliance-flow/
 | `npm run package:mac` | Package macOS DMG (universal) |
 | `npm run package:win` | Package Windows NSIS installer |
 | `npm run package:linux` | Package Linux AppImage + deb |
+| `npm run overview` | Regenerate `project-overview.html` with current stats |
 
 All scripts run from `frontend/`.
+
+## Project Overview Dashboard
+
+`project-overview.html` is a self-contained branded dashboard with Mermaid architecture diagrams, timeline, node catalog, and a code generator. It supports dark/light themes.
+
+- **Auto-update script**: `scripts/generate-overview.js` scans the project (node types, sidebar categories, epic statuses, open issues, infra services) and updates the HTML via `data-stat` attributes
+- **Git hook**: `.git/hooks/post-commit` runs the script after every commit
+- **Manual run**: `npm run overview` from `frontend/`
 
 ## Nomu Brand Guidelines
 
