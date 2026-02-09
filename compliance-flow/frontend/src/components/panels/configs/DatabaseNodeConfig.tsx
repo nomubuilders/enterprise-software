@@ -23,7 +23,7 @@ export function DatabaseNodeConfig({
     ssl: (config.ssl as boolean) ?? false,
   })
 
-  const [query, setQuery] = useState((config.query as string) ?? 'SELECT * FROM users LIMIT 10')
+  const [query, setQuery] = useState((config.query as string) ?? '')
   const [isTesting, setIsTesting] = useState(false)
   const [testResult, setTestResult] = useState<{ success: boolean; message: string; version?: string } | null>(null)
   const [tables, setTables] = useState<string[]>([])
@@ -191,7 +191,7 @@ export function DatabaseNodeConfig({
           onChange={(e) => setQuery(e.target.value)}
           className="w-full rounded-lg border border-[var(--nomu-border)] bg-[var(--nomu-surface)] px-3 py-2 font-mono text-sm text-[var(--nomu-text)] placeholder-[var(--nomu-text-muted)]"
           rows={4}
-          placeholder="SELECT * FROM users LIMIT 10"
+          placeholder="SELECT * FROM table_name LIMIT 10"
         />
       </div>
 

@@ -48,12 +48,12 @@ function formatErrorType(errorType: string): string {
 }
 
 // ── Sample input presets per node type ──────────────────────────────
-const SAMPLE_INPUTS: Record<string, object> = {
+const DEFAULT_SAMPLE_INPUTS: Record<string, object> = {
   // Triggers
   triggerNode: { event: 'manual_trigger', timestamp: '2026-01-01T00:00:00Z' },
 
   // Data Sources
-  databaseNode: { query: 'SELECT id, name FROM users LIMIT 5' },
+  databaseNode: { query: 'SELECT * FROM regulatory_frameworks LIMIT 10' },
   spreadsheetNode: { file_path: '/data/report.csv', sheet_name: 'Sheet1' },
   emailInboxNode: { folder: 'INBOX', filter_unread: true, limit: 10 },
   webSearchNode: { query: 'AI compliance regulations 2026', max_results: 5 },
@@ -113,7 +113,18 @@ const SAMPLE_INPUTS: Record<string, object> = {
   claimsAuditNode: { claim_id: 'CLM-001', amount: 15000, auto_denied: false },
 }
 
+// Build sample inputs dynamically, pulling the query from the node config for database nodes
+function getSampleInputs(nodeConfig: Record<string, unknown>): Record<string, object> {
+  const configQuery = (nodeConfig as Record<string, unknown>)?.query as string | undefined
+  const samples = { ...DEFAULT_SAMPLE_INPUTS }
+  if (configQuery) {
+    samples.databaseNode = { query: configQuery }
+  }
+  return samples
+}
+
 export function NodeIOTestPane({ nodeType, nodeConfig }: NodeIOTestPaneProps) {
+  const SAMPLE_INPUTS = getSampleInputs(nodeConfig)
   const [isOpen, setIsOpen] = useState(false)
   const [inputText, setInputText] = useState('')
   const [isJsonMode, setIsJsonMode] = useState(true)
@@ -130,7 +141,7 @@ export function NodeIOTestPane({ nodeType, nodeConfig }: NodeIOTestPaneProps) {
       setIsJsonMode(true)
       setParseError(null)
     }
-  }, [nodeType])
+  }, [nodeType, SAMPLE_INPUTS])
 
   const handleRun = useCallback(async () => {
     setParseError(null)
@@ -244,13 +255,12 @@ export function NodeIOTestPane({ nodeType, nodeConfig }: NodeIOTestPaneProps) {
           {/* Result Display */}
           {result && (
             <div
-              className={`rounded-lg border p-3 ${
-                result.success
+              className={`rounded-lg border p-3 ${result.success
                   ? 'border-green-700/50 bg-green-900/20'
                   : warn
                     ? 'border-yellow-700/50 bg-yellow-900/20'
                     : 'border-red-700/50 bg-red-900/20'
-              }`}
+                }`}
             >
               {/* Status + Duration */}
               <div className="mb-2 flex items-center justify-between">
@@ -263,24 +273,22 @@ export function NodeIOTestPane({ nodeType, nodeConfig }: NodeIOTestPaneProps) {
                     <XCircle size={14} className="text-red-400" />
                   )}
                   <span
-                    className={`text-xs font-medium ${
-                      result.success
+                    className={`text-xs font-medium ${result.success
                         ? 'text-green-400'
                         : warn
                           ? 'text-yellow-400'
                           : 'text-red-400'
-                    }`}
+                      }`}
                   >
                     {result.success ? 'Success' : 'Failed'}
                   </span>
                   {/* Error Type Badge */}
                   {!result.success && result.error_type && (
                     <span
-                      className={`rounded px-1.5 py-0.5 text-[10px] font-medium ${
-                        warn
+                      className={`rounded px-1.5 py-0.5 text-[10px] font-medium ${warn
                           ? 'bg-yellow-800/40 text-yellow-300'
                           : 'bg-red-800/40 text-red-300'
-                      }`}
+                        }`}
                     >
                       {formatErrorType(result.error_type)}
                     </span>

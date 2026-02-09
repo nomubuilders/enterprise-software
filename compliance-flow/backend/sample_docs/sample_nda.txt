@@ -1,0 +1,162 @@
+NON-DISCLOSURE AGREEMENT (NDA)
+
+Effective Date: January 15, 2026
+Agreement Number: NDA-2026-0847
+
+BETWEEN:
+
+Party A (Disclosing Party):
+  Name: EuroTech Solutions B.V.
+  Address: Weena 505, 3013 AL Rotterdam, The Netherlands
+  KvK Number: 84729165
+  Contact: Maria van der Berg, Chief Technology Officer
+  Email: m.vanderberg@eurotech-solutions.nl
+  Phone: +31 10 443 2891
+
+Party B (Receiving Party):
+  Name: Iberia Compliance Partners S.L.
+  Address: Calle de Serrano 41, 28001 Madrid, Spain
+  CIF: B-87654321
+  Contact: Carlos Rodríguez Martínez, Director of Compliance
+  Email: c.rodriguez@iberia-compliance.es
+  Phone: +34 91 576 4823
+
+1. PURPOSE
+
+This Non-Disclosure Agreement ("Agreement") is entered into by the above-named parties to protect Confidential Information shared in connection with the joint evaluation of AI-driven regulatory compliance solutions for the European insurance market, specifically targeting compliance with:
+
+  - EU General Data Protection Regulation (GDPR) – Regulation (EU) 2016/679
+  - EU Artificial Intelligence Act (AI Act) – Regulation (EU) 2024/1689
+  - Dutch Data Protection Act (Uitvoeringswet AVG / UAVG)
+  - Spanish Organic Law 3/2018 on Protection of Personal Data (LOPDGDD)
+  - EU Digital Operational Resilience Act (DORA) – Regulation (EU) 2022/2554
+  - Solvency II Directive – Directive 2009/138/EC
+
+2. DEFINITION OF CONFIDENTIAL INFORMATION
+
+"Confidential Information" includes, but is not limited to:
+  a) Technical specifications of AI models used for automated decision-making in insurance underwriting
+  b) Customer databases including policyholder personal data (names, BSN/NIE numbers, financial records)
+  c) Proprietary algorithms for risk assessment and claims processing
+  d) Source code, architecture diagrams, and API documentation
+  e) Business strategies, financial projections, and pricing models
+  f) Employee records including salary data, performance reviews, and health information
+  g) Trade secrets related to machine learning model training data and methodologies
+
+3. OBLIGATIONS OF THE RECEIVING PARTY
+
+The Receiving Party agrees to:
+  a) Maintain strict confidentiality of all disclosed information
+  b) Not disclose Confidential Information to any third party without prior written consent
+  c) Limit access to employees and contractors with a legitimate need-to-know
+  d) Implement appropriate technical and organizational security measures in accordance with Article 32 GDPR
+  e) Conduct a Data Protection Impact Assessment (DPIA) per Article 35 GDPR before processing high-risk personal data
+  f) Notify the Disclosing Party within 72 hours of any data breach involving Confidential Information (per Article 33 GDPR)
+  g) Appoint a Data Protection Officer (DPO) if required under Article 37 GDPR
+
+4. DATA PROCESSING PROVISIONS (GDPR COMPLIANCE)
+
+4.1 Lawful Basis: Processing of personal data under this agreement is based on legitimate interest (Article 6(1)(f) GDPR) and, where applicable, explicit consent (Article 6(1)(a) GDPR).
+
+4.2 Data Subject Rights: Both parties shall ensure mechanisms are in place to fulfil data subject requests including:
+  - Right of access (Article 15)
+  - Right to rectification (Article 16)
+  - Right to erasure / "Right to be forgotten" (Article 17)
+  - Right to data portability (Article 20)
+  - Right to object to automated decision-making (Article 22)
+
+4.3 International Transfers: Any transfer of personal data outside the European Economic Area (EEA) shall comply with Chapter V GDPR, utilizing Standard Contractual Clauses (SCCs) or other approved mechanisms.
+
+4.4 Dutch Specific Requirements (UAVG):
+  - BSN (Burgerservicenummer) processing is restricted per Article 46 UAVG
+  - Health data processing requires explicit consent per Article 30 UAVG
+  - The Autoriteit Persoonsgegevens (Dutch DPA) must be notified of high-risk processing activities
+
+4.5 Spanish Specific Requirements (LOPDGDD):
+  - NIE/DNI processing must comply with additional safeguards under Article 9 LOPDGDD
+  - Video surveillance data processing follows Article 22 LOPDGDD
+  - The Agencia Española de Protección de Datos (AEPD) must be notified in case of breaches
+
+5. AI ACT COMPLIANCE PROVISIONS
+
+5.1 Risk Classification: Any AI system deployed under this agreement that performs automated insurance underwriting or claims assessment shall be classified as "High-Risk" under Annex III of the EU AI Act.
+
+5.2 High-Risk AI Requirements:
+  a) Risk management system implementation (Article 9)
+  b) Data governance and training data quality assurance (Article 10)
+  c) Technical documentation and record-keeping (Article 11-12)
+  d) Transparency and provision of information to users (Article 13)
+  e) Human oversight mechanisms (Article 14)
+  f) Accuracy, robustness, and cybersecurity standards (Article 15)
+
+5.3 Conformity Assessment: Prior to deployment, AI systems must undergo conformity assessment procedures as specified in Article 43.
+
+6. DORA COMPLIANCE (FINANCIAL SECTOR)
+
+6.1 Both parties acknowledge obligations under DORA for ICT risk management:
+  a) ICT risk management framework (Article 6)
+  b) ICT-related incident management and reporting (Articles 17-23)
+  c) Digital operational resilience testing (Articles 24-27)
+  d) Third-party ICT service provider oversight (Articles 28-44)
+
+7. TERM AND TERMINATION
+
+7.1 This Agreement shall remain in force for a period of three (3) years from the Effective Date.
+7.2 Upon termination, the Receiving Party shall return or destroy all Confidential Information within thirty (30) days.
+7.3 Confidentiality obligations survive termination for a period of five (5) years.
+
+8. GOVERNING LAW AND JURISDICTION
+
+8.1 This Agreement shall be governed by the laws of The Netherlands.
+8.2 Any disputes shall be submitted to the competent court in Rotterdam, The Netherlands.
+8.3 For cross-border enforcement, parties agree to the jurisdiction provisions of Regulation (EU) No 1215/2012 (Brussels I Recast).
+
+9. PENALTIES AND REMEDIES
+
+9.1 Breach of this Agreement may result in:
+  a) Contractual penalty of EUR 250,000 per breach
+  b) GDPR administrative fines up to EUR 20,000,000 or 4% of global annual turnover (Article 83)
+  c) Injunctive relief through the competent court
+  d) Compensation for damages as provided by Article 82 GDPR
+
+10. SIGNATURES
+
+For and on behalf of EuroTech Solutions B.V.:
+
+Name: Maria van der Berg
+Title: Chief Technology Officer
+Date: January 15, 2026
+Signature: _________________________
+
+For and on behalf of Iberia Compliance Partners S.L.:
+
+Name: Carlos Rodríguez Martínez
+Title: Director of Compliance
+Date: January 15, 2026
+Signature: _________________________
+
+---
+ANNEX A: LIST OF AUTHORIZED PERSONNEL
+
+EuroTech Solutions B.V.:
+  1. Maria van der Berg (CTO) - BSN: 123456789
+  2. Jan de Vries (Lead Data Scientist) - BSN: 987654321
+  3. Sophie Bakker (Privacy Officer) - BSN: 456789123
+  4. Pieter Jansen (Senior Developer) - BSN: 789123456
+
+Iberia Compliance Partners S.L.:
+  1. Carlos Rodríguez Martínez (Director) - NIE: X-1234567-A
+  2. Ana García López (Senior Analyst) - DNI: 12345678-B
+  3. Miguel Torres Fernández (IT Security) - NIE: Y-7654321-C
+  4. Elena Sánchez Ruiz (Legal Counsel) - DNI: 87654321-D
+
+ANNEX B: TECHNICAL SECURITY MEASURES
+
+Both parties shall implement the following minimum security measures:
+  - AES-256 encryption for data at rest
+  - TLS 1.3 for data in transit
+  - Multi-factor authentication for all system access
+  - Annual penetration testing by certified third parties
+  - Quarterly access reviews and privilege audits
+  - Automated logging and monitoring (SIEM) with 12-month retention
+  - Business continuity and disaster recovery plans tested semi-annually
