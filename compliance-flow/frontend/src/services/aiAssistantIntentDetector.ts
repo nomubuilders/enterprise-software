@@ -18,7 +18,7 @@ export interface IntentAnalysis {
  * Detects user intent to determine if AI should build workflow or just provide information
  */
 export class AIAssistantIntentDetector {
-  private model: string = 'llama3.2:3b'
+  private model: string = 'qwen3:8b'
 
   constructor(model?: string) {
     if (model) this.model = model

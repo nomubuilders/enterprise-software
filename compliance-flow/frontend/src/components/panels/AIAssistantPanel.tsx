@@ -75,9 +75,9 @@ export function AIAssistantPanel({ isOpen, onClose }: AIAssistantPanelProps) {
       // If informational query, provide help without building workflow
       if (!intentAnalysis.shouldBuildWorkflow) {
         setCurrentAction(`${intentAnalysis.intent === 'get_help' ? 'Getting tips' :
-                           intentAnalysis.intent === 'analyze_workflow' ? 'Analyzing workflow' :
-                           intentAnalysis.intent === 'explain_workflow' ? 'Explaining' :
-                           'Thinking'}...`)
+          intentAnalysis.intent === 'analyze_workflow' ? 'Analyzing workflow' :
+            intentAnalysis.intent === 'explain_workflow' ? 'Explaining' :
+              'Thinking'}...`)
 
         const helpResponse = await aiIntentDetector.generateHelpfulResponse(
           userMessage,
@@ -108,10 +108,10 @@ export function AIAssistantPanel({ isOpen, onClose }: AIAssistantPanelProps) {
 
       // Check if user wants to modify existing workflow
       const isModification = userMessage.toLowerCase().includes('fix') ||
-                            userMessage.toLowerCase().includes('remove') ||
-                            userMessage.toLowerCase().includes('change') ||
-                            userMessage.toLowerCase().includes('update') ||
-                            (nodes.length > 0 && userMessage.toLowerCase().includes('add'))
+        userMessage.toLowerCase().includes('remove') ||
+        userMessage.toLowerCase().includes('change') ||
+        userMessage.toLowerCase().includes('update') ||
+        (nodes.length > 0 && userMessage.toLowerCase().includes('add'))
 
       // Generate workflow
       const intent = await aiWorkflowBuilder.buildWorkflow(userMessage)
@@ -356,13 +356,12 @@ ${improvements.suggestions.map((s, i) => `${i + 1}. ${s}`).join('\n')}`,
             className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
           >
             <div
-              className={`max-w-[85%] rounded-lg px-3 py-2 ${
-                message.role === 'user'
+              className={`max-w-[85%] rounded-lg px-3 py-2 ${message.role === 'user'
                   ? 'bg-[var(--nomu-primary)] text-[var(--nomu-text)]'
                   : message.role === 'system'
-                  ? 'bg-[var(--nomu-surface)] border border-[var(--nomu-border)] text-[var(--nomu-text-muted)]'
-                  : 'bg-[var(--nomu-primary)]/10 text-[var(--nomu-text)]'
-              }`}
+                    ? 'bg-[var(--nomu-surface)] border border-[var(--nomu-border)] text-[var(--nomu-text-muted)]'
+                    : 'bg-[var(--nomu-primary)]/10 text-[var(--nomu-text)]'
+                }`}
             >
               {message.role === 'user' ? (
                 <p className="text-sm whitespace-pre-wrap">{message.content}</p>
@@ -439,7 +438,7 @@ ${improvements.suggestions.map((s, i) => `${i + 1}. ${s}`).join('\n')}`,
         </div>
         <p className="text-xs text-[var(--nomu-text-muted)] mt-2">
           <Wand2 size={12} className="inline mr-1" />
-          Powered by {aiWorkflowBuilder['model'] || 'Llama 3.2'}
+          Powered by {(aiWorkflowBuilder as unknown as Record<string, string>)['model'] || 'qwen3:8b'}
         </p>
       </div>
     </div>
