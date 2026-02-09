@@ -23,10 +23,10 @@ async def health_check(request: Request):
     try:
         ollama = request.app.state.ollama
         health = await ollama.health_check()
-        ollama_status = health.get("status", "unknown")
-        if ollama_status == "ok":
-            models = await ollama.list_models()
-            ollama_models = [m.get("name", "") for m in models.get("models", [])]
+        ollama_status = health.status  # HealthCheckResponse is a Pydantic model
+        if ollama_status == "healthy":
+            models = await ollama.list_models()  # Returns list[OllamaModelInfo]
+            ollama_models = [m.name or "" for m in models]
     except Exception:
         ollama_status = "disconnected"
 
@@ -56,9 +56,9 @@ async def ollama_health(request: Request):
         health = await ollama.health_check()
         models = await ollama.list_models()
         return {
-            "status": health.get("status", "unknown"),
-            "models": models.get("models", []),
-            "model_count": len(models.get("models", [])),
+            "status": health.status,
+            "models": [{"name": m.name, "size": m.size} for m in models],
+            "model_count": len(models),
         }
     except Exception as e:
         return {"status": "error", "error": str(e), "models": [], "model_count": 0}

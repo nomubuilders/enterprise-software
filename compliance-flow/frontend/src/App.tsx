@@ -76,11 +76,17 @@ function App() {
     })
   }, [setIsFirstRun])
 
-  // Ollama health check (non-Electron mode)
+  // Ollama health check — poll every 10s
   const [ollamaConnected, setOllamaConnected] = useState(false)
   useEffect(() => {
-    if (isElectron()) return
-    api.getOllamaHealth().then(() => setOllamaConnected(true)).catch(() => setOllamaConnected(false))
+    const checkOllama = () => {
+      api.getOllamaHealth()
+        .then((r) => setOllamaConnected(r.status === 'healthy'))
+        .catch(() => setOllamaConnected(false))
+    }
+    checkOllama()
+    const interval = setInterval(checkOllama, 10_000)
+    return () => clearInterval(interval)
   }, [])
 
   // Store hooks
@@ -257,11 +263,10 @@ function App() {
             <button
               data-tutorial="btn-ai-assistant"
               onClick={() => setShowAIAssistant(!showAIAssistant)}
-              className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition ${
-                showAIAssistant
-                  ? 'bg-[var(--nomu-primary)] text-white hover:bg-[var(--nomu-primary-hover)]'
-                  : 'bg-[var(--nomu-surface)] text-[var(--nomu-text)] hover:bg-[var(--nomu-surface-hover)]'
-              }`}
+              className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition ${showAIAssistant
+                ? 'bg-[var(--nomu-primary)] text-white hover:bg-[var(--nomu-primary-hover)]'
+                : 'bg-[var(--nomu-surface)] text-[var(--nomu-text)] hover:bg-[var(--nomu-surface-hover)]'
+                }`}
               title="AI Workflow Assistant"
             >
               <Sparkles size={16} />
@@ -269,11 +274,10 @@ function App() {
             </button>
             <button
               onClick={toggleEditMode}
-              className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition ${
-                isEditMode
-                  ? 'bg-[var(--nomu-accent)] text-white hover:bg-[var(--nomu-accent)]'
-                  : 'bg-[var(--nomu-surface)] text-[var(--nomu-text)] hover:bg-[var(--nomu-surface-hover)]'
-              }`}
+              className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition ${isEditMode
+                ? 'bg-[var(--nomu-accent)] text-white hover:bg-[var(--nomu-accent)]'
+                : 'bg-[var(--nomu-surface)] text-[var(--nomu-text)] hover:bg-[var(--nomu-surface-hover)]'
+                }`}
               title="Edit Mode"
             >
               {isEditMode ? <PencilOff size={16} /> : <Pencil size={16} />}

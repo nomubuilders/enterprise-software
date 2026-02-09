@@ -111,16 +111,30 @@ export class AIWorkflowBuilder {
 
   /**
    * Parse user request and generate workflow structure.
-   * Uses template matching first, falls back to LLM for unusual requests.
+   * Uses LLM first for authentic AI experience, falls back to templates if LLM fails.
    */
   async buildWorkflow(userRequest: string): Promise<WorkflowIntent> {
-    // Try deterministic templates first (reliable, instant)
+    // Try LLM first for authentic AI generation experience
+    try {
+      const intent = await this.buildWithLLM(userRequest)
+      return intent
+    } catch (error) {
+      console.warn('[AI Workflow] LLM failed, falling back to template:', error)
+    }
+
+    // Fall back to deterministic templates if LLM fails
     const template = this.matchTemplate(userRequest)
     if (template) {
       return template
     }
 
-    // Fall back to LLM for non-standard requests
+    throw new Error('Failed to generate workflow. Please try rephrasing your request.')
+  }
+
+  /**
+   * Build workflow using the LLM
+   */
+  private async buildWithLLM(userRequest: string): Promise<WorkflowIntent> {
     const systemPrompt = `You are an expert workflow automation assistant for Compliance Ready AI - a local-first AI workflow builder.
 
 Your job is to analyze user requests and generate workflows using these node types:
@@ -147,6 +161,9 @@ Your job is to analyze user requests and generate workflows using these node typ
 5. **outputNode** - Output results
    - Types: chat (interactive), spreadsheet (CSV/Excel), email, telegram
    - Config: { outputType: string, format?: string, destination?: string }
+
+6. **documentNode** - Document ingestion/parsing
+   - Config: { documentType: string, format: string }
 
 ## Response Format:
 
