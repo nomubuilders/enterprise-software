@@ -510,33 +510,67 @@ class WorkflowExecutionEngine:
 
     async def _execute_database_node(self, node: WorkflowNode, input_data: Dict[str, Any]) -> Dict[str, Any]:
         """
-        Execute a database node (query database).
-
-        Note: This is a placeholder. Real implementation would:
-        - Use sqlalchemy for relational databases
-        - Use motor for MongoDB
-        - Execute actual queries
+        Execute a database node — connect to the configured database and run the query.
         """
+        from app.services.database import DatabaseConnectorFactory
+        from app.models.database import DatabaseConfig as DBConfig, DatabaseType as DBType
+
+        # The frontend sends config fields directly in node.data (host, port, etc.)
+        # Fall back to input_data for test-pane invocations that pass {query: "..."} as input.
+        data = node.data
+
+        # Resolve query: prefer node.data.query, then input_data.query
+        query = data.get("query") or input_data.get("query", "")
+        if not query:
+            raise ValueError("No SQL query provided in node configuration")
+
+        # Resolve connection params — the frontend stores them flat in config
+        host = data.get("host", "localhost")
+        port = int(data.get("port", 5432))
+        database = data.get("database", "")
+        username = data.get("username", "")
+        password = data.get("password", "")
+        ssl = bool(data.get("ssl", False))
+        db_type_str = data.get("dbType", data.get("database_type", "postgresql"))
+
+        if not database:
+            raise ValueError("No database name configured")
+
+        logger.info(f"Database query: {db_type_str}://{host}:{port}/{database} — {query[:120]}")
+
+        # Template the query with input data variables
+        query = self._template_string(query, {**input_data, **self.execution_context.variables}, sanitize=True)
+
+        # Connect and execute
+        db_type = DBType(db_type_str)
+        config = DBConfig(
+            type=db_type,
+            host=host,
+            port=port,
+            database=database,
+            username=username,
+            password=password,
+            ssl=ssl,
+        )
+        connector = DatabaseConnectorFactory.create(config)
+
         try:
-            node_data = DatabaseNodeData(**node.data)
-        except ValidationError as e:
-            raise ValueError(f"Invalid database node configuration: {e}")
+            await connector.initialize()
+            result = await connector.execute_query(query, limit=100)
 
-        logger.info(f"Database query: {node_data.database_type} - {node_data.query}")
-
-        # Template the query with input data (sanitize=True to prevent SQL injection)
-        query = self._template_string(node_data.query, {**input_data, **self.execution_context.variables}, sanitize=True)
-
-        # Placeholder: actual database query would happen here
-        # For now, return mock data
-        output = {
-            "database_type": node_data.database_type,
-            "query_executed": query,
-            "rows_affected": 0,
-            "result": [],
-        }
-
-        return output
+            return {
+                "database_type": db_type_str,
+                "query_executed": query,
+                "rows_affected": result.row_count,
+                "result": result.rows or [],
+                "columns": result.columns or [],
+                "execution_time_ms": result.execution_time_ms,
+            }
+        finally:
+            try:
+                await connector.close()
+            except Exception:
+                pass
 
     async def _execute_llm_node(self, node: WorkflowNode, input_data: Dict[str, Any]) -> Dict[str, Any]:
         """
