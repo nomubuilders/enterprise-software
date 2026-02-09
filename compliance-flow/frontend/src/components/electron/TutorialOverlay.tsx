@@ -57,11 +57,11 @@ export function TutorialOverlay() {
   const padding = 8
   const spotlightRect = targetRect
     ? {
-        top: targetRect.top - padding,
-        left: targetRect.left - padding,
-        width: targetRect.width + padding * 2,
-        height: targetRect.height + padding * 2,
-      }
+      top: targetRect.top - padding,
+      left: targetRect.left - padding,
+      width: targetRect.width + padding * 2,
+      height: targetRect.height + padding * 2,
+    }
     : null
 
   // Tooltip position
@@ -72,10 +72,15 @@ export function TutorialOverlay() {
     if (!spotlightRect) return { top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }
 
     const gap = 16
+    const tooltipHeight = 200 // approximate tooltip height
+
+    // Helper: clamp top so tooltip stays within viewport
+    const clampTop = (top: number) => Math.min(top, window.innerHeight - tooltipHeight - gap)
+
     switch (step.position) {
       case 'right':
         return {
-          top: spotlightRect.top,
+          top: clampTop(spotlightRect.top),
           left: spotlightRect.left + spotlightRect.width + gap,
         }
       case 'left': {
@@ -84,18 +89,18 @@ export function TutorialOverlay() {
         const wouldOverlap = window.innerWidth - rightEdge - tooltipWidth < sidebarWidth
         if (wouldOverlap) {
           return {
-            top: spotlightRect.top + 60,
+            top: clampTop(spotlightRect.top + 60),
             left: sidebarWidth + gap,
           }
         }
         return {
-          top: spotlightRect.top,
+          top: clampTop(spotlightRect.top),
           right: rightEdge,
         }
       }
       case 'bottom':
         return {
-          top: spotlightRect.top + spotlightRect.height + gap,
+          top: clampTop(spotlightRect.top + spotlightRect.height + gap),
           left: Math.max(spotlightRect.left, sidebarWidth + gap),
         }
       case 'top':
@@ -219,9 +224,8 @@ export function TutorialOverlay() {
             {tutorialSteps.map((_, i) => (
               <div
                 key={i}
-                className={`h-1 rounded-full transition-all ${
-                  i === currentStep ? 'w-4 bg-[var(--nomu-primary)]' : i < currentStep ? 'w-1 bg-green-500' : 'w-1 bg-[var(--nomu-border)]'
-                }`}
+                className={`h-1 rounded-full transition-all ${i === currentStep ? 'w-4 bg-[var(--nomu-primary)]' : i < currentStep ? 'w-1 bg-green-500' : 'w-1 bg-[var(--nomu-border)]'
+                  }`}
               />
             ))}
           </div>

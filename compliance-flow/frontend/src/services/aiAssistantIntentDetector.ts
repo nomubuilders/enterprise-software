@@ -18,7 +18,7 @@ export interface IntentAnalysis {
  * Detects user intent to determine if AI should build workflow or just provide information
  */
 export class AIAssistantIntentDetector {
-  private model: string = 'llama3.2'
+  private model: string = 'llama3.2:3b'
 
   constructor(model?: string) {
     if (model) this.model = model
@@ -51,20 +51,22 @@ export class AIAssistantIntentDetector {
       'replace', 'adjust', 'edit'
     ]
 
-    // Check for informational intent
-    if (infoKeywords.some(keyword => lower.includes(keyword))) {
+    const hasAction = actionKeywords.some(keyword => lower.includes(keyword))
+    const hasModify = hasWorkflow && modifyKeywords.some(keyword => lower.includes(keyword))
+    const hasInfo = infoKeywords.some(keyword => lower.includes(keyword))
+
+    // Action keywords win — if the user says "build", "create", etc., always build
+    if (hasAction) {
       return {
-        intent: lower.includes('help') || lower.includes('tip') ? 'get_help' :
-                lower.includes('analyze') || lower.includes('suggest') ? 'analyze_workflow' :
-                'explain_workflow',
-        confidence: 0.8,
-        shouldBuildWorkflow: false,
-        responseType: 'informational'
+        intent: 'build_workflow',
+        confidence: 0.85,
+        shouldBuildWorkflow: true,
+        responseType: 'action'
       }
     }
 
-    // Check for modification intent
-    if (hasWorkflow && modifyKeywords.some(keyword => lower.includes(keyword))) {
+    // Modification intent (fix, change, update an existing workflow)
+    if (hasModify) {
       return {
         intent: 'build_workflow',
         confidence: 0.9,
@@ -73,13 +75,15 @@ export class AIAssistantIntentDetector {
       }
     }
 
-    // Check for build intent
-    if (actionKeywords.some(keyword => lower.includes(keyword))) {
+    // Informational intent (only when no action keywords are present)
+    if (hasInfo) {
       return {
-        intent: 'build_workflow',
-        confidence: 0.85,
-        shouldBuildWorkflow: true,
-        responseType: 'action'
+        intent: lower.includes('help') || lower.includes('tip') ? 'get_help' :
+          lower.includes('analyze') || lower.includes('suggest') ? 'analyze_workflow' :
+            'explain_workflow',
+        confidence: 0.8,
+        shouldBuildWorkflow: false,
+        responseType: 'informational'
       }
     }
 

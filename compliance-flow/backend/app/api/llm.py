@@ -12,7 +12,7 @@ router = APIRouter(prefix="/llm")
 
 
 class GenerateRequest(BaseModel):
-    model: str = "llama3.2"
+    model: str = "llama3.2:3b"
     prompt: str
     system: Optional[str] = None
     temperature: float = 0.7
@@ -26,7 +26,7 @@ class ChatMessage(BaseModel):
 
 
 class ChatRequest(BaseModel):
-    model: str = "llama3.2"
+    model: str = "llama3.2:3b"
     messages: list[ChatMessage]
     temperature: float = 0.7
     max_tokens: int = 2048

@@ -19,7 +19,7 @@ export interface WorkflowIntent {
  * Analyzes user intent and automatically generates workflow nodes and connections
  */
 export class AIWorkflowBuilder {
-  private model: string = 'llama3.2'
+  private model: string = 'llama3.2:3b'
 
   constructor(model?: string) {
     if (model) this.model = model

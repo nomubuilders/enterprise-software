@@ -352,7 +352,7 @@ class OllamaService:
             logger.error(f"Failed to list models - connection error: {str(e)}")
             raise
         except httpx.HTTPStatusError as e:
-            logger.error(f"Failed to list models - HTTP error: {e.status_code} {str(e)}")
+            logger.error(f"Failed to list models - HTTP error: {e.response.status_code} {str(e)}")
             raise
         except Exception as e:
             logger.error(f"Unexpected error listing models: {str(e)}", exc_info=True)
@@ -388,7 +388,7 @@ class OllamaService:
             raise
         except httpx.HTTPStatusError as e:
             logger.error(
-                f"Failed to pull model {model_name} - HTTP error: {e.status_code}"
+                f"Failed to pull model {model_name} - HTTP error: {e.response.status_code}"
             )
             raise
         except Exception as e:
@@ -437,7 +437,7 @@ class OllamaService:
             raise
         except httpx.HTTPStatusError as e:
             logger.error(
-                f"Failed to get model details {model_name} - HTTP error: {e.status_code}"
+                f"Failed to get model details {model_name} - HTTP error: {e.response.status_code}"
             )
             raise
         except Exception as e:
@@ -502,7 +502,7 @@ class OllamaService:
             logger.error(f"Failed to generate completion - connection error: {str(e)}")
             raise
         except httpx.HTTPStatusError as e:
-            logger.error(f"Failed to generate completion - HTTP error: {e.status_code}")
+            logger.error(f"Failed to generate completion - HTTP error: {e.response.status_code}")
             raise
         except Exception as e:
             logger.error(f"Unexpected error generating completion: {str(e)}", exc_info=True)
@@ -577,7 +577,7 @@ class OllamaService:
             logger.error(f"Failed to stream completion - connection error: {str(e)}")
             raise
         except httpx.HTTPStatusError as e:
-            logger.error(f"Failed to stream completion - HTTP error: {e.status_code}")
+            logger.error(f"Failed to stream completion - HTTP error: {e.response.status_code}")
             raise
         except Exception as e:
             logger.error(f"Unexpected error in streaming completion: {str(e)}", exc_info=True)
@@ -651,7 +651,7 @@ class OllamaService:
             logger.error(f"Failed to generate chat completion - connection error: {str(e)}")
             raise
         except httpx.HTTPStatusError as e:
-            logger.error(f"Failed to generate chat completion - HTTP error: {e.status_code}")
+            logger.error(f"Failed to generate chat completion - HTTP error: {e.response.status_code}")
             raise
         except Exception as e:
             logger.error(f"Unexpected error in chat completion: {str(e)}", exc_info=True)
@@ -734,7 +734,7 @@ class OllamaService:
             logger.error(f"Failed to stream chat - connection error: {str(e)}")
             raise
         except httpx.HTTPStatusError as e:
-            logger.error(f"Failed to stream chat - HTTP error: {e.status_code}")
+            logger.error(f"Failed to stream chat - HTTP error: {e.response.status_code}")
             raise
         except Exception as e:
             logger.error(f"Unexpected error in streaming chat: {str(e)}", exc_info=True)

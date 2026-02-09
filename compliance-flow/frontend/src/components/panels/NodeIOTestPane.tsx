@@ -143,12 +143,18 @@ export function NodeIOTestPane({ nodeType, nodeConfig }: NodeIOTestPaneProps) {
     }
   }, [nodeType, SAMPLE_INPUTS])
 
+  // Database nodes use the configured query directly — no separate input needed
+  const isDbNode = nodeType === 'databaseNode'
+
   const handleRun = useCallback(async () => {
     setParseError(null)
     setResult(null)
 
     let input: unknown
-    if (isJsonMode) {
+    if (isDbNode) {
+      // Use empty input — the query comes from the node config
+      input = {}
+    } else if (isJsonMode) {
       try {
         input = inputText.trim() ? JSON.parse(inputText) : {}
       } catch {
@@ -171,7 +177,7 @@ export function NodeIOTestPane({ nodeType, nodeConfig }: NodeIOTestPaneProps) {
     } finally {
       setIsRunning(false)
     }
-  }, [inputText, isJsonMode, nodeType, nodeConfig])
+  }, [inputText, isJsonMode, nodeType, nodeConfig, isDbNode])
 
   const warn = !result?.success && isWarnError(result?.error_type)
 
@@ -189,54 +195,63 @@ export function NodeIOTestPane({ nodeType, nodeConfig }: NodeIOTestPaneProps) {
 
       {isOpen && (
         <div className="mt-3 space-y-3 px-1">
-          {/* Format Toggle + Load Sample */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <label className="text-xs font-medium text-[var(--nomu-text-muted)]">
-                Sample Input
-              </label>
-              {hasSample && (
+          {/* For DB nodes: show a hint that the configured query will be used */}
+          {isDbNode ? (
+            <p className="text-xs text-[var(--nomu-text-muted)]">
+              Runs the query from your configuration above.
+            </p>
+          ) : (
+            <>
+              {/* Format Toggle + Load Sample */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <label className="text-xs font-medium text-[var(--nomu-text-muted)]">
+                    Sample Input
+                  </label>
+                  {hasSample && (
+                    <button
+                      onClick={handleLoadSample}
+                      className="flex items-center gap-1 rounded border border-[var(--nomu-border)] px-1.5 py-0.5 text-[10px] text-[var(--nomu-text-muted)] transition hover:border-[var(--nomu-primary)] hover:text-[var(--nomu-primary)]"
+                    >
+                      <FileDown size={10} />
+                      Load Sample
+                    </button>
+                  )}
+                </div>
                 <button
-                  onClick={handleLoadSample}
-                  className="flex items-center gap-1 rounded border border-[var(--nomu-border)] px-1.5 py-0.5 text-[10px] text-[var(--nomu-text-muted)] transition hover:border-[var(--nomu-primary)] hover:text-[var(--nomu-primary)]"
+                  onClick={() => setIsJsonMode(!isJsonMode)}
+                  className="flex items-center gap-1 text-xs text-[var(--nomu-text-muted)] transition hover:text-[var(--nomu-text)]"
                 >
-                  <FileDown size={10} />
-                  Load Sample
+                  {isJsonMode ? (
+                    <ToggleRight size={14} className="text-[var(--nomu-primary)]" />
+                  ) : (
+                    <ToggleLeft size={14} />
+                  )}
+                  {isJsonMode ? 'JSON' : 'Text'}
                 </button>
-              )}
-            </div>
-            <button
-              onClick={() => setIsJsonMode(!isJsonMode)}
-              className="flex items-center gap-1 text-xs text-[var(--nomu-text-muted)] transition hover:text-[var(--nomu-text)]"
-            >
-              {isJsonMode ? (
-                <ToggleRight size={14} className="text-[var(--nomu-primary)]" />
-              ) : (
-                <ToggleLeft size={14} />
-              )}
-              {isJsonMode ? 'JSON' : 'Text'}
-            </button>
-          </div>
+              </div>
 
-          {/* Input Area */}
-          <textarea
-            value={inputText}
-            onChange={(e) => {
-              setInputText(e.target.value)
-              setParseError(null)
-            }}
-            placeholder={
-              isJsonMode
-                ? '{\n  "text": "Sample input data..."\n}'
-                : 'Enter plain text input...'
-            }
-            className="w-full rounded-lg border border-[var(--nomu-border)] bg-[var(--nomu-surface)] px-3 py-2 font-mono text-xs text-[var(--nomu-text)] placeholder-[var(--nomu-text-muted)] focus:border-[var(--nomu-primary)] focus:outline-none focus:ring-1 focus:ring-[var(--nomu-primary)]"
-            rows={4}
-          />
+              {/* Input Area */}
+              <textarea
+                value={inputText}
+                onChange={(e) => {
+                  setInputText(e.target.value)
+                  setParseError(null)
+                }}
+                placeholder={
+                  isJsonMode
+                    ? '{\n  "text": "Sample input data..."\n}'
+                    : 'Enter plain text input...'
+                }
+                className="w-full rounded-lg border border-[var(--nomu-border)] bg-[var(--nomu-surface)] px-3 py-2 font-mono text-xs text-[var(--nomu-text)] placeholder-[var(--nomu-text-muted)] focus:border-[var(--nomu-primary)] focus:outline-none focus:ring-1 focus:ring-[var(--nomu-primary)]"
+                rows={4}
+              />
 
-          {/* Parse Error */}
-          {parseError && (
-            <p className="text-xs text-red-400">{parseError}</p>
+              {/* Parse Error */}
+              {parseError && (
+                <p className="text-xs text-red-400">{parseError}</p>
+              )}
+            </>
           )}
 
           {/* Run Button */}
@@ -256,10 +271,10 @@ export function NodeIOTestPane({ nodeType, nodeConfig }: NodeIOTestPaneProps) {
           {result && (
             <div
               className={`rounded-lg border p-3 ${result.success
-                  ? 'border-green-700/50 bg-green-900/20'
-                  : warn
-                    ? 'border-yellow-700/50 bg-yellow-900/20'
-                    : 'border-red-700/50 bg-red-900/20'
+                ? 'border-green-700/50 bg-green-900/20'
+                : warn
+                  ? 'border-yellow-700/50 bg-yellow-900/20'
+                  : 'border-red-700/50 bg-red-900/20'
                 }`}
             >
               {/* Status + Duration */}
@@ -274,10 +289,10 @@ export function NodeIOTestPane({ nodeType, nodeConfig }: NodeIOTestPaneProps) {
                   )}
                   <span
                     className={`text-xs font-medium ${result.success
-                        ? 'text-green-400'
-                        : warn
-                          ? 'text-yellow-400'
-                          : 'text-red-400'
+                      ? 'text-green-400'
+                      : warn
+                        ? 'text-yellow-400'
+                        : 'text-red-400'
                       }`}
                   >
                     {result.success ? 'Success' : 'Failed'}
@@ -286,8 +301,8 @@ export function NodeIOTestPane({ nodeType, nodeConfig }: NodeIOTestPaneProps) {
                   {!result.success && result.error_type && (
                     <span
                       className={`rounded px-1.5 py-0.5 text-[10px] font-medium ${warn
-                          ? 'bg-yellow-800/40 text-yellow-300'
-                          : 'bg-red-800/40 text-red-300'
+                        ? 'bg-yellow-800/40 text-yellow-300'
+                        : 'bg-red-800/40 text-red-300'
                         }`}
                     >
                       {formatErrorType(result.error_type)}
