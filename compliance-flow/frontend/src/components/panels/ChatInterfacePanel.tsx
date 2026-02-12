@@ -296,31 +296,50 @@ export function ChatInterfacePanel({ node, onClose }: ChatInterfacePanelProps) {
     document.removeEventListener('mouseup', handleMouseUp)
   }
 
-  const buildSystemPrompt = () => {
-    let systemPrompt = 'You are a helpful compliance data analyst. You have access to MULTIPLE data sources — a database AND documents. Always cross-reference ALL available sources when answering. Use the ACTUAL data provided, never guess or make assumptions. If asked about a specific table or data, refer to the real rows shown below.'
+  /** Convert an array of row objects to a compact markdown table */
+  const rowsToMarkdownTable = (rows: any[]): string => {
+    if (!rows || rows.length === 0) return '(empty)'
+    const cols = Object.keys(rows[0])
+    const header = `| ${cols.join(' | ')} |`
+    const separator = `| ${cols.map(() => '---').join(' | ')} |`
+    const dataRows = rows.map(row =>
+      `| ${cols.map(c => {
+        const val = row[c]
+        if (val === null || val === undefined) return '-'
+        const s = String(val)
+        return s.length > 60 ? s.slice(0, 57) + '...' : s
+      }).join(' | ')} |`
+    )
+    return [header, separator, ...dataRows].join('\n')
+  }
 
-    // ── 1. Database context: schema + sample data from ALL tables ──
+  const buildSystemPrompt = () => {
+    let systemPrompt = `You are a compliance data analyst with direct access to a PostgreSQL database and uploaded documents. You can see the ACTUAL data from every table below. When the user asks about data, refer to the REAL rows shown — never say "you would need to query" because you already have the data. Cross-reference database tables with document content when relevant.`
+
+    // ── 1. Database: schema + ALL table data as markdown tables ──
     if (dbSchema.length > 0 && dataSource) {
       const dbConfig = getNodeConfig(dataSource)
-      systemPrompt += `\n\n## Database: ${dbConfig?.database ?? 'unknown'} (${dbConfig?.dbType ?? 'PostgreSQL'})`
-      systemPrompt += `\n\n### Schema:`
+      systemPrompt += `\n\n# DATABASE: ${dbConfig?.database ?? 'unknown'}`
+      systemPrompt += `\n\nYou have access to ${dbSchema.length} tables. Here is the schema and actual data:\n`
+
       for (const table of dbSchema) {
-        systemPrompt += `\n- **${table.name}**: ${table.columns?.map((c: any) => `${c.name} (${c.type})`).join(', ')}`
+        const cols = table.columns?.map((c: any) => `${c.name} (${c.type})`).join(', ') || 'unknown'
+        systemPrompt += `\n## Table: ${table.name}\nColumns: ${cols}`
+
+        // Add actual data if we have it
+        const rows = allTableData[table.name]
+        if (rows && rows.length > 0) {
+          systemPrompt += `\nData (${rows.length} rows):\n${rowsToMarkdownTable(rows)}\n`
+        } else {
+          systemPrompt += `\n(no sample data loaded)\n`
+        }
       }
     }
 
-    // Include sample data from ALL tables
-    const tableNames = Object.keys(allTableData)
-    if (tableNames.length > 0) {
-      systemPrompt += `\n\n### Database Contents (sample rows from each table):`
-      for (const tableName of tableNames) {
-        const rows = allTableData[tableName]
-        if (tableName === '__configured_query__') {
-          systemPrompt += `\n\n#### Configured Query Results (${rows.length} rows):\n\`\`\`json\n${JSON.stringify(rows, null, 2)}\n\`\`\``
-        } else {
-          systemPrompt += `\n\n#### ${tableName} (${rows.length} rows):\n\`\`\`json\n${JSON.stringify(rows, null, 2)}\n\`\`\``
-        }
-      }
+    // Include configured query results if different from table samples
+    if (allTableData['__configured_query__']) {
+      const rows = allTableData['__configured_query__']
+      systemPrompt += `\n## Custom Query Results (${rows.length} rows):\n${rowsToMarkdownTable(rows)}\n`
     }
 
     // ── 2. Workflow execution results (from last workflow run) ──
