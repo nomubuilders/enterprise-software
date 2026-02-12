@@ -541,36 +541,55 @@ class WorkflowExecutionEngine:
         # Template the query with input data variables
         query = self._template_string(query, {**input_data, **self.execution_context.variables}, sanitize=True)
 
-        # Connect and execute
+        # Resolve hosts — inside Docker, localhost won't reach the host machine
+        import os
+        docker_service_map = {'postgresql': 'postgres', 'mongodb': 'mongo'}
+        if host in ('localhost', '127.0.0.1') and os.path.exists('/.dockerenv'):
+            candidates = []
+            svc = docker_service_map.get(db_type_str)
+            if svc:
+                candidates.append(svc)
+            candidates.append('host.docker.internal')
+            candidates.append(host)  # original as last resort
+        else:
+            candidates = [host]
+
+        # Connect and execute — try each candidate host
         db_type = DBType(db_type_str)
-        config = DBConfig(
-            type=db_type,
-            host=host,
-            port=port,
-            database=database,
-            username=username,
-            password=password,
-            ssl=ssl,
-        )
-        connector = DatabaseConnectorFactory.create(config)
-
-        try:
-            await connector.initialize()
-            result = await connector.execute_query(query, limit=100)
-
-            return {
-                "database_type": db_type_str,
-                "query_executed": query,
-                "rows_affected": result.row_count,
-                "result": result.rows or [],
-                "columns": result.columns or [],
-                "execution_time_ms": result.execution_time_ms,
-            }
-        finally:
+        last_error = None
+        for candidate_host in candidates:
+            config = DBConfig(
+                type=db_type,
+                host=candidate_host,
+                port=port,
+                database=database,
+                username=username,
+                password=password,
+                ssl=ssl,
+            )
+            connector = DatabaseConnectorFactory.create(config)
             try:
-                await connector.close()
-            except Exception:
-                pass
+                await connector.initialize()
+                logger.debug(f"DB connected via host={candidate_host}")
+                result = await connector.execute_query(query, limit=100)
+
+                return {
+                    "database_type": db_type_str,
+                    "query_executed": query,
+                    "rows_affected": result.row_count,
+                    "result": result.rows or [],
+                    "columns": result.columns or [],
+                    "execution_time_ms": result.execution_time_ms,
+                }
+            except Exception as e:
+                last_error = e
+                logger.debug(f"DB connection failed for host={candidate_host}: {e}")
+                try:
+                    await connector.close()
+                except Exception:
+                    pass
+
+        raise last_error or Exception(f"Could not connect on any host: {candidates}")
 
     async def _execute_llm_node(self, node: WorkflowNode, input_data: Dict[str, Any]) -> Dict[str, Any]:
         """

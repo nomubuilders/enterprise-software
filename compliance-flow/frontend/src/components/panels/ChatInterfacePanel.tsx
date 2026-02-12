@@ -656,7 +656,7 @@ export function ChatInterfacePanel({ node, onClose }: ChatInterfacePanelProps) {
                 {msg.role === 'user' ? (
                   <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
                 ) : (
-                  <div className="text-sm prose prose-sm prose-invert max-w-none prose-p:my-1 prose-headings:my-2 prose-ul:my-1 prose-code:bg-[var(--nomu-bg)] prose-code:px-1 prose-code:rounded prose-p:text-[var(--nomu-text)] prose-li:text-[var(--nomu-text)]">
+                  <div className="text-sm prose prose-sm prose-invert max-w-none prose-p:my-1 prose-headings:my-2 prose-ul:my-1 prose-code:bg-[var(--nomu-bg)] prose-code:text-orange-300 prose-code:px-1 prose-code:rounded prose-p:text-[var(--nomu-text)] prose-li:text-[var(--nomu-text)] prose-pre:bg-[var(--nomu-bg)] prose-pre:text-[var(--nomu-text)] prose-strong:text-[var(--nomu-text)]">
                     <ReactMarkdown>{msg.content}</ReactMarkdown>
                   </div>
                 )}
