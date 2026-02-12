@@ -451,11 +451,9 @@ export function ChatInterfacePanel({ node, onClose }: ChatInterfacePanelProps) {
 
     try {
       const agentConfig = getNodeConfig(aiAgent)
-      // Normalize model name: Ollama requires full name with tag (e.g. 'llama3.2:3b', not 'llama3.2')
-      let model = (agentConfig?.model as string) || 'llama3.2:3b'
-      if (model && !model.includes(':')) {
-        model = `${model}:3b`
-      }
+      // Use the model exactly as configured — Ollama resolves names without tags to :latest
+      const model = (agentConfig?.model as string) || 'llama3.2:3b'
+      console.log('[ChatInterface] Using model:', model, '(from node config:', agentConfig?.model, ')')
       const temperature = (agentConfig?.temperature as number) || 0.7
       const maxTokens = (agentConfig?.maxTokens as number) || 2048
 

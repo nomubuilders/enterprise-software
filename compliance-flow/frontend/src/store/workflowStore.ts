@@ -344,8 +344,7 @@ export const useWorkflowStore = create<WorkflowState>()(
               else if (node.type === 'llmNode') {
                 addLog(node.id, nodeName, 'info', 'Processing with LLM...')
 
-                let model = config.model as string || 'llama3.2:3b'
-                if (model && !model.includes(':')) model = `${model}:3b`
+                const model = config.model as string || 'llama3.2:3b'
                 const systemPrompt = config.systemPrompt as string || 'You are a helpful assistant.'
 
                 // Build prompt with context from all previous nodes
@@ -964,8 +963,7 @@ export const useWorkflowStore = create<WorkflowState>()(
                   addLog(node.id, nodeName, 'warn', 'No code content available for review - skipping')
                 } else {
                   try {
-                    let model = (config.model as string) || 'llama3.2:3b'
-                    if (model && !model.includes(':')) model = `${model}:3b`
+                    const model = (config.model as string) || 'llama3.2:3b'
                     const systemPrompt = `You are a code review assistant. Perform a ${reviewType} review of the following ${codeLanguage} code. Focus on issues of ${minSeverity} severity or higher. Report bugs, security issues, performance problems, and style violations.`
                     const result = await api.generate({
                       model,
