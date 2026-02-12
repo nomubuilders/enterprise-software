@@ -81,13 +81,13 @@ export const genericNodeFields: Record<string, FieldDef[]> = {
   ],
   explainabilityNode: [
     { key: 'method', label: 'Method', type: 'select', options: [{ value: 'feature_importance', label: 'Feature Importance' }, { value: 'counterfactual', label: 'Counterfactual' }, { value: 'decision_trail', label: 'Decision Trail' }, { value: 'shap_proxy', label: 'SHAP Proxy (LLM)' }] },
-    { key: 'model', label: 'Explanation Model', type: 'select', options: [{ value: 'llama3.2', label: 'Llama 3.2' }, { value: 'mistral', label: 'Mistral' }, { value: 'codellama', label: 'CodeLlama' }] },
+    { key: 'model', label: 'Explanation Model', type: 'select', options: [{ value: 'llama3.2:3b', label: 'Llama 3.2' }, { value: 'mistral', label: 'Mistral' }, { value: 'codellama', label: 'CodeLlama' }] },
     { key: 'detailLevel', label: 'Detail Level', type: 'select', options: [{ value: 'summary', label: 'Summary' }, { value: 'detailed', label: 'Detailed' }, { value: 'technical', label: 'Technical' }] },
   ],
   redTeamingNode: [
     { key: 'minSeverity', label: 'Min Severity', type: 'select', options: [{ value: 'low', label: 'Low' }, { value: 'medium', label: 'Medium' }, { value: 'high', label: 'High' }, { value: 'critical', label: 'Critical' }] },
     { key: 'iterations', label: 'Iterations', type: 'number', placeholder: '10' },
-    { key: 'targetModel', label: 'Target Model', type: 'text', placeholder: 'llama3.2' },
+    { key: 'targetModel', label: 'Target Model', type: 'text', placeholder: 'llama3.2:3b' },
     { key: 'customPrompts', label: 'Custom Attack Prompts', type: 'textarea', placeholder: 'One prompt per line...' },
   ],
   driftDetectionNode: [
@@ -134,7 +134,7 @@ export const genericNodeFields: Record<string, FieldDef[]> = {
     { key: 'auditType', label: 'Audit Type', type: 'select', options: [{ value: 'full', label: 'Full Audit' }, { value: 'denial_review', label: 'Denial Review' }, { value: 'sample', label: 'Random Sample' }] },
     { key: 'flagAutoDenials', label: 'Flag Auto-Denials', type: 'checkbox' },
     { key: 'generateExplanation', label: 'Generate Policyholder Explanation', type: 'checkbox' },
-    { key: 'model', label: 'Explanation Model', type: 'select', options: [{ value: 'llama3.2', label: 'Llama 3.2' }, { value: 'mistral', label: 'Mistral' }] },
+    { key: 'model', label: 'Explanation Model', type: 'select', options: [{ value: 'llama3.2:3b', label: 'Llama 3.2' }, { value: 'mistral', label: 'Mistral' }] },
   ],
   consentManagementNode: [
     { key: 'regulation', label: 'Regulation', type: 'select', options: [{ value: 'gdpr', label: 'GDPR Article 7' }, { value: 'hipaa', label: 'HIPAA Authorization' }, { value: 'ccpa', label: 'CCPA' }, { value: 'lgpd', label: 'LGPD' }] },

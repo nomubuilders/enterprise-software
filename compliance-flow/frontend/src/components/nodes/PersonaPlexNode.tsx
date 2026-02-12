@@ -108,28 +108,28 @@ export const PersonaPlexNode = memo((props: NodeProps) => {
 
     let cancelled = false
 
-    ;(async () => {
-      try {
-        console.log('[PersonaPlex] Loading DB context:', dbConfig.host, dbConfig.database)
-        const tablesResult = await api.listTables(dbConfig)
-        if (cancelled || !tablesResult.success) {
-          console.warn('[PersonaPlex] listTables failed:', tablesResult)
-          return
+      ; (async () => {
+        try {
+          console.log('[PersonaPlex] Loading DB context:', dbConfig.host, dbConfig.database)
+          const tablesResult = await api.listTables(dbConfig)
+          if (cancelled || !tablesResult.success) {
+            console.warn('[PersonaPlex] listTables failed:', tablesResult)
+            return
+          }
+          console.log('[PersonaPlex] Schema loaded:', tablesResult.tables.map((t: TableInfo) => t.name))
+          setDbSchema(tablesResult.tables)
+
+          const tableName = tablesResult.tables[0]?.name
+          if (!tableName) return
+
+          const query = ((cfg.query as string) || `SELECT * FROM ${tableName}`).trim().replace(/;$/, '')
+          const queryResult = await api.executeQuery(dbConfig, query.toLowerCase().includes('limit') ? query : `${query} LIMIT 50`, 50)
+          if (cancelled || !queryResult.success) return
+          setSampleData(queryResult.rows)
+        } catch (err) {
+          console.error('[PersonaPlex] Failed to load DB context:', err)
         }
-        console.log('[PersonaPlex] Schema loaded:', tablesResult.tables.map((t: TableInfo) => t.name))
-        setDbSchema(tablesResult.tables)
-
-        const tableName = tablesResult.tables[0]?.name
-        if (!tableName) return
-
-        const query = ((cfg.query as string) || `SELECT * FROM ${tableName}`).trim().replace(/;$/, '')
-        const queryResult = await api.executeQuery(dbConfig, query.toLowerCase().includes('limit') ? query : `${query} LIMIT 50`, 50)
-        if (cancelled || !queryResult.success) return
-        setSampleData(queryResult.rows)
-      } catch (err) {
-        console.error('[PersonaPlex] Failed to load DB context:', err)
-      }
-    })()
+      })()
 
     return () => { cancelled = true }
   }, [dbConfigKey])
@@ -156,7 +156,7 @@ export const PersonaPlexNode = memo((props: NodeProps) => {
 
   const handleStop = useCallback(() => {
     const tts = ttsMuted ? undefined : { url: personaplexUrl || undefined, voiceEmbedding: voiceEmbedding || undefined }
-    voiceChat.stopAndSend(systemPrompt, model || 'llama3.2', temperature, tts)
+    voiceChat.stopAndSend(systemPrompt, model || 'llama3.2:3b', temperature, tts)
   }, [voiceChat.stopAndSend, systemPrompt, model, temperature, personaplexUrl, voiceEmbedding, ttsMuted])
 
   const handlePlayTts = useCallback(

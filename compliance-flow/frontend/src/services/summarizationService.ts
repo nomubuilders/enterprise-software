@@ -152,7 +152,7 @@ ${chunkSummaries.map((s, i) => `--- Chunk ${i + 1} ---\n${s}`).join('\n\n')}`
 export async function summarizeDocument(
   documentId: string,
   templateId: string,
-  model: string = 'llama3.2',
+  model: string = 'llama3.2:3b',
   chunkSize: number = 20000,
   onProgress?: (current: number, total: number, status: string) => void
 ): Promise<DocumentSummary> {
@@ -248,7 +248,7 @@ export async function summarizeDocument(
 export async function summarizeBatch(
   documentIds: string[],
   templateId: string,
-  model: string = 'llama3.2',
+  model: string = 'llama3.2:3b',
   chunkSize: number = 20000,
   onProgress?: (completed: number, total: number, documentId: string, status: string) => void,
   cancelRef?: { current: boolean }

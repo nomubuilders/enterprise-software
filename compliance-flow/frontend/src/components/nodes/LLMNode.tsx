@@ -6,7 +6,7 @@ import { getNodeColorClass } from '../../config/nodeColors'
 
 export const LLMNode = memo((props: NodeProps) => {
   const nodeData = props.data as { label: string; config?: Record<string, unknown> }
-  const model = (nodeData.config?.model as string) ?? 'llama3.2'
+  const model = (nodeData.config?.model as string) ?? 'llama3.2:3b'
   const temperature = (nodeData.config?.temperature as number) ?? 0.7
 
   // Temperature indicator — thresholds match NodeConfigPanel getTempDescription

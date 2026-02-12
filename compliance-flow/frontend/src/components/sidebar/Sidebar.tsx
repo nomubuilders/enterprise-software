@@ -124,7 +124,7 @@ const nodeTemplates: NodeTemplate[] = [
     icon: <Bot size={18} />,
     color: getNodeColorClass('llmNode'),
     category: 'AI Models',
-    config: { model: 'llama3.2', temperature: 0.7, maxTokens: 2048 },
+    config: { model: 'llama3.2:3b', temperature: 0.7, maxTokens: 2048 },
   },
   {
     type: 'personaPlexNode',
@@ -313,7 +313,7 @@ const nodeTemplates: NodeTemplate[] = [
     icon: <Lightbulb size={18} />,
     color: getNodeColorClass('explainabilityNode'),
     category: 'AI Testing',
-    config: { method: 'feature_importance', model: 'llama3.2', detailLevel: 'summary' },
+    config: { method: 'feature_importance', model: 'llama3.2:3b', detailLevel: 'summary' },
   },
   {
     type: 'redTeamingNode',
@@ -511,34 +511,34 @@ export function Sidebar() {
           )
           if (filtered.length === 0) return null
           return (
-          <div key={category} className="mb-4" data-tutorial={`category-${category.toLowerCase().replace(/\s+/g, '-')}`}>
-            <h3 className="mb-2 font-['Barlow'] text-xs font-semibold uppercase tracking-wider text-[var(--nomu-text-muted)]">
-              {category}
-              {category === 'Containers' && (
-                <span className={`ml-1.5 inline-block h-1.5 w-1.5 rounded-full ${dockerAvailable ? 'bg-green-500' : 'bg-gray-500'}`} />
-              )}
-            </h3>
-            <div className="space-y-1">
-              {filtered
-                .map((template, index) => (
-                  <div
-                    key={`${template.type}-${index}`}
-                    draggable
-                    onDragStart={(e) => onDragStart(e, template)}
-                    className={`
+            <div key={category} className="mb-4" data-tutorial={`category-${category.toLowerCase().replace(/\s+/g, '-')}`}>
+              <h3 className="mb-2 font-['Barlow'] text-xs font-semibold uppercase tracking-wider text-[var(--nomu-text-muted)]">
+                {category}
+                {category === 'Containers' && (
+                  <span className={`ml-1.5 inline-block h-1.5 w-1.5 rounded-full ${dockerAvailable ? 'bg-green-500' : 'bg-gray-500'}`} />
+                )}
+              </h3>
+              <div className="space-y-1">
+                {filtered
+                  .map((template, index) => (
+                    <div
+                      key={`${template.type}-${index}`}
+                      draggable
+                      onDragStart={(e) => onDragStart(e, template)}
+                      className={`
                       flex cursor-grab items-center gap-2 rounded-lg px-3 py-2
                       transition-all duration-150
                       hover:bg-[var(--nomu-surface-hover)] active:cursor-grabbing
                     `}
-                  >
-                    <div className={`rounded p-1.5 text-white ${template.color}`}>
-                      {template.icon}
+                    >
+                      <div className={`rounded p-1.5 text-white ${template.color}`}>
+                        {template.icon}
+                      </div>
+                      <span className="text-sm text-[var(--nomu-text)]">{template.label}</span>
                     </div>
-                    <span className="text-sm text-[var(--nomu-text)]">{template.label}</span>
-                  </div>
-                ))}
+                  ))}
+              </div>
             </div>
-          </div>
           )
         })}
       </div>

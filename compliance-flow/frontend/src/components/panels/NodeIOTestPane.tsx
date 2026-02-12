@@ -83,7 +83,7 @@ const DEFAULT_SAMPLE_INPUTS: Record<string, object> = {
   auditNode: { action: 'data_access', user: 'admin', resource: 'customer_db' },
   driftDetectionNode: { baseline_score: 0.92, current_score: 0.78 },
   complianceDashboardNode: { audit_data: [{ control: 'AC-1', status: 'pass' }, { control: 'AC-2', status: 'fail' }] },
-  modelRegistryNode: { model_name: 'llama3.2', version: '1.0', risk_level: 'high' },
+  modelRegistryNode: { model_name: 'llama3.2:3b', version: '1.0', risk_level: 'high' },
   evidenceCollectionNode: { framework: 'soc2', control_id: 'CC6.1' },
   explainabilityNode: { prediction: 0.87, features: { income: 50000, age: 35 } },
 

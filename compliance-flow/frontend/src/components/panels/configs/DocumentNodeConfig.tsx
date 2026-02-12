@@ -15,7 +15,7 @@ import {
 import { Button, Input, Select, DocumentUploadZone } from '../../common'
 import { EvaluationPanel } from '../EvaluationPanel'
 import { useDocumentStore } from '../../../store/documentStore'
-import { API_BASE_URL } from '../../../services/api'
+import { api, API_BASE_URL } from '../../../services/api'
 import { summarizeDocument, summarizeBatch, searchDocuments, indexDocumentForSearch } from '../../../services/summarizationService'
 import type { DocumentSummary } from '../../../types/document'
 
@@ -33,6 +33,9 @@ export function DocumentNodeConfig({
 
   const [mode, setMode] = useState((config.mode as string) ?? 'summarize')
   const [templateId, setTemplateId] = useState((config.templateId as string) ?? '')
+  const [selectedModel, setSelectedModel] = useState((config.model as string) ?? 'llama3.2:3b')
+  const [availableModels, setAvailableModels] = useState<string[]>([])
+  const [isLoadingModels, setIsLoadingModels] = useState(false)
   const [chunkSize, setChunkSize] = useState((config.chunkSize as number) ?? 20000)
   const [systemPromptOverride, setSystemPromptOverride] = useState((config.systemPromptOverride as string) ?? '')
   const [uploadFiles, setUploadFiles] = useState<File[]>([])
@@ -57,6 +60,22 @@ export function DocumentNodeConfig({
   const [batchProgress, setBatchProgress] = useState<{ completed: number; total: number; currentDocId: string } | null>(null)
   const [isBatchProcessing, setIsBatchProcessing] = useState(false)
   const cancelRef = useRef({ current: false })
+
+  // Load available models from Ollama
+  useEffect(() => {
+    loadModels()
+  }, [])
+
+  const loadModels = async () => {
+    setIsLoadingModels(true)
+    try {
+      const result = await api.listModels()
+      setAvailableModels(result.models.map((m) => m.name))
+    } catch {
+      setAvailableModels(['llama3.2:3b', 'mistral', 'codellama'])
+    }
+    setIsLoadingModels(false)
+  }
 
   // Restore summary results when panel reopens with previously saved doc IDs
   const savedDocIds = (config.documents as string[] | undefined) ?? []
@@ -157,7 +176,7 @@ export function DocumentNodeConfig({
       const summary = await summarizeDocument(
         docId,
         templateId,
-        'llama3.2',
+        selectedModel,
         chunkSize,
         (current, total, status) => setProgress({ current, total, status })
       )
@@ -186,7 +205,7 @@ export function DocumentNodeConfig({
     const { results, errors } = await summarizeBatch(
       docIds,
       templateId,
-      'llama3.2',
+      selectedModel,
       chunkSize,
       (completed, total, documentId) => {
         setBatchProgress({ completed, total, currentDocId: documentId })
@@ -212,6 +231,7 @@ export function DocumentNodeConfig({
         ...config,
         mode,
         templateId: templateId || null,
+        model: selectedModel,
         chunkSize,
         systemPromptOverride: systemPromptOverride || undefined,
         documents: docIds,
@@ -278,6 +298,31 @@ export function DocumentNodeConfig({
         )}
       </div>
 
+      {/* Model Selector */}
+      <div>
+        <div className="flex items-center justify-between mb-2">
+          <h3 className="text-sm font-medium text-[var(--nomu-text)]">AI Model</h3>
+          <button
+            onClick={loadModels}
+            disabled={isLoadingModels}
+            className="text-xs text-[var(--nomu-primary)] hover:text-[var(--nomu-primary-hover)] disabled:opacity-50"
+          >
+            {isLoadingModels ? <Loader2 size={12} className="animate-spin" /> : '🔄 Refresh'}
+          </button>
+        </div>
+        <Select
+          options={availableModels.length > 0
+            ? availableModels.map((m) => ({ value: m, label: m }))
+            : [{ value: selectedModel, label: selectedModel }]
+          }
+          value={selectedModel}
+          onChange={(e) => setSelectedModel(e.target.value)}
+        />
+        {availableModels.length === 0 && !isLoadingModels && (
+          <p className="mt-1 text-xs text-amber-400">⚠️ No models found. Make sure Ollama is running.</p>
+        )}
+      </div>
+
       {/* Template Selector */}
       <div>
         <h3 className="mb-3 text-sm font-medium text-[var(--nomu-text)]">Extraction Template</h3>
@@ -304,11 +349,10 @@ export function DocumentNodeConfig({
             <button
               key={m}
               onClick={() => setMode(m)}
-              className={`rounded-lg p-3 text-center transition ${
-                mode === m
-                  ? 'bg-[var(--nomu-primary)]/20 border-2 border-[var(--nomu-primary)]'
-                  : 'bg-[var(--nomu-surface)] border-2 border-transparent hover:border-[var(--nomu-border)]'
-              }`}
+              className={`rounded-lg p-3 text-center transition ${mode === m
+                ? 'bg-[var(--nomu-primary)]/20 border-2 border-[var(--nomu-primary)]'
+                : 'bg-[var(--nomu-surface)] border-2 border-transparent hover:border-[var(--nomu-border)]'
+                }`}
             >
               <p className="font-medium text-sm text-[var(--nomu-text)] capitalize">{m}</p>
             </button>

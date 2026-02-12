@@ -344,7 +344,7 @@ export const useWorkflowStore = create<WorkflowState>()(
               else if (node.type === 'llmNode') {
                 addLog(node.id, nodeName, 'info', 'Processing with LLM...')
 
-                const model = config.model as string || 'llama3.2'
+                const model = config.model as string || 'llama3.2:3b'
                 const systemPrompt = config.systemPrompt as string || 'You are a helpful assistant.'
 
                 // Build prompt with context from all previous nodes
@@ -556,7 +556,7 @@ export const useWorkflowStore = create<WorkflowState>()(
                         workflowData.documentText = doc.extractedText
                       }
 
-                      const summary = await summarizeDocument(targetDocId, templateId, 'llama3.2', docChunkSize)
+                      const summary = await summarizeDocument(targetDocId, templateId, 'llama3.2:3b', docChunkSize)
                       workflowData.documentSummary = summary
                       addLog(node.id, nodeName, 'info', 'Summary complete', {
                         fields: summary.fields.length,
@@ -578,7 +578,7 @@ export const useWorkflowStore = create<WorkflowState>()(
                       const batchResult = await summarizeBatch(
                         batchDocIds,
                         templateId,
-                        'llama3.2',
+                        'llama3.2:3b',
                         docChunkSize,
                         (completed, total, _docId, status) => {
                           addLog(node.id, nodeName, 'info', `Batch progress: ${completed}/${total} (${status})`)
@@ -886,7 +886,7 @@ export const useWorkflowStore = create<WorkflowState>()(
                   addLog(node.id, nodeName, 'warn', 'No code content available for review - skipping')
                 } else {
                   try {
-                    const model = (config.model as string) || 'llama3.2'
+                    const model = (config.model as string) || 'llama3.2:3b'
                     const systemPrompt = `You are a code review assistant. Perform a ${reviewType} review of the following ${codeLanguage} code. Focus on issues of ${minSeverity} severity or higher. Report bugs, security issues, performance problems, and style violations.`
                     const result = await api.generate({
                       model,

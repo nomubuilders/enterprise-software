@@ -13,7 +13,7 @@ export function LLMNodeConfig({
 }) {
   const config = (node.data as Record<string, unknown>).config as Record<string, unknown> || {}
 
-  const [model, setModel] = useState((config.model as string) ?? 'llama3.2')
+  const [model, setModel] = useState((config.model as string) ?? 'llama3.2:3b')
   const [temperature, setTemperature] = useState((config.temperature as number) ?? 0.7)
   const [maxTokens, setMaxTokens] = useState((config.maxTokens as number) ?? 2048)
   const [availableModels, setAvailableModels] = useState<string[]>([])
@@ -31,7 +31,7 @@ export function LLMNodeConfig({
       setAvailableModels(result.models.map((m) => m.name))
     } catch {
       // Use defaults if API fails
-      setAvailableModels(['llama3.2', 'mistral', 'codellama'])
+      setAvailableModels(['llama3.2:3b', 'mistral', 'codellama'])
     }
     setIsLoading(false)
   }

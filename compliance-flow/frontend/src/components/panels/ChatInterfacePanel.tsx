@@ -346,7 +346,7 @@ export function ChatInterfacePanel({ node, onClose }: ChatInterfacePanelProps) {
 
     try {
       const agentConfig = getNodeConfig(aiAgent)
-      const model = (agentConfig?.model as string) || 'llama3.2'
+      const model = (agentConfig?.model as string) || 'llama3.2:3b'
       const temperature = (agentConfig?.temperature as number) || 0.7
       const maxTokens = (agentConfig?.maxTokens as number) || 2048
 
@@ -482,7 +482,7 @@ export function ChatInterfacePanel({ node, onClose }: ChatInterfacePanelProps) {
           <div className="flex items-center gap-2 text-xs text-[var(--nomu-primary)]">
             <Bot size={12} />
             <span>
-              AI Agent: <strong>{String(((aiAgent.data as Record<string, unknown>).config as Record<string, unknown>)?.model || 'llama3.2')}</strong>
+              AI Agent: <strong>{String(((aiAgent.data as Record<string, unknown>).config as Record<string, unknown>)?.model || 'llama3.2:3b')}</strong>
             </span>
           </div>
         ) : (
@@ -543,9 +543,8 @@ export function ChatInterfacePanel({ node, onClose }: ChatInterfacePanelProps) {
           messages.map((msg, idx) => (
             <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
               <div
-                className={`max-w-[85%] rounded-lg px-3 py-2 ${
-                  msg.role === 'user' ? 'bg-[var(--nomu-accent)] text-[var(--nomu-text)]' : 'bg-[var(--nomu-primary)]/10 text-[var(--nomu-text)]'
-                }`}
+                className={`max-w-[85%] rounded-lg px-3 py-2 ${msg.role === 'user' ? 'bg-[var(--nomu-accent)] text-[var(--nomu-text)]' : 'bg-[var(--nomu-primary)]/10 text-[var(--nomu-text)]'
+                  }`}
               >
                 {msg.role === 'user' ? (
                   <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
