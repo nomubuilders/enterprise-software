@@ -541,27 +541,30 @@ class WorkflowExecutionEngine:
         # Template the query with input data variables
         query = self._template_string(query, {**input_data, **self.execution_context.variables}, sanitize=True)
 
-        # Resolve hosts — inside Docker, localhost won't reach the host machine
+        # Resolve hosts + ports — inside Docker, localhost won't reach the host
+        # machine, and Docker service names need the internal port (5432) not
+        # the host-mapped port (e.g. 5433)
         import os
         docker_service_map = {'postgresql': 'postgres', 'mongodb': 'mongo'}
+        default_internal_ports = {'postgresql': 5432, 'mongodb': 27017, 'mysql': 3306}
         if host in ('localhost', '127.0.0.1') and os.path.exists('/.dockerenv'):
-            candidates = []
+            candidates: list[tuple[str, int]] = []
             svc = docker_service_map.get(db_type_str)
+            internal_port = default_internal_ports.get(db_type_str, port)
             if svc:
-                candidates.append(svc)
-            candidates.append('host.docker.internal')
-            candidates.append(host)  # original as last resort
+                candidates.append((svc, internal_port))
+            candidates.append(('host.docker.internal', port))
         else:
-            candidates = [host]
+            candidates = [(host, port)]
 
-        # Connect and execute — try each candidate host
+        # Connect and execute — try each candidate (host, port) pair
         db_type = DBType(db_type_str)
         last_error = None
-        for candidate_host in candidates:
+        for candidate_host, candidate_port in candidates:
             config = DBConfig(
                 type=db_type,
                 host=candidate_host,
-                port=port,
+                port=candidate_port,
                 database=database,
                 username=username,
                 password=password,
@@ -570,7 +573,7 @@ class WorkflowExecutionEngine:
             connector = DatabaseConnectorFactory.create(config)
             try:
                 await connector.initialize()
-                logger.debug(f"DB connected via host={candidate_host}")
+                logger.debug(f"DB connected via host={candidate_host}:{candidate_port}")
                 result = await connector.execute_query(query, limit=100)
 
                 return {
@@ -583,13 +586,13 @@ class WorkflowExecutionEngine:
                 }
             except Exception as e:
                 last_error = e
-                logger.debug(f"DB connection failed for host={candidate_host}: {e}")
+                logger.debug(f"DB connection failed for {candidate_host}:{candidate_port}: {e}")
                 try:
                     await connector.close()
                 except Exception:
                     pass
 
-        raise last_error or Exception(f"Could not connect on any host: {candidates}")
+        raise last_error or Exception(f"Could not connect on any candidate: {candidates}")
 
     async def _execute_llm_node(self, node: WorkflowNode, input_data: Dict[str, Any]) -> Dict[str, Any]:
         """

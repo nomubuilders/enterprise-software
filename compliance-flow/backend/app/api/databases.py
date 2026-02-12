@@ -16,16 +16,33 @@ _DOCKER_SERVICE_MAP = {
     'mongodb': 'mongo',
 }
 
+# Default internal ports for Docker services (container-side, not host-mapped)
+_DEFAULT_INTERNAL_PORTS = {
+    'postgresql': 5432,
+    'mongodb': 27017,
+    'mysql': 3306,
+}
 
-def _resolve_db_hosts(host: str, db_type: str) -> list[str]:
-    """When host is localhost inside Docker, return candidate hosts to try."""
+
+def _resolve_db_candidates(host: str, port: int, db_type: str) -> list[tuple[str, int]]:
+    """When host is localhost inside Docker, return candidate (host, port) pairs.
+    
+    Docker maps host:5433 → container:5432, so when we're INSIDE Docker
+    we must use the internal port (5432) for service names, but keep
+    the original port for host.docker.internal (which goes via the host mapping).
+    """
     if host not in ('localhost', '127.0.0.1') or not os.path.exists('/.dockerenv'):
-        return [host]
-    candidates = []
+        return [(host, port)]
+    
+    candidates: list[tuple[str, int]] = []
     service = _DOCKER_SERVICE_MAP.get(db_type)
+    internal_port = _DEFAULT_INTERNAL_PORTS.get(db_type, port)
+    
     if service:
-        candidates.append(service)
-    candidates.append('host.docker.internal')
+        # Docker service: use internal port (e.g. postgres:5432)
+        candidates.append((service, internal_port))
+    # host.docker.internal: use original port (goes through host mapping)
+    candidates.append(('host.docker.internal', port))
     return candidates
 
 
@@ -33,27 +50,28 @@ async def _connect_with_fallback(
     db_type_str: str, host: str, port: int, database: str,
     username: str, password: str, ssl: bool,
 ):
-    """Try each candidate host in order, return the first working connector."""
+    """Try each candidate (host, port) in order, return the first working connector."""
     db_type = DatabaseType(db_type_str)
-    hosts = _resolve_db_hosts(host, db_type_str)
+    candidates = _resolve_db_candidates(host, port, db_type_str)
     last_error = None
-    for h in hosts:
+    for h, p in candidates:
         config = DatabaseConfig(
-            type=db_type, host=h, port=port,
+            type=db_type, host=h, port=p,
             database=database, username=username, password=password, ssl=ssl,
         )
         connector = DatabaseConnectorFactory.create(config)
         try:
             await connector.initialize()
-            logger.debug(f"DB connected via host={h}")
+            logger.debug(f"DB connected via host={h}:{p}")
             return connector
         except Exception as e:
             last_error = e
+            logger.debug(f"DB connection failed for {h}:{p}: {e}")
             try:
                 await connector.close()
             except Exception:
                 pass
-    raise last_error or Exception(f"Could not connect on any host: {hosts}")
+    raise last_error or Exception(f"Could not connect on any candidate: {candidates}")
 
 
 class TestConnectionRequest(BaseModel):
