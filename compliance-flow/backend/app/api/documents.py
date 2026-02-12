@@ -80,3 +80,23 @@ async def evaluate_summary(request: dict):
         "rouge_l": rouge_scores["rouge_l"],
         "bleu": bleu_score,
     }
+
+
+@router.post("/grade")
+async def grade_summary(request: dict):
+    """Grade a generated summary using LLM-as-judge."""
+    from app.services.evaluation_service import llm_grade_summary
+
+    document_text = request.get("document_text", "")
+    generated_summary = request.get("generated_summary", "")
+    template_fields = request.get("template_fields", [])
+
+    if not document_text or not generated_summary:
+        raise HTTPException(status_code=400, detail="Both document_text and generated_summary are required")
+
+    result = await llm_grade_summary(document_text, generated_summary, template_fields)
+
+    return {
+        "success": True,
+        **result,
+    }

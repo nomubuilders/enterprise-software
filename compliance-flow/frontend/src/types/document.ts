@@ -15,6 +15,7 @@ export interface ExtractionTemplate {
 
 export interface DocumentMeta {
   id: string
+  nodeId: string
   name: string
   fileType: 'pdf' | 'docx' | 'txt'
   fileSize: number
@@ -28,6 +29,8 @@ export interface DocumentMeta {
 export interface SummaryField {
   name: string
   content: string
+  confidence?: 'high' | 'medium' | 'low'
+  sourceReference?: string
 }
 
 export interface DocumentSummary {
@@ -54,6 +57,7 @@ export interface EvaluationResult {
     completeness: number
     legalPrecision: number
     conciseness: number
+    fabricatedClaims?: string[]
   }
   referenceSummary: string
   evaluatedAt: string

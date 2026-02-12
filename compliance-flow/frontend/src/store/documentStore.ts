@@ -19,6 +19,7 @@ interface DocumentState {
   addDocument: (doc: DocumentMeta) => void
   updateDocument: (id: string, partial: Partial<DocumentMeta>) => void
   removeDocument: (id: string) => void
+  removeDocumentsByNodeId: (nodeId: string) => void
 
   // Summary Actions
   addSummary: (summary: DocumentSummary) => void
@@ -46,7 +47,7 @@ const defaultTemplates: ExtractionTemplate[] = [
       { name: 'Obligations of Receiving Party', description: 'Duties of the receiving party', instructions: 'Extract all obligations imposed on the receiving party, including use restrictions, safeguarding requirements, and permitted disclosures.' },
       { name: 'Term and Duration', description: 'Agreement duration and survival period', instructions: 'Extract the term of the agreement, any renewal provisions, and the survival period for confidentiality obligations after termination.' },
       { name: 'Exclusions', description: 'What is excluded from confidential information', instructions: 'Extract all exclusions from the definition of confidential information, such as publicly available information, independently developed information, etc.' },
-      { name: 'Remedies for Breach', description: 'Consequences of breaching the agreement', instructions: 'Extract remedies available upon breach, including injunctive relief, damages, indemnification, and any limitation of liability.' },
+      { name: 'Remedies for Breach', description: 'Consequences of breaching the agreement', instructions: 'Extract any remedies or consequences for breach that are explicitly stated in the document. Do not assume standard remedies exist if they are not mentioned.' },
       { name: 'Governing Law', description: 'Applicable jurisdiction and law', instructions: 'Extract the governing law, jurisdiction, and any dispute resolution mechanisms (arbitration, mediation, litigation).' },
     ],
   },
@@ -135,6 +136,61 @@ const defaultTemplates: ExtractionTemplate[] = [
       { name: 'Deadlines and Penalties', description: 'Compliance timelines and consequences', instructions: 'Extract all compliance deadlines, penalty amounts or ranges, enforcement actions threatened, and any conditions for penalty reduction or waiver.' },
     ],
   },
+  {
+    id: 'template-software-license',
+    name: 'Software License Agreement',
+    description: 'Extract key terms from software licensing and technology agreements',
+    documentType: 'software-license',
+    systemPrompt: 'You are a legal analyst specializing in technology licensing and software agreements.',
+    fields: [
+      { name: 'Parties & Roles', description: 'Licensor and licensee details', instructions: 'Extract the full legal names of the licensor and licensee, their roles, and principal places of business.' },
+      { name: 'Effective Date', description: 'When the license takes effect', instructions: 'Extract the effective date and any conditions precedent to the license becoming active.' },
+      { name: 'License Grant', description: 'Scope and terms of the license', instructions: 'Extract the license scope (perpetual vs. term, exclusive vs. non-exclusive, transferable vs. non-transferable), permitted uses, number of seats/users, and territory restrictions.' },
+      { name: 'Payment Terms', description: 'Fees, schedule, and taxes', instructions: 'Extract all fees (license fees, subscription fees, per-seat costs), payment schedule, late payment penalties, and tax responsibilities.' },
+      { name: 'IP Ownership & Restrictions', description: 'Intellectual property rights and usage limits', instructions: 'Extract IP ownership provisions, restrictions on reverse engineering, modification rights, and any open-source obligations.' },
+      { name: 'Support & Maintenance', description: 'Technical support and update terms', instructions: 'Extract support levels, response times, maintenance windows, update/upgrade entitlements, and end-of-life provisions.' },
+      { name: 'Confidentiality', description: 'Information protection obligations', instructions: 'Extract confidentiality obligations related to the software, source code access restrictions, and trade secret protections.' },
+      { name: 'Term & Termination', description: 'Duration and ending conditions', instructions: 'Extract the license term, renewal provisions, termination for cause and convenience, effects of termination on license rights, and data return/destruction obligations.' },
+      { name: 'Limitation of Liability', description: 'Liability caps and exclusions', instructions: 'Extract liability caps, exclusions of consequential damages, warranty disclaimers, and indemnification obligations.' },
+      { name: 'Governing Law', description: 'Applicable jurisdiction', instructions: 'Extract the governing law, jurisdiction, and dispute resolution mechanisms.' },
+    ],
+  },
+  {
+    id: 'template-tos',
+    name: 'Terms of Service',
+    description: 'Extract key terms from terms of service and user agreements',
+    documentType: 'terms-of-service',
+    systemPrompt: 'You are a legal analyst specializing in consumer agreements and digital services.',
+    fields: [
+      { name: 'Service Provider', description: 'Entity providing the service', instructions: 'Extract the full legal name of the service provider, their contact information, and registered address.' },
+      { name: 'User Obligations', description: 'Requirements and responsibilities of users', instructions: 'Extract user eligibility requirements, account responsibilities, age restrictions, and compliance obligations.' },
+      { name: 'Acceptable Use', description: 'Permitted and prohibited activities', instructions: 'Extract the acceptable use policy, prohibited content and behavior, enforcement mechanisms, and consequences of violations.' },
+      { name: 'Content Ownership', description: 'IP rights for user and platform content', instructions: 'Extract user content licensing terms, platform content rights, DMCA/takedown procedures, and content removal policies.' },
+      { name: 'Disclaimers', description: 'Service warranties and disclaimers', instructions: 'Extract warranty disclaimers, "as-is" provisions, service availability commitments, and force majeure clauses.' },
+      { name: 'Liability Limits', description: 'Caps on liability and damages', instructions: 'Extract liability limitations, damage exclusions, maximum liability amounts, and class action waiver provisions.' },
+      { name: 'Termination', description: 'Account termination and suspension', instructions: 'Extract account termination conditions, suspension procedures, data retention after termination, and user right to cancel.' },
+      { name: 'Privacy References', description: 'Privacy policy and data handling', instructions: 'Extract references to privacy policies, data collection disclosures, cookie policies, and third-party data sharing terms.' },
+      { name: 'Governing Law', description: 'Applicable jurisdiction', instructions: 'Extract the governing law, mandatory arbitration clauses, dispute resolution procedures, and venue selection.' },
+    ],
+  },
+  {
+    id: 'template-partnership',
+    name: 'Partnership Agreement',
+    description: 'Extract key terms from business partnership and joint venture agreements',
+    documentType: 'partnership',
+    systemPrompt: 'You are a legal analyst specializing in business formation and partnership law.',
+    fields: [
+      { name: 'Partners', description: 'All partners and their details', instructions: 'Extract the full legal names of all partners, their partnership type (general, limited, silent), and their principal addresses.' },
+      { name: 'Purpose', description: 'Business purpose of the partnership', instructions: 'Extract the stated business purpose, scope of operations, trade name, and principal place of business.' },
+      { name: 'Capital Contributions', description: 'Initial and ongoing investments', instructions: 'Extract each partner\'s initial capital contribution (cash, property, services), additional contribution obligations, and capital account terms.' },
+      { name: 'Profit/Loss Sharing', description: 'Distribution of profits and losses', instructions: 'Extract the profit and loss allocation ratios, distribution schedules, guaranteed payments, and draw provisions.' },
+      { name: 'Management', description: 'Management structure and authority', instructions: 'Extract management roles, authority limits, day-to-day operations responsibilities, and signing authority provisions.' },
+      { name: 'Decision Making', description: 'Voting and approval requirements', instructions: 'Extract voting rights, majority vs. unanimous decision requirements, deadlock resolution mechanisms, and reserved matters requiring special approval.' },
+      { name: 'Dissolution', description: 'Conditions for ending the partnership', instructions: 'Extract dissolution triggers, winding-up procedures, asset distribution priority, and continuation provisions upon partner departure.' },
+      { name: 'Non-Compete', description: 'Competitive restrictions on partners', instructions: 'Extract non-compete obligations, restricted activities, geographic and temporal scope, and exceptions for permitted activities.' },
+      { name: 'Governing Law', description: 'Applicable jurisdiction', instructions: 'Extract the governing law, dispute resolution mechanisms, mediation requirements, and venue selection.' },
+    ],
+  },
 ]
 
 export const useDocumentStore = create<DocumentState>()(
@@ -178,6 +234,15 @@ export const useDocumentStore = create<DocumentState>()(
       removeDocument: (id) => {
         const documents = get().documents.filter((d) => d.id !== id)
         set({ documents })
+      },
+
+      removeDocumentsByNodeId: (nodeId) => {
+        const docIds = get().documents.filter((d) => d.nodeId === nodeId).map((d) => d.id)
+        set({
+          documents: get().documents.filter((d) => d.nodeId !== nodeId),
+          summaries: get().summaries.filter((s) => !docIds.includes(s.documentId)),
+          searchIndex: get().searchIndex.filter((e) => !docIds.includes(e.documentId)),
+        })
       },
 
       // Summary Actions

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import type { Node } from '@xyflow/react'
 import {
   FileText,
@@ -11,13 +11,15 @@ import {
   BarChart3,
   Square,
   Save,
+  AlertTriangle,
+  Info,
 } from 'lucide-react'
 import { Button, Input, Select, DocumentUploadZone } from '../../common'
 import { EvaluationPanel } from '../EvaluationPanel'
 import { useDocumentStore } from '../../../store/documentStore'
 import { API_BASE_URL } from '../../../services/api'
-import { summarizeDocument, summarizeBatch, searchDocuments, indexDocumentForSearch } from '../../../services/summarizationService'
-import type { DocumentSummary } from '../../../types/document'
+import { summarizeDocument, summarizeBatch, searchDocuments, indexDocumentForSearch, detectDocumentType } from '../../../services/summarizationService'
+import type { DocumentSummary, SummaryField } from '../../../types/document'
 
 export function DocumentNodeConfig({
   node,
@@ -28,7 +30,8 @@ export function DocumentNodeConfig({
 }) {
   const config = (node.data as Record<string, unknown>).config as Record<string, unknown> || {}
   const templates = useDocumentStore((s) => s.templates)
-  const documents = useDocumentStore((s) => s.documents)
+  const allDocuments = useDocumentStore((s) => s.documents)
+  const nodeDocuments = useMemo(() => allDocuments.filter((d) => d.nodeId === node.id), [allDocuments, node.id])
   const { addDocument } = useDocumentStore()
 
   const [mode, setMode] = useState((config.mode as string) ?? 'summarize')
@@ -40,8 +43,10 @@ export function DocumentNodeConfig({
   const [uploadError, setUploadError] = useState<string | undefined>()
   const [showSaved, setShowSaved] = useState(false)
   const [isSummarizing, setIsSummarizing] = useState(false)
-  const [summaryFields, setSummaryFields] = useState<Array<{ name: string; content: string }>>([])
+  const [summaryFields, setSummaryFields] = useState<SummaryField[]>([])
   const [summaryError, setSummaryError] = useState<string | null>(null)
+  const [typeMismatch, setTypeMismatch] = useState<{ detectedType: string; suggestedTemplateId: string | null } | null>(null)
+  const [isDetecting, setIsDetecting] = useState(false)
   const [progress, setProgress] = useState<{ current: number; total: number; status: string } | null>(null)
   const [showChunks, setShowChunks] = useState(false)
   const [chunkSummariesData, setChunkSummariesData] = useState<string[]>([])
@@ -99,6 +104,7 @@ export function DocumentNodeConfig({
 
         addDocument({
           id: docId,
+          nodeId: node.id,
           name: file.name,
           fileType: file.name.split('.').pop() as 'pdf' | 'docx' | 'txt',
           fileSize: file.size,
@@ -109,6 +115,25 @@ export function DocumentNodeConfig({
         })
       }
       setUploadStatus('parsed')
+
+      // Auto-detect document type if a template is selected
+      if (templateId) {
+        const latestDoc = useDocumentStore.getState().documents.at(-1)
+        if (latestDoc?.extractedText) {
+          setIsDetecting(true)
+          try {
+            const detection = await detectDocumentType(latestDoc.extractedText, templateId)
+            if (!detection.matchesTemplate) {
+              setTypeMismatch({ detectedType: detection.detectedType, suggestedTemplateId: detection.suggestedTemplateId })
+            } else {
+              setTypeMismatch(null)
+            }
+          } catch {
+            // Detection is best-effort; don't block upload flow
+          }
+          setIsDetecting(false)
+        }
+      }
     } catch (err) {
       setUploadStatus('error')
       setUploadError(err instanceof Error ? err.message : 'Upload failed')
@@ -134,7 +159,7 @@ export function DocumentNodeConfig({
   const handleIndexAll = async () => {
     setIsIndexing(true)
     try {
-      for (const doc of documents) {
+      for (const doc of nodeDocuments) {
         await indexDocumentForSearch(doc.id)
       }
     } catch (err) {
@@ -146,7 +171,7 @@ export function DocumentNodeConfig({
   const handleSummarize = async () => {
     if (!templateId) return
     const docIds = (config.documents as string[]) || []
-    const docId = docIds[0] || documents[documents.length - 1]?.id
+    const docId = docIds[0] || nodeDocuments[nodeDocuments.length - 1]?.id
     if (!docId) return
 
     setIsSummarizing(true)
@@ -173,7 +198,7 @@ export function DocumentNodeConfig({
   }
 
   const handleStartBatch = async () => {
-    if (!templateId || documents.length === 0) return
+    if (!templateId || nodeDocuments.length === 0) return
 
     setIsBatchProcessing(true)
     setBatchResults([])
@@ -181,7 +206,7 @@ export function DocumentNodeConfig({
     setBatchProgress(null)
     cancelRef.current = { current: false }
 
-    const docIds = documents.map((d) => d.id)
+    const docIds = nodeDocuments.map((d) => d.id)
 
     const { results, errors } = await summarizeBatch(
       docIds,
@@ -206,7 +231,7 @@ export function DocumentNodeConfig({
 
   const handleSave = () => {
     // Collect IDs of all documents currently in the store
-    const docIds = documents.map((d) => d.id)
+    const docIds = nodeDocuments.map((d) => d.id)
     onUpdate({
       config: {
         ...config,
@@ -262,7 +287,7 @@ export function DocumentNodeConfig({
           <div className="mt-3 space-y-1">
             <p className="text-xs text-[var(--nomu-text-muted)]">Previously attached:</p>
             {savedDocIds.map((docId) => {
-              const doc = documents.find((d) => d.id === docId)
+              const doc = nodeDocuments.find((d) => d.id === docId)
               if (!doc) return null
               return (
                 <div key={docId} className="flex items-center gap-2 rounded bg-[var(--nomu-surface)] px-3 py-1.5">
@@ -293,6 +318,42 @@ export function DocumentNodeConfig({
           <p className="mt-1 text-xs text-[var(--nomu-text-muted)]">
             {templates.find((t) => t.id === templateId)?.description}
           </p>
+        )}
+
+        {/* Document Type Mismatch Warning */}
+        {typeMismatch && (
+          <div className="mt-3 rounded-lg bg-yellow-900/20 border border-yellow-600/30 p-3">
+            <div className="flex items-start gap-2">
+              <AlertTriangle size={14} className="text-yellow-400 mt-0.5 shrink-0" />
+              <div className="flex-1">
+                <p className="text-xs text-yellow-400 font-medium">Template Mismatch Detected</p>
+                <p className="text-xs text-[var(--nomu-text-muted)] mt-1">
+                  This appears to be a <span className="font-medium text-yellow-300">{typeMismatch.detectedType}</span>, but you selected <span className="font-medium text-[var(--nomu-text)]">{templates.find((t) => t.id === templateId)?.name}</span>. Consider switching for better accuracy.
+                </p>
+                {typeMismatch.suggestedTemplateId && (
+                  <button
+                    onClick={() => {
+                      setTemplateId(typeMismatch.suggestedTemplateId!)
+                      setTypeMismatch(null)
+                    }}
+                    className="mt-2 rounded bg-yellow-600/30 px-3 py-1 text-xs font-medium text-yellow-300 hover:bg-yellow-600/50 transition"
+                  >
+                    Switch to {templates.find((t) => t.id === typeMismatch.suggestedTemplateId)?.name ?? typeMismatch.detectedType}
+                  </button>
+                )}
+              </div>
+              <button onClick={() => setTypeMismatch(null)} className="text-[var(--nomu-text-muted)] hover:text-[var(--nomu-text)]">
+                <XCircle size={12} />
+              </button>
+            </div>
+          </div>
+        )}
+
+        {isDetecting && (
+          <div className="mt-2 flex items-center gap-2 text-xs text-[var(--nomu-text-muted)]">
+            <Loader2 size={12} className="animate-spin" />
+            <span>Detecting document type...</span>
+          </div>
         )}
       </div>
 
@@ -351,7 +412,7 @@ export function DocumentNodeConfig({
         <Button
           variant="primary"
           onClick={handleSummarize}
-          disabled={isSummarizing || documents.length === 0}
+          disabled={isSummarizing || nodeDocuments.length === 0}
           isLoading={isSummarizing}
           leftIcon={isSummarizing ? undefined : <Sparkles size={14} />}
           className="w-full"
@@ -369,11 +430,11 @@ export function DocumentNodeConfig({
               variant="secondary"
               size="sm"
               onClick={handleIndexAll}
-              disabled={isIndexing || documents.length === 0}
+              disabled={isIndexing || nodeDocuments.length === 0}
               isLoading={isIndexing}
               className="w-full mb-3"
             >
-              {isIndexing ? 'Indexing...' : `Index ${documents.length} Document(s)`}
+              {isIndexing ? 'Indexing...' : `Index ${nodeDocuments.length} Document(s)`}
             </Button>
             <div className="flex gap-2">
               <Input
@@ -419,7 +480,7 @@ export function DocumentNodeConfig({
         <div className="space-y-4">
           <div className="rounded-lg bg-[var(--nomu-surface)] p-3">
             <p className="text-xs text-[var(--nomu-text-muted)]">
-              {documents.length} document(s) ready for batch processing
+              {nodeDocuments.length} document(s) ready for batch processing
             </p>
           </div>
 
@@ -428,11 +489,11 @@ export function DocumentNodeConfig({
             <Button
               variant="primary"
               onClick={handleStartBatch}
-              disabled={documents.length === 0}
+              disabled={nodeDocuments.length === 0}
               leftIcon={<Sparkles size={14} />}
               className="w-full"
             >
-              Start Batch ({documents.length} documents)
+              Start Batch ({nodeDocuments.length} documents)
             </Button>
           ) : (
             <Button
@@ -470,7 +531,7 @@ export function DocumentNodeConfig({
             <div>
               <h4 className="mb-2 text-xs font-medium text-[var(--nomu-text-muted)]">Document Status</h4>
               <div className="space-y-1 max-h-48 overflow-y-auto">
-                {documents.map((doc) => {
+                {nodeDocuments.map((doc) => {
                   const st = getDocBatchStatus(doc.id)
                   const errEntry = batchErrors.find((e) => e.documentId === doc.id)
                   return (
@@ -543,12 +604,37 @@ export function DocumentNodeConfig({
         <div>
           <h3 className="mb-3 text-sm font-medium text-[var(--nomu-text)]">Summary Results</h3>
           <div className="space-y-3">
-            {summaryFields.map((field, idx) => (
-              <div key={idx} className="rounded-lg bg-[var(--nomu-surface)] p-3">
-                <h4 className="text-xs font-medium text-[var(--nomu-primary)] mb-1">{field.name}</h4>
-                <p className="text-sm text-[var(--nomu-text)] whitespace-pre-wrap">{field.content}</p>
-              </div>
-            ))}
+            {summaryFields.map((field, idx) => {
+              const isUnverified = field.content.startsWith('[Unverified]')
+              const confidenceColor = field.confidence === 'high' ? 'bg-green-500' : field.confidence === 'medium' ? 'bg-yellow-500' : field.confidence === 'low' ? 'bg-red-500' : 'bg-[var(--nomu-text-muted)]'
+              const confidenceLabel = field.confidence === 'high' ? 'Verified' : field.confidence === 'medium' ? 'Partially verified' : field.confidence === 'low' ? (isUnverified ? 'Unverified' : 'Not found in document') : ''
+
+              return (
+                <div key={idx} className="rounded-lg bg-[var(--nomu-surface)] p-3">
+                  <div className="flex items-center gap-2 mb-1">
+                    <h4 className="text-xs font-medium text-[var(--nomu-primary)]">{field.name}</h4>
+                    {field.confidence && (
+                      <span className="group relative">
+                        <span className={`inline-block h-2 w-2 rounded-full ${confidenceColor}`} />
+                        <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 hidden group-hover:block whitespace-nowrap rounded bg-[var(--nomu-bg)] border border-[var(--nomu-border)] px-2 py-1 text-[10px] text-[var(--nomu-text-muted)] shadow-lg z-10">
+                          {confidenceLabel}{field.sourceReference ? ` | ${field.sourceReference}` : ' | No source found in document'}
+                        </span>
+                      </span>
+                    )}
+                    {isUnverified && <AlertTriangle size={12} className="text-red-400" />}
+                  </div>
+                  <p className={`text-sm whitespace-pre-wrap ${isUnverified ? 'text-[var(--nomu-text-muted)] line-through' : 'text-[var(--nomu-text)]'}`}>
+                    {isUnverified ? field.content.replace('[Unverified] ', '') : field.content}
+                  </p>
+                  {field.sourceReference && (
+                    <p className="mt-1 text-[10px] text-[var(--nomu-text-muted)]">
+                      <Info size={10} className="inline mr-1" />
+                      Source: {field.sourceReference}
+                    </p>
+                  )}
+                </div>
+              )
+            })}
           </div>
         </div>
       )}
