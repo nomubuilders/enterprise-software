@@ -51,7 +51,7 @@ export function ChatInterfacePanel({ node, onClose }: ChatInterfacePanelProps) {
   const [aiAgent, setAiAgent] = useState<Node | null>(null)
   const [dataSource, setDataSource] = useState<Node | null>(null)
   const [dbSchema, setDbSchema] = useState<any[]>([])
-  const [sampleData, setSampleData] = useState<any[] | null>(null)
+  const [allTableData, setAllTableData] = useState<Record<string, any[]>>({})
   const [documentSources, setDocumentSources] = useState<Node[]>([])
 
   useEffect(() => {
@@ -102,7 +102,7 @@ export function ChatInterfacePanel({ node, onClose }: ChatInterfacePanelProps) {
       console.log('[ChatInterface] No Database found in upstream nodes')
       setDataSource(null)
       setDbSchema([])
-      setSampleData(null)
+      setAllTableData({})
     }
 
     // Find Document nodes in upstream nodes
@@ -147,44 +147,41 @@ export function ChatInterfacePanel({ node, onClose }: ChatInterfacePanelProps) {
         setDbSchema(tablesResult.tables)
         console.log('[ChatInterface] Set schema:', tablesResult.tables)
 
-        // Load sample data
-        const tableName = tablesResult.tables[0]?.name
-        console.log('[ChatInterface] First table name:', tableName)
+        // Load sample data from ALL tables (up to 5 rows each)
+        // This gives the AI full visibility across the entire database
+        const tableData: Record<string, any[]> = {}
+        const tables = tablesResult.tables.filter((t: any) => !t.name.startsWith('v_')) // skip views
 
-        if (tableName) {
-          // Use the configured query or default to first table
-          let query = (dbConfig.query as string) || `SELECT * FROM ${tableName}`
-          query = query.trim().replace(/;$/, '')
-
-          // Make sure we have a LIMIT clause
-          if (!query.toLowerCase().includes('limit')) {
-            query += ' LIMIT 50'
-          }
-
-          console.log('[ChatInterface] Executing query:', query)
-          console.log('[ChatInterface] With config:', config)
-
+        for (const table of tables) {
           try {
-            const queryResult = await api.executeQuery(config, query, 50)
-            console.log('[ChatInterface] Query result:', queryResult)
-
-            if (queryResult.success) {
-              if (queryResult.rows && queryResult.rows.length > 0) {
-                console.log('[ChatInterface] ✅ Setting sample data, row count:', queryResult.rows.length)
-                setSampleData(queryResult.rows)
-              } else {
-                console.warn('[ChatInterface] ⚠️ Query succeeded but returned 0 rows')
-                setSampleData([])
-              }
-            } else {
-              console.error('[ChatInterface] ❌ Query failed:', queryResult.error || 'Unknown error')
+            const queryResult = await api.executeQuery(config, `SELECT * FROM ${table.name} LIMIT 5`, 5)
+            if (queryResult.success && queryResult.rows && queryResult.rows.length > 0) {
+              tableData[table.name] = queryResult.rows
+              console.log(`[ChatInterface] ✅ ${table.name}: ${queryResult.rows.length} rows`)
             }
-          } catch (queryError) {
-            console.error('[ChatInterface] ❌ Exception executing query:', queryError)
+          } catch (err) {
+            console.warn(`[ChatInterface] ⚠️ Failed to load ${table.name}:`, err)
           }
-        } else {
-          console.warn('[ChatInterface] ⚠️ No table name found in schema')
         }
+
+        // Also run the configured query if it's custom
+        const configuredQuery = (dbConfig.query as string)?.trim().replace(/;$/, '')
+        if (configuredQuery && !configuredQuery.toLowerCase().startsWith('select * from')) {
+          try {
+            let q = configuredQuery
+            if (!q.toLowerCase().includes('limit')) q += ' LIMIT 20'
+            const queryResult = await api.executeQuery(config, q, 20)
+            if (queryResult.success && queryResult.rows && queryResult.rows.length > 0) {
+              tableData['__configured_query__'] = queryResult.rows
+              console.log(`[ChatInterface] ✅ Configured query: ${queryResult.rows.length} rows`)
+            }
+          } catch (err) {
+            console.warn('[ChatInterface] ⚠️ Configured query failed:', err)
+          }
+        }
+
+        setAllTableData(tableData)
+        console.log('[ChatInterface] Loaded data from', Object.keys(tableData).length, 'tables')
       } else {
         console.error('[ChatInterface] Failed to list tables:', tablesResult)
       }
@@ -300,9 +297,9 @@ export function ChatInterfacePanel({ node, onClose }: ChatInterfacePanelProps) {
   }
 
   const buildSystemPrompt = () => {
-    let systemPrompt = 'You are a helpful data analyst assistant. Answer questions about the data provided.'
+    let systemPrompt = 'You are a helpful compliance data analyst. You have access to MULTIPLE data sources — a database AND documents. Always cross-reference ALL available sources when answering. Use the ACTUAL data provided, never guess or make assumptions. If asked about a specific table or data, refer to the real rows shown below.'
 
-    // ── 1. Database context from ChatInterface's own live query ──
+    // ── 1. Database context: schema + sample data from ALL tables ──
     if (dbSchema.length > 0 && dataSource) {
       const dbConfig = getNodeConfig(dataSource)
       systemPrompt += `\n\n## Database: ${dbConfig?.database ?? 'unknown'} (${dbConfig?.dbType ?? 'PostgreSQL'})`
@@ -312,19 +309,27 @@ export function ChatInterfacePanel({ node, onClose }: ChatInterfacePanelProps) {
       }
     }
 
-    if (sampleData && sampleData.length > 0) {
-      systemPrompt += `\n\n### Sample Data (${sampleData.length} rows):\n\`\`\`json\n${JSON.stringify(sampleData.slice(0, 20), null, 2)}\n\`\`\``
+    // Include sample data from ALL tables
+    const tableNames = Object.keys(allTableData)
+    if (tableNames.length > 0) {
+      systemPrompt += `\n\n### Database Contents (sample rows from each table):`
+      for (const tableName of tableNames) {
+        const rows = allTableData[tableName]
+        if (tableName === '__configured_query__') {
+          systemPrompt += `\n\n#### Configured Query Results (${rows.length} rows):\n\`\`\`json\n${JSON.stringify(rows, null, 2)}\n\`\`\``
+        } else {
+          systemPrompt += `\n\n#### ${tableName} (${rows.length} rows):\n\`\`\`json\n${JSON.stringify(rows, null, 2)}\n\`\`\``
+        }
+      }
     }
 
     // ── 2. Workflow execution results (from last workflow run) ──
-    // This captures data from ALL upstream nodes that ran in the workflow,
-    // including database queries, document parsing, spreadsheets, emails, etc.
     if (workflowResults) {
-      // Database query results from workflow execution
-      if (workflowResults.dbResult && !(sampleData && sampleData.length > 0)) {
+      // Database query results from workflow execution (always include, even if we have table data)
+      if (workflowResults.dbResult) {
         const dbRows = workflowResults.dbResult as any[]
         const dbCols = workflowResults.dbColumns as string[] | undefined
-        systemPrompt += `\n\n## Database Query Results (from workflow)`
+        systemPrompt += `\n\n## Workflow Query Results`
         if (dbCols) {
           systemPrompt += `\nColumns: ${dbCols.join(', ')}`
         }
@@ -413,6 +418,7 @@ export function ChatInterfacePanel({ node, onClose }: ChatInterfacePanelProps) {
       }
     }
 
+    console.log('[ChatInterface] System prompt length:', systemPrompt.length, 'chars')
     return systemPrompt
   }
 
@@ -581,7 +587,7 @@ export function ChatInterfacePanel({ node, onClose }: ChatInterfacePanelProps) {
             <Database size={12} />
             <span>
               Data: <strong>{getNodeConfig(dataSource)?.database as string ?? 'unknown'}</strong> ({dbSchema.length} tables
-              {sampleData ? `, ${sampleData.length} rows loaded` : ''})
+              {Object.keys(allTableData).length > 0 ? `, ${Object.keys(allTableData).length} tables loaded` : ''})
             </span>
           </div>
         ) : dataSource && workflowResults?.dbResult ? (
@@ -638,7 +644,7 @@ export function ChatInterfacePanel({ node, onClose }: ChatInterfacePanelProps) {
           <div className="flex flex-col items-center justify-center h-full text-center">
             <MessageSquare size={40} className="mb-3 text-[var(--nomu-border)]" />
             <p className="text-sm text-[var(--nomu-text-muted)] mb-1">Start a conversation</p>
-            {aiAgent && (sampleData || documentSources.length > 0 || workflowResults) ? (
+            {aiAgent && (Object.keys(allTableData).length > 0 || documentSources.length > 0 || workflowResults) ? (
               <p className="text-xs text-green-400">✓ Ready to answer questions about your data</p>
             ) : !aiAgent ? (
               <p className="text-xs text-red-400">⚠️ Connect an AI Agent node first</p>
