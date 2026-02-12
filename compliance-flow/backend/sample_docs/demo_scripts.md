@@ -23,7 +23,7 @@ Manual Trigger → Legal Document → PII Redact → PostgreSQL → AI Agent →
 | 4 | Watch AI auto-build workflow on canvas | *"...and the AI builds the pipeline"* |
 | 5 | **Drag PII Redact** from sidebar, insert before AI Agent | *"But I want to strip personal data first — drag, drop, connect. That's modularity."* |
 | 6 | Click **Legal Document** node → upload `sample_nda.txt` | *"This is a real NDA between a Dutch and Spanish company"* |
-| 7 | Click **PostgreSQL** node → enter: `localhost` / `5433` / `compliance_demo` / `postgres` / `postgres` / SSL off | *"Now I connect to our regulatory database"* |
+| 7 | Click **PostgreSQL** node → enter: `localhost` / `5433` / `compliance_db` / `compliance` / `compliance123` / SSL off | *"Now I connect to our regulatory database"* |
 | 8 | Click **Test Connection** → show ✅ | *"Connected"* |
 | 9 | Set the query to the one below | *"I'm pulling our regulatory frameworks"* |
 | 10 | **Save** both nodes, click **Run** | *"The AI now reads the contract, strips PII, queries the database, and cross-references them"* |
@@ -100,9 +100,9 @@ ORDER BY ci.incident_date DESC
 | What | Where |
 |------|-------|
 | **App** | [http://localhost:5173](http://localhost:5173) |
-| **DB Credentials** | `localhost` / `5433` / `compliance_demo` / `postgres` / `postgres` / SSL off |
+| **DB Credentials** | `localhost` / `5433` / `compliance_db` / `compliance` / `compliance123` / SSL off |
 | **Sample NDA** | `backend/sample_docs/sample_nda.txt` |
-| **AI Model** | `llama3.2:3b` (local, via Ollama) |
+| **AI Model** | `qwen3:8b` (local, via Ollama — best for cross-referencing) |
 
 ### AI Assistant Trigger Phrases
 | What you type | What happens |
