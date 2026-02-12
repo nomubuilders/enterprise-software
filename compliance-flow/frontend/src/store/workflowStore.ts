@@ -446,23 +446,100 @@ export const useWorkflowStore = create<WorkflowState>()(
               else if (node.type === 'piiFilterNode') {
                 addLog(node.id, nodeName, 'info', 'Applying PII filter...')
 
-                // Simple PII filter simulation (real implementation would use backend)
                 const mode = config.mode as string || 'redact'
-                const entities = config.entities as string[] || ['EMAIL', 'PHONE']
+                const entities = config.entities as string[] || ['EMAIL', 'PHONE', 'NAME', 'ADDRESS']
 
-                if (workflowData.llmResponse) {
-                  let filtered = workflowData.llmResponse as string
-                  // Simple regex-based filtering
+                // Helper: apply regex-based PII filters to a string
+                const filterPII = (text: string): { filtered: string; counts: Record<string, number> } => {
+                  let filtered = text
+                  const counts: Record<string, number> = {}
+
                   if (entities.includes('EMAIL')) {
-                    filtered = filtered.replace(/\b[\w.-]+@[\w.-]+\.\w+\b/gi, mode === 'redact' ? '[EMAIL]' : '****@****.***')
+                    const matches = filtered.match(/\b[\w.-]+@[\w.-]+\.\w+\b/gi)
+                    counts.EMAIL = matches?.length || 0
+                    filtered = filtered.replace(/\b[\w.-]+@[\w.-]+\.\w+\b/gi, mode === 'redact' ? '[EMAIL REDACTED]' : '****@****.***')
                   }
                   if (entities.includes('PHONE')) {
-                    filtered = filtered.replace(/\b\d{3}[-.]?\d{3}[-.]?\d{4}\b/g, mode === 'redact' ? '[PHONE]' : '***-***-****')
+                    // US format
+                    const usMatches = filtered.match(/\b\d{3}[-.]?\d{3}[-.]?\d{4}\b/g)
+                    // EU format: +31 10 443 2891, +34 91 576 4823, etc.
+                    const euMatches = filtered.match(/\+\d{1,3}[\s-]?\d{1,4}[\s-]?\d{3,4}[\s-]?\d{2,4}\b/g)
+                    counts.PHONE = (usMatches?.length || 0) + (euMatches?.length || 0)
+                    filtered = filtered.replace(/\+\d{1,3}[\s-]?\d{1,4}[\s-]?\d{3,4}[\s-]?\d{2,4}\b/g, mode === 'redact' ? '[PHONE REDACTED]' : '+** ** *** ****')
+                    filtered = filtered.replace(/\b\d{3}[-.]?\d{3}[-.]?\d{4}\b/g, mode === 'redact' ? '[PHONE REDACTED]' : '***-***-****')
                   }
+                  if (entities.includes('SSN') || entities.includes('BSN')) {
+                    // Dutch BSN (9 digits)
+                    const bsnMatches = filtered.match(/\bBSN:\s*\d{9}\b/gi)
+                    // Spanish NIE (X-1234567-A) and DNI (12345678-B)
+                    const nieMatches = filtered.match(/\b(?:NIE|DNI):\s*[A-Z]?-?\d{7,8}-?[A-Z]?\b/gi)
+                    counts.BSN_NIE = (bsnMatches?.length || 0) + (nieMatches?.length || 0)
+                    filtered = filtered.replace(/(\bBSN:\s*)\d{9}\b/gi, '$1[BSN REDACTED]')
+                    filtered = filtered.replace(/(\b(?:NIE|DNI):\s*)[A-Z]?-?\d{7,8}-?[A-Z]?\b/gi, '$1[ID REDACTED]')
+                  }
+                  if (entities.includes('NAME')) {
+                    // Named contacts after labels like "Name:", "Contact:", person names in Annex
+                    const namePatterns = [
+                      /(?:Name|Contact|For and on behalf of):\s*([A-Z][a-záàâäéèêëíìîïóòôöúùûüñç]+(?:\s+(?:van\s+der\s+|de\s+|del\s+)?[A-Z][a-záàâäéèêëíìîïóòôöúùûüñç]+)+)/g,
+                      // Numbered list entries like "1. Maria van der Berg (CTO)"
+                      /\d+\.\s+([A-Z][a-záàâäéèêëíìîïóòôöúùûüñç]+(?:\s+(?:van\s+der\s+|de\s+|del\s+)?[A-Z][a-záàâäéèêëíìîïóòôöúùûüñç]+)+)\s*\(/g,
+                    ]
+                    let nameCount = 0
+                    for (const pattern of namePatterns) {
+                      const matches = filtered.match(pattern)
+                      nameCount += matches?.length || 0
+                    }
+                    counts.NAME = nameCount
+                    for (const pattern of namePatterns) {
+                      filtered = filtered.replace(pattern, (match, name) =>
+                        match.replace(name, mode === 'redact' ? '[NAME REDACTED]' : '***')
+                      )
+                    }
+                  }
+                  if (entities.includes('ADDRESS')) {
+                    // European addresses: street + number, postal code + city
+                    const addressMatches = filtered.match(/(?:Address:\s*)[^\n]+/gi)
+                    counts.ADDRESS = addressMatches?.length || 0
+                    filtered = filtered.replace(/(Address:\s*)[^\n]+/gi, '$1[ADDRESS REDACTED]')
+                  }
+                  return { filtered, counts }
+                }
+
+                // Determine what text to filter: documentText (before LLM) or llmResponse (after LLM)
+                let totalCounts: Record<string, number> = {}
+                if (workflowData.documentText) {
+                  const { filtered, counts } = filterPII(workflowData.documentText as string)
+                  workflowData.documentText = filtered
                   workflowData.filteredResponse = filtered
-                  addLog(node.id, nodeName, 'info', `PII filter applied (${mode} mode)`, { entities })
+                  totalCounts = counts
+                }
+                if (workflowData.documentSummary) {
+                  const summary = workflowData.documentSummary as DocumentSummary
+                  for (const field of summary.fields) {
+                    const { filtered, counts } = filterPII(field.content)
+                    field.content = filtered
+                    for (const [k, v] of Object.entries(counts)) {
+                      totalCounts[k] = (totalCounts[k] || 0) + v
+                    }
+                  }
+                }
+                if (workflowData.llmResponse) {
+                  const { filtered, counts } = filterPII(workflowData.llmResponse as string)
+                  workflowData.filteredResponse = filtered
+                  for (const [k, v] of Object.entries(counts)) {
+                    totalCounts[k] = (totalCounts[k] || 0) + v
+                  }
+                }
+
+                const totalRedacted = Object.values(totalCounts).reduce((a, b) => a + b, 0)
+                if (totalRedacted > 0) {
+                  const breakdown = Object.entries(totalCounts)
+                    .filter(([, v]) => v > 0)
+                    .map(([k, v]) => `${v} ${k}`)
+                    .join(', ')
+                  addLog(node.id, nodeName, 'info', `PII filter applied (${mode}): ${totalRedacted} items redacted (${breakdown})`, { entities, counts: totalCounts })
                 } else {
-                  addLog(node.id, nodeName, 'info', 'No content to filter')
+                  addLog(node.id, nodeName, 'info', 'PII filter applied — no PII detected', { entities })
                 }
               }
               else if (node.type === 'dockerContainerNode') {

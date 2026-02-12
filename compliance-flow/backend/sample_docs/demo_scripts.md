@@ -32,11 +32,11 @@ Manual Trigger → Legal Document → PII Redact → PostgreSQL → AI Agent →
 ### PostgreSQL Query
 ```sql
 SELECT rf.name, rf.jurisdiction, rf.description,
-       co.article_reference, co.requirement_summary, co.max_penalty
+       co.article, co.obligation_title, co.penalty_max_eur
 FROM regulatory_frameworks rf
-JOIN compliance_obligations co ON rf.id = co.framework_id
+JOIN compliance_obligations co ON rf.code = co.framework_code
 WHERE rf.jurisdiction IN ('EU', 'Netherlands', 'Spain')
-ORDER BY co.max_penalty DESC NULLS LAST
+ORDER BY co.penalty_max_eur DESC NULLS LAST
 LIMIT 20
 ```
 
@@ -70,13 +70,13 @@ Manual Trigger → PostgreSQL → AI Agent → Chat Interface
 
 ### PostgreSQL Query
 ```sql
-SELECT ais.system_name, ais.risk_classification, ais.conformity_status,
-       ais.deploying_organization, ais.purpose,
-       o.name AS org_name, o.country, o.risk_level AS org_risk
+SELECT ais.system_name, ais.risk_level, ais.conformity_status,
+       o.name AS deploying_org, ais.purpose,
+       o.country, o.compliance_score
 FROM ai_systems ais
-JOIN organizations o ON ais.deploying_organization = o.name
-WHERE ais.risk_classification IN ('high', 'unacceptable')
-ORDER BY ais.risk_classification DESC, ais.conformity_status
+JOIN organizations o ON ais.organization_id = o.id
+WHERE ais.risk_level = 'High'
+ORDER BY ais.conformity_status, ais.system_name
 ```
 
 > [!TIP]
@@ -84,12 +84,12 @@ ORDER BY ais.risk_classification DESC, ais.conformity_status
 
 ### Bonus Query: Incident Investigation
 ```sql
-SELECT ci.title, ci.severity, ci.affected_records, ci.root_cause,
+SELECT ci.incident_type, ci.severity, ci.affected_records, ci.root_cause,
        o.name, o.country, rf.name AS regulation
 FROM compliance_incidents ci
 JOIN organizations o ON ci.organization_id = o.id
-JOIN regulatory_frameworks rf ON ci.related_framework_id = rf.id
-WHERE ci.severity IN ('critical', 'high')
+JOIN regulatory_frameworks rf ON ci.framework_code = rf.code
+WHERE ci.severity IN ('Critical', 'High')
 ORDER BY ci.incident_date DESC
 ```
 

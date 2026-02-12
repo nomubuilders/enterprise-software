@@ -41,10 +41,10 @@ export class AIWorkflowBuilder {
         nodes: [
           { type: 'triggerNode', label: 'Manual Trigger', config: { triggerType: 'manual' } },
           { type: 'documentNode', label: 'Legal Document', config: { documentType: 'legal', format: 'text' } },
-          { type: 'piiFilterNode', label: 'PII Redact', config: { mode: 'redact', entities: ['EMAIL', 'PHONE', 'NAME', 'ADDRESS'] } },
-          { type: 'databaseNode', label: 'Compliance DB', config: { dbType: 'postgresql', query: 'SELECT * FROM regulatory_frameworks rf JOIN compliance_obligations co ON rf.id = co.framework_id LIMIT 20', host: 'localhost', port: 5433, database: 'compliance_demo', username: 'postgres' } },
-          { type: 'llmNode', label: 'AI Cross-Check Agent', config: { model: 'llama3.2:3b', systemPrompt: 'You are a compliance expert. Analyze the legal document against the regulatory data. Identify which regulations are referenced, which are missing, and flag any compliance gaps.', temperature: 0.3, maxTokens: 2048 } },
-          { type: 'outputNode', label: 'Results', config: { outputType: 'chat', format: 'markdown' } },
+          { type: 'piiFilterNode', label: 'PII Redact', config: { mode: 'redact', entities: ['EMAIL', 'PHONE', 'NAME', 'ADDRESS', 'BSN'] } },
+          { type: 'databaseNode', label: 'PostgreSQL', config: { dbType: 'postgresql', query: "SELECT rf.name, rf.jurisdiction, rf.description, co.article, co.obligation_title, co.penalty_max_eur FROM regulatory_frameworks rf JOIN compliance_obligations co ON rf.code = co.framework_code WHERE rf.jurisdiction IN ('EU', 'Netherlands', 'Spain') ORDER BY co.penalty_max_eur DESC NULLS LAST LIMIT 20", host: 'localhost', port: 5433, database: 'compliance_demo', username: 'postgres' } },
+          { type: 'llmNode', label: 'AI Agent', config: { model: 'llama3.2:3b', systemPrompt: 'You are a compliance expert. Analyze the legal document against the regulatory data. Identify which regulations are referenced, which are missing, and flag any compliance gaps.', temperature: 0.3, maxTokens: 2048 } },
+          { type: 'outputNode', label: 'Chat Interface', config: { outputType: 'chat', format: 'markdown' } },
         ],
         edges: [
           { from: 0, to: 1 }, { from: 1, to: 2 }, { from: 2, to: 4 },
@@ -62,9 +62,9 @@ export class AIWorkflowBuilder {
         userMessage: "I'll create a workflow that queries your database and has AI analyze the results.",
         nodes: [
           { type: 'triggerNode', label: 'Manual Trigger', config: { triggerType: 'manual' } },
-          { type: 'databaseNode', label: 'PostgreSQL Query', config: { dbType: 'postgresql', query: 'SELECT * FROM ai_systems WHERE risk_classification IN (\'high\', \'unacceptable\') ORDER BY risk_classification DESC', host: 'localhost', port: 5433, database: 'compliance_demo', username: 'postgres' } },
-          { type: 'llmNode', label: 'AI Analyst', config: { model: 'llama3.2:3b', systemPrompt: 'Analyze the query results and provide actionable insights. Highlight any compliance risks or anomalies.', temperature: 0.3, maxTokens: 2048 } },
-          { type: 'outputNode', label: 'Chat Output', config: { outputType: 'chat', format: 'markdown' } },
+          { type: 'databaseNode', label: 'PostgreSQL', config: { dbType: 'postgresql', query: "SELECT ais.system_name, ais.risk_level, ais.conformity_status, o.name AS deploying_org, ais.purpose, o.country, o.compliance_score FROM ai_systems ais JOIN organizations o ON ais.organization_id = o.id WHERE ais.risk_level = 'High' ORDER BY ais.conformity_status, ais.system_name", host: 'localhost', port: 5433, database: 'compliance_demo', username: 'postgres' } },
+          { type: 'llmNode', label: 'AI Agent', config: { model: 'llama3.2:3b', systemPrompt: 'Analyze the query results and provide actionable insights. Highlight any compliance risks or anomalies.', temperature: 0.3, maxTokens: 2048 } },
+          { type: 'outputNode', label: 'Chat Interface', config: { outputType: 'chat', format: 'markdown' } },
         ],
         edges: [
           { from: 0, to: 1 }, { from: 1, to: 2 }, { from: 2, to: 3 },
@@ -81,8 +81,8 @@ export class AIWorkflowBuilder {
         nodes: [
           { type: 'triggerNode', label: 'Manual Trigger', config: { triggerType: 'manual' } },
           { type: 'documentNode', label: 'Input Document', config: { documentType: 'text', format: 'text' } },
-          { type: 'piiFilterNode', label: 'PII Redact', config: { mode: 'redact', entities: ['EMAIL', 'PHONE', 'SSN', 'NAME', 'ADDRESS', 'DATE_OF_BIRTH'] } },
-          { type: 'outputNode', label: 'Clean Output', config: { outputType: 'chat', format: 'markdown' } },
+          { type: 'piiFilterNode', label: 'PII Redact', config: { mode: 'redact', entities: ['EMAIL', 'PHONE', 'SSN', 'NAME', 'ADDRESS', 'BSN'] } },
+          { type: 'outputNode', label: 'Chat Interface', config: { outputType: 'chat', format: 'markdown' } },
         ],
         edges: [
           { from: 0, to: 1 }, { from: 1, to: 2 }, { from: 2, to: 3 },
@@ -93,12 +93,12 @@ export class AIWorkflowBuilder {
     // Generic "build me a workflow" with AI
     if (lower.includes('workflow') && (lower.includes('build') || lower.includes('create') || lower.includes('make'))) {
       return {
-        userMessage: "I'll create a basic AI workflow with a trigger, database, AI agent, and output.",
+        userMessage: "I'll create a basic AI workflow with a trigger, database, AI agent, and chat interface.",
         nodes: [
           { type: 'triggerNode', label: 'Manual Trigger', config: { triggerType: 'manual' } },
           { type: 'databaseNode', label: 'Data Source', config: { dbType: 'postgresql', query: 'SELECT * FROM ai_systems LIMIT 10', host: 'localhost', port: 5433, database: 'compliance_demo', username: 'postgres' } },
           { type: 'llmNode', label: 'AI Agent', config: { model: 'llama3.2:3b', systemPrompt: 'Analyze the provided data and generate a concise summary with key findings.', temperature: 0.5, maxTokens: 2048 } },
-          { type: 'outputNode', label: 'Results', config: { outputType: 'chat', format: 'markdown' } },
+          { type: 'outputNode', label: 'Chat Interface', config: { outputType: 'chat', format: 'markdown' } },
         ],
         edges: [
           { from: 0, to: 1 }, { from: 1, to: 2 }, { from: 2, to: 3 },

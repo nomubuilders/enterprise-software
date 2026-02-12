@@ -3,6 +3,7 @@ import { X, Send, Loader2, MessageSquare, Database, Bot, Minimize2, Maximize2, G
 import { Button } from '../common'
 import { api } from '../../services/api'
 import { useFlowStore } from '../../store/flowStore'
+import { useWorkflowStore } from '../../store/workflowStore'
 import { useDocumentStore } from '../../store/documentStore'
 import ReactMarkdown from 'react-markdown'
 import type { Node } from '@xyflow/react'
@@ -28,6 +29,7 @@ function getNodeConfig(n: Node): Record<string, unknown> | null {
 
 export function ChatInterfacePanel({ node, onClose }: ChatInterfacePanelProps) {
   const { nodes, edges } = useFlowStore()
+  const workflowResults = useWorkflowStore((s) => s.currentExecution?.results as Record<string, unknown> | undefined)
 
   // Chat state
   const [messages, setMessages] = useState<Message[]>([])
@@ -300,6 +302,7 @@ export function ChatInterfacePanel({ node, onClose }: ChatInterfacePanelProps) {
   const buildSystemPrompt = () => {
     let systemPrompt = 'You are a helpful data analyst assistant. Answer questions about the data provided.'
 
+    // ── 1. Database context from ChatInterface's own live query ──
     if (dbSchema.length > 0 && dataSource) {
       const dbConfig = getNodeConfig(dataSource)
       systemPrompt += `\n\n## Database: ${dbConfig?.database ?? 'unknown'} (${dbConfig?.dbType ?? 'PostgreSQL'})`
@@ -313,7 +316,84 @@ export function ChatInterfacePanel({ node, onClose }: ChatInterfacePanelProps) {
       systemPrompt += `\n\n### Sample Data (${sampleData.length} rows):\n\`\`\`json\n${JSON.stringify(sampleData.slice(0, 20), null, 2)}\n\`\`\``
     }
 
-    // Add document context from upstream document nodes
+    // ── 2. Workflow execution results (from last workflow run) ──
+    // This captures data from ALL upstream nodes that ran in the workflow,
+    // including database queries, document parsing, spreadsheets, emails, etc.
+    if (workflowResults) {
+      // Database query results from workflow execution
+      if (workflowResults.dbResult && !(sampleData && sampleData.length > 0)) {
+        const dbRows = workflowResults.dbResult as any[]
+        const dbCols = workflowResults.dbColumns as string[] | undefined
+        systemPrompt += `\n\n## Database Query Results (from workflow)`
+        if (dbCols) {
+          systemPrompt += `\nColumns: ${dbCols.join(', ')}`
+        }
+        systemPrompt += `\n\`\`\`json\n${JSON.stringify(dbRows.slice(0, 30), null, 2)}\n\`\`\``
+      }
+
+      // Document text from workflow execution
+      if (workflowResults.documentText) {
+        systemPrompt += `\n\n## Document Text (from workflow)\n${String(workflowResults.documentText).slice(0, 4000)}`
+      }
+
+      // Document summary from workflow execution
+      if (workflowResults.documentSummary) {
+        const summary = workflowResults.documentSummary as { fields: Array<{ name: string; content: string }> }
+        systemPrompt += `\n\n## Document Summary (from workflow)`
+        for (const field of summary.fields) {
+          const content = field.content.length > 3000 ? field.content.slice(0, 3000) + '...' : field.content
+          systemPrompt += `\n**${field.name}**: ${content}`
+        }
+      }
+
+      // Batch document summaries from workflow
+      if (workflowResults.batchSummaries) {
+        const batch = workflowResults.batchSummaries as Array<{ fields: Array<{ name: string; content: string }> }>
+        systemPrompt += `\n\n## Batch Document Summaries (${batch.length} documents)`
+        for (const [i, s] of batch.entries()) {
+          systemPrompt += `\n### Document ${i + 1}`
+          for (const f of s.fields) {
+            systemPrompt += `\n${f.name}: ${f.content.slice(0, 1000)}`
+          }
+        }
+      }
+
+      // Spreadsheet data from workflow
+      if (workflowResults.spreadsheetData) {
+        const sd = workflowResults.spreadsheetData as { columns: string[]; rows: Record<string, unknown>[]; totalRows: number }
+        systemPrompt += `\n\n## Spreadsheet Data (${sd.totalRows} rows, columns: ${sd.columns.join(', ')})\n\`\`\`json\n${JSON.stringify(sd.rows.slice(0, 20), null, 2)}\n\`\`\``
+      }
+
+      // Email messages from workflow
+      if (workflowResults.emailMessages) {
+        const emails = workflowResults.emailMessages as Array<{ subject?: string; sender?: string; body_text?: string; date?: string }>
+        systemPrompt += `\n\n## Email Messages (${emails.length} emails)`
+        for (const e of emails.slice(0, 10)) {
+          systemPrompt += `\n- **${e.subject || '(no subject)'}** from ${e.sender || 'unknown'} (${e.date || ''})\n  ${(e.body_text || '').slice(0, 500)}`
+        }
+      }
+
+      // PII-filtered content from workflow
+      if (workflowResults.filteredResponse) {
+        systemPrompt += `\n\n## Processed Content (PII-filtered)\n${String(workflowResults.filteredResponse).slice(0, 3000)}`
+      }
+
+      // Previous LLM response from workflow
+      if (workflowResults.llmResponse) {
+        systemPrompt += `\n\n## Previous AI Analysis\n${String(workflowResults.llmResponse).slice(0, 3000)}`
+      }
+
+      // Web search results from workflow
+      if (workflowResults.webSearchResults) {
+        const results = workflowResults.webSearchResults as Array<{ title: string; url: string; snippet: string }>
+        systemPrompt += `\n\n## Web Search Results`
+        for (const r of results) {
+          systemPrompt += `\n- [${r.title}](${r.url}): ${r.snippet}`
+        }
+      }
+    }
+
+    // ── 3. Document context from upstream document nodes (real-time) ──
     if (documentSources.length > 0) {
       const { getSummaryForDocument } = useDocumentStore.getState()
       systemPrompt += `\n\n## Document Sources`
@@ -500,10 +580,17 @@ export function ChatInterfacePanel({ node, onClose }: ChatInterfacePanelProps) {
               {sampleData ? `, ${sampleData.length} rows loaded` : ''})
             </span>
           </div>
+        ) : dataSource && workflowResults?.dbResult ? (
+          <div className="flex items-center gap-2 text-xs text-green-400">
+            <Database size={12} />
+            <span>
+              Data: <strong>{getNodeConfig(dataSource)?.database as string ?? 'database'}</strong> ({(workflowResults.dbResult as any[]).length} rows from workflow)
+            </span>
+          </div>
         ) : dataSource ? (
           <div className="flex items-center gap-2 text-xs text-yellow-400">
             <Database size={12} />
-            <span>Database connected, loading...</span>
+            <span>Database connected — run workflow to load data</span>
           </div>
         ) : null}
 
@@ -517,7 +604,23 @@ export function ChatInterfacePanel({ node, onClose }: ChatInterfacePanelProps) {
           </div>
         )}
 
-        {!dataSource && documentSources.length === 0 && (
+        {workflowResults && (
+          <div className="flex items-center gap-2 text-xs text-blue-400">
+            <Bot size={12} />
+            <span>
+              Workflow data: {[
+                workflowResults.dbResult && 'DB',
+                workflowResults.documentText && 'Document',
+                workflowResults.documentSummary && 'Summary',
+                workflowResults.spreadsheetData && 'Spreadsheet',
+                workflowResults.emailMessages && 'Email',
+                workflowResults.llmResponse && 'AI Analysis',
+              ].filter(Boolean).join(', ') || 'loaded'}
+            </span>
+          </div>
+        )}
+
+        {!dataSource && documentSources.length === 0 && !workflowResults && (
           <div className="flex items-center gap-2 text-xs text-[var(--nomu-text-muted)]">
             <Database size={12} />
             <span>No data source connected</span>
@@ -531,7 +634,7 @@ export function ChatInterfacePanel({ node, onClose }: ChatInterfacePanelProps) {
           <div className="flex flex-col items-center justify-center h-full text-center">
             <MessageSquare size={40} className="mb-3 text-[var(--nomu-border)]" />
             <p className="text-sm text-[var(--nomu-text-muted)] mb-1">Start a conversation</p>
-            {aiAgent && (sampleData || documentSources.length > 0) ? (
+            {aiAgent && (sampleData || documentSources.length > 0 || workflowResults) ? (
               <p className="text-xs text-green-400">✓ Ready to answer questions about your data</p>
             ) : !aiAgent ? (
               <p className="text-xs text-red-400">⚠️ Connect an AI Agent node first</p>
