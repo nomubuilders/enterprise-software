@@ -52,6 +52,10 @@ export function ChatInterfacePanel({ node, onClose }: ChatInterfacePanelProps) {
   const [dataSource, setDataSource] = useState<Node | null>(null)
   const [dbSchema, setDbSchema] = useState<any[]>([])
   const [allTableData, setAllTableData] = useState<Record<string, any[]>>({})
+  const [dbConnectionConfig, setDbConnectionConfig] = useState<{
+    type: 'postgresql' | 'mysql' | 'mongodb'; host: string; port: number; database: string;
+    username: string; password: string; ssl: boolean;
+  } | null>(null)
   const [documentSources, setDocumentSources] = useState<Node[]>([])
 
   useEffect(() => {
@@ -103,6 +107,7 @@ export function ChatInterfacePanel({ node, onClose }: ChatInterfacePanelProps) {
       setDataSource(null)
       setDbSchema([])
       setAllTableData({})
+      setDbConnectionConfig(null)
     }
 
     // Find Document nodes in upstream nodes
@@ -139,49 +144,32 @@ export function ChatInterfacePanel({ node, onClose }: ChatInterfacePanelProps) {
         ssl: (dbConfig.ssl as boolean) ?? false,
       }
 
+      // Save config for dynamic query execution later
+      setDbConnectionConfig(config)
+
       console.log('[ChatInterface] Fetching tables with config:', config)
       const tablesResult = await api.listTables(config)
       console.log('[ChatInterface] Tables result:', tablesResult)
 
       if (tablesResult.success && tablesResult.tables) {
         setDbSchema(tablesResult.tables)
-        console.log('[ChatInterface] Set schema:', tablesResult.tables)
+        console.log('[ChatInterface] Schema loaded:', tablesResult.tables.length, 'tables')
 
-        // Load sample data from ALL tables (up to 5 rows each)
-        // This gives the AI full visibility across the entire database
+        // Load a small preview (3 rows per table) just for the AI to understand data types/formats
         const tableData: Record<string, any[]> = {}
-        const tables = tablesResult.tables.filter((t: any) => !t.name.startsWith('v_')) // skip views
-
+        const tables = tablesResult.tables.filter((t: any) => !t.name.startsWith('v_'))
         for (const table of tables) {
           try {
-            const queryResult = await api.executeQuery(config, `SELECT * FROM ${table.name} LIMIT 25`, 25)
+            const queryResult = await api.executeQuery(config, `SELECT * FROM ${table.name} LIMIT 3`, 3)
             if (queryResult.success && queryResult.rows && queryResult.rows.length > 0) {
               tableData[table.name] = queryResult.rows
-              console.log(`[ChatInterface] ✅ ${table.name}: ${queryResult.rows.length} rows`)
             }
           } catch (err) {
-            console.warn(`[ChatInterface] ⚠️ Failed to load ${table.name}:`, err)
+            console.warn(`[ChatInterface] ⚠️ Failed to preview ${table.name}:`, err)
           }
         }
-
-        // Also run the configured query if it's custom
-        const configuredQuery = (dbConfig.query as string)?.trim().replace(/;$/, '')
-        if (configuredQuery && !configuredQuery.toLowerCase().startsWith('select * from')) {
-          try {
-            let q = configuredQuery
-            if (!q.toLowerCase().includes('limit')) q += ' LIMIT 20'
-            const queryResult = await api.executeQuery(config, q, 20)
-            if (queryResult.success && queryResult.rows && queryResult.rows.length > 0) {
-              tableData['__configured_query__'] = queryResult.rows
-              console.log(`[ChatInterface] ✅ Configured query: ${queryResult.rows.length} rows`)
-            }
-          } catch (err) {
-            console.warn('[ChatInterface] ⚠️ Configured query failed:', err)
-          }
-        }
-
         setAllTableData(tableData)
-        console.log('[ChatInterface] Loaded data from', Object.keys(tableData).length, 'tables')
+        console.log('[ChatInterface] Previewed', Object.keys(tableData).length, 'tables')
       } else {
         console.error('[ChatInterface] Failed to list tables:', tablesResult)
       }
@@ -314,32 +302,33 @@ export function ChatInterfacePanel({ node, onClose }: ChatInterfacePanelProps) {
   }
 
   const buildSystemPrompt = () => {
-    let systemPrompt = `You are a compliance data analyst with direct access to a PostgreSQL database and uploaded documents. You can see the ACTUAL data from every table below. When the user asks about data, refer to the REAL rows shown — never say "you would need to query" because you already have the data. Cross-reference database tables with document content when relevant.`
+    let systemPrompt = `You are a compliance data analyst with direct access to a PostgreSQL database and uploaded documents.
 
-    // ── 1. Database: schema + ALL table data as markdown tables ──
+IMPORTANT: When you need data from the database to answer a question, write a SQL query inside a \`\`\`sql code block. The system will execute it automatically and show you the results. Then you will answer the user's question based on the actual data.
+
+Rules:
+- ALWAYS query the database when the user asks about data counts, listings, or specifics — do NOT guess
+- Only write SELECT queries (no INSERT, UPDATE, DELETE)
+- Write exactly ONE query per response
+- After seeing query results, answer concisely using the real data
+- Cross-reference database tables with document content when relevant`
+
+    // ── 1. Database schema (AI uses this to write correct SQL) ──
     if (dbSchema.length > 0 && dataSource) {
       const dbConfig = getNodeConfig(dataSource)
       systemPrompt += `\n\n# DATABASE: ${dbConfig?.database ?? 'unknown'}`
-      systemPrompt += `\n\nYou have access to ${dbSchema.length} tables. Here is the schema and actual data:\n`
+      systemPrompt += `\n\nYou have access to ${dbSchema.length} tables. Use these to write SQL queries:\n`
 
       for (const table of dbSchema) {
         const cols = table.columns?.map((c: any) => `${c.name} (${c.type})`).join(', ') || 'unknown'
         systemPrompt += `\n## Table: ${table.name}\nColumns: ${cols}`
 
-        // Add actual data if we have it
+        // Show a few sample rows so the AI understands data format
         const rows = allTableData[table.name]
         if (rows && rows.length > 0) {
-          systemPrompt += `\nData (${rows.length} rows):\n${rowsToMarkdownTable(rows)}\n`
-        } else {
-          systemPrompt += `\n(no sample data loaded)\n`
+          systemPrompt += `\nSample (${rows.length} rows shown):\n${rowsToMarkdownTable(rows)}\n`
         }
       }
-    }
-
-    // Include configured query results if different from table samples
-    if (allTableData['__configured_query__']) {
-      const rows = allTableData['__configured_query__']
-      systemPrompt += `\n## Custom Query Results (${rows.length} rows):\n${rowsToMarkdownTable(rows)}\n`
     }
 
     // ── 2. Workflow execution results (from last workflow run) ──
@@ -451,25 +440,86 @@ export function ChatInterfacePanel({ node, onClose }: ChatInterfacePanelProps) {
 
     try {
       const agentConfig = getNodeConfig(aiAgent)
-      // Use the model exactly as configured — Ollama resolves names without tags to :latest
       const model = (agentConfig?.model as string) || 'llama3.2:3b'
-      console.log('[ChatInterface] Using model:', model, '(from node config:', agentConfig?.model, ')')
+      console.log('[ChatInterface] Using model:', model)
       const temperature = (agentConfig?.temperature as number) || 0.7
-      const maxTokens = (agentConfig?.maxTokens as number) || 2048
+      const maxTokens = (agentConfig?.maxTokens as number) || 4096
 
-      const result = await api.chat({
+      const systemPrompt = buildSystemPrompt()
+      const chatHistory = messages.map((m) => ({ role: m.role, content: m.content }))
+
+      // ── Step 1: Ask the AI to answer, or generate SQL if it needs data ──
+      const step1Result = await api.chat({
         model,
         messages: [
-          { role: 'system', content: buildSystemPrompt() },
-          ...messages.map((m) => ({ role: m.role, content: m.content })),
+          { role: 'system', content: systemPrompt },
+          ...chatHistory,
           { role: 'user', content: userMessage },
         ],
         temperature,
         max_tokens: maxTokens,
       })
 
-      const assistantContent = result.message?.content || 'No response received'
-      setMessages((prev) => [...prev, { role: 'assistant', content: assistantContent, timestamp: new Date() }])
+      let aiResponse = step1Result.message?.content || 'No response received'
+
+      // ── Step 2: Check if the AI generated a SQL query to execute ──
+      if (dbConnectionConfig && aiResponse.includes('```sql')) {
+        const sqlMatch = aiResponse.match(/```sql\n([\s\S]*?)\n```/)
+        if (sqlMatch) {
+          let sql = sqlMatch[1].trim()
+          console.log('[ChatInterface] AI generated SQL:', sql)
+
+          // Safety: only allow SELECT queries
+          if (sql.toUpperCase().startsWith('SELECT')) {
+            try {
+              const queryResult = await api.executeQuery(dbConnectionConfig, sql, 200)
+              if (queryResult.success && queryResult.rows && queryResult.rows.length > 0) {
+                console.log('[ChatInterface] SQL returned', queryResult.rows.length, 'rows')
+
+                // ── Step 3: Send the results back to the AI for a proper answer ──
+                const resultsTable = rowsToMarkdownTable(queryResult.rows)
+                const step2Result = await api.chat({
+                  model,
+                  messages: [
+                    { role: 'system', content: systemPrompt },
+                    ...chatHistory,
+                    { role: 'user', content: userMessage },
+                    { role: 'assistant', content: aiResponse },
+                    { role: 'user', content: `Here are the query results (${queryResult.rows.length} rows):\n\n${resultsTable}\n\nNow answer my original question using this data. Be specific and cite the actual values. Do NOT include the SQL query again.` },
+                  ],
+                  temperature: 0.3, // Lower temp for factual answers
+                  max_tokens: maxTokens,
+                })
+                aiResponse = step2Result.message?.content || aiResponse
+              } else if (queryResult.error) {
+                console.warn('[ChatInterface] SQL query failed:', queryResult.error)
+                // Let the AI know and try again
+                const retryResult = await api.chat({
+                  model,
+                  messages: [
+                    { role: 'system', content: systemPrompt },
+                    ...chatHistory,
+                    { role: 'user', content: userMessage },
+                    { role: 'assistant', content: aiResponse },
+                    { role: 'user', content: `The SQL query returned an error: ${queryResult.error}. Please fix the query and try again, or answer based on the schema preview data available to you.` },
+                  ],
+                  temperature: 0.3,
+                  max_tokens: maxTokens,
+                })
+                aiResponse = retryResult.message?.content || aiResponse
+              } else {
+                // Query succeeded but 0 rows
+                aiResponse += '\n\n*Query executed successfully but returned 0 rows.*'
+              }
+            } catch (sqlError) {
+              console.error('[ChatInterface] SQL execution error:', sqlError)
+              aiResponse += `\n\n*Could not execute query: ${sqlError instanceof Error ? sqlError.message : 'unknown error'}*`
+            }
+          }
+        }
+      }
+
+      setMessages((prev) => [...prev, { role: 'assistant', content: aiResponse, timestamp: new Date() }])
     } catch (error) {
       setMessages((prev) => [
         ...prev,
