@@ -508,8 +508,47 @@ Rules:
                 })
                 aiResponse = retryResult.message?.content || aiResponse
               } else {
-                // Query succeeded but 0 rows
-                aiResponse += '\n\n*Query executed successfully but returned 0 rows.*'
+                // Query succeeded but 0 rows — tell the AI to try a different approach
+                console.log('[ChatInterface] SQL returned 0 rows, asking AI to retry')
+                const retryResult = await api.chat({
+                  model,
+                  messages: [
+                    { role: 'system', content: systemPrompt },
+                    ...chatHistory,
+                    { role: 'user', content: userMessage },
+                    { role: 'assistant', content: aiResponse },
+                    { role: 'user', content: `The query returned 0 rows. This likely means the values you used don't match the actual data. Try a simpler query first (e.g. SELECT * FROM the relevant table LIMIT 10) to see the actual data format, then answer the question. Remember to check the sample data shown in the schema above for the actual column values.` },
+                  ],
+                  temperature: 0.3,
+                  max_tokens: maxTokens,
+                })
+                const retryResponse = retryResult.message?.content || ''
+                // Check if the retry also has SQL
+                const retrySqlMatch = retryResponse.match(/```sql\n([\s\S]*?)\n```/)
+                if (retrySqlMatch && retrySqlMatch[1].trim().toUpperCase().startsWith('SELECT')) {
+                  try {
+                    const retryQueryResult = await api.executeQuery(dbConnectionConfig, retrySqlMatch[1].trim(), 200)
+                    if (retryQueryResult.success && retryQueryResult.rows && retryQueryResult.rows.length > 0) {
+                      const retryTable = rowsToMarkdownTable(retryQueryResult.rows)
+                      const finalResult = await api.chat({
+                        model,
+                        messages: [
+                          { role: 'system', content: systemPrompt },
+                          ...chatHistory,
+                          { role: 'user', content: userMessage },
+                          { role: 'user', content: `Here are the query results (${retryQueryResult.rows.length} rows):\n\n${retryTable}\n\nNow answer my original question using this data. Be specific. Do NOT include SQL.` },
+                        ],
+                        temperature: 0.3,
+                        max_tokens: maxTokens,
+                      })
+                      aiResponse = finalResult.message?.content || retryResponse
+                    } else {
+                      aiResponse = retryResponse
+                    }
+                  } catch { aiResponse = retryResponse }
+                } else {
+                  aiResponse = retryResponse
+                }
               }
             } catch (sqlError) {
               console.error('[ChatInterface] SQL execution error:', sqlError)
