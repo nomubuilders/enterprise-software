@@ -112,3 +112,74 @@ def calculate_similarity(embedding1: list, embedding2: list) -> float:
         return 0.0
 
     return round(dot / (norm1 * norm2), 4)
+
+
+async def llm_grade_summary(document_text: str, generated_summary: str, template_fields: list[str]) -> dict:
+    """Grade a document summary using LLM-as-judge on 4 criteria."""
+    import httpx
+    import json
+
+    prompt = f"""You are an expert legal document reviewer. Grade this summary of a legal document on these 4 criteria, each scored 0-100:
+
+1. accuracy: Are the extracted facts correct and supported by the document?
+2. completeness: Are all key terms and provisions covered?
+3. legal_precision: Are legal terms and concepts used correctly?
+4. conciseness: Is the summary appropriately brief without losing important details?
+
+Also identify any fabricated claims - statements in the summary that are NOT supported by the source document.
+
+Template fields expected: {', '.join(template_fields)}
+
+<source_document>
+{document_text[:15000]}
+</source_document>
+
+<generated_summary>
+{generated_summary}
+</generated_summary>
+
+Respond in this exact JSON format only, with no other text:
+{{"accuracy": <0-100>, "completeness": <0-100>, "legal_precision": <0-100>, "conciseness": <0-100>, "fabricated_claims": ["claim 1", "claim 2"]}}"""
+
+    try:
+        async with httpx.AsyncClient(timeout=120.0) as client:
+            response = await client.post(
+                "http://localhost:11434/api/generate",
+                json={
+                    "model": "llama3.2",
+                    "prompt": prompt,
+                    "system": "You are a legal document quality assessor. Always respond with valid JSON only.",
+                    "temperature": 0.1,
+                    "stream": False,
+                }
+            )
+            response.raise_for_status()
+            data = response.json()
+            result_text = data.get("response", "")
+
+            # Try to parse JSON from the response
+            # Handle cases where LLM wraps JSON in markdown code blocks
+            clean = result_text.strip()
+            if clean.startswith("```"):
+                clean = clean.split("\n", 1)[-1]
+                clean = clean.rsplit("```", 1)[0]
+            clean = clean.strip()
+
+            parsed = json.loads(clean)
+            return {
+                "accuracy": max(0, min(100, int(parsed.get("accuracy", 0)))),
+                "completeness": max(0, min(100, int(parsed.get("completeness", 0)))),
+                "legal_precision": max(0, min(100, int(parsed.get("legal_precision", 0)))),
+                "conciseness": max(0, min(100, int(parsed.get("conciseness", 0)))),
+                "fabricated_claims": parsed.get("fabricated_claims", []),
+            }
+    except json.JSONDecodeError:
+        return {
+            "accuracy": 0,
+            "completeness": 0,
+            "legal_precision": 0,
+            "conciseness": 0,
+            "fabricated_claims": ["Error: Could not parse LLM grading response"],
+        }
+    except Exception as e:
+        raise Exception(f"LLM grading failed: {str(e)}")

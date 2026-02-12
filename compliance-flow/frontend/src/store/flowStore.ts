@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import type { Node, Edge, NodeChange, EdgeChange, Connection } from '@xyflow/react'
 import { applyNodeChanges, applyEdgeChanges, addEdge } from '@xyflow/react'
+import { useDocumentStore } from './documentStore'
 
 export interface NodeData extends Record<string, unknown> {
   label: string
@@ -86,6 +87,7 @@ export const useFlowStore = create<FlowState>()(
       },
 
       deleteNode: (nodeId) => {
+        useDocumentStore.getState().removeDocumentsByNodeId(nodeId)
         set({
           nodes: get().nodes.filter((node) => node.id !== nodeId),
           edges: get().edges.filter(
@@ -96,6 +98,8 @@ export const useFlowStore = create<FlowState>()(
       },
 
       clearFlow: () => {
+        const docStore = useDocumentStore.getState()
+        get().nodes.forEach((node) => docStore.removeDocumentsByNodeId(node.id))
         set({ nodes: [], edges: [], selectedNodeId: null })
       },
     }),
