@@ -11,8 +11,6 @@
 import { Telegraf } from 'telegraf'
 import { execFile } from 'node:child_process'
 import { promisify } from 'node:util'
-import { readdir, readFile, stat } from 'node:fs/promises'
-import path from 'node:path'
 
 const execFileAsync = promisify(execFile)
 
@@ -20,8 +18,7 @@ const execFileAsync = promisify(execFile)
 const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN
 const ALLOWED_USERS = (process.env.TELEGRAM_ALLOWED_USERS || '')
   .split(',').map(id => parseInt(id.trim(), 10)).filter(Boolean)
-const PROJECT_DIR = process.env.PROJECT_DIR ||
-  '/Users/rosaria/Desktop/Nomu_software/compliance-flow'
+const PROJECT_DIR = process.env.PROJECT_DIR || process.cwd()
 const CLAUDE_BIN = process.env.CLAUDE_BIN || 'claude'
 const MAX_MSG = 4000
 let consecutiveErrors = 0
@@ -43,11 +40,6 @@ const bot = new Telegraf(BOT_TOKEN, {
 
 bot.use((ctx, next) => {
   if (!ALLOWED_USERS.includes(ctx.from?.id)) return ctx.reply('⛔ Not authorized.')
-  return next()
-})
-
-// Reset error count on any successful update (must be before command handlers)
-bot.use((ctx, next) => {
   consecutiveErrors = 0
   return next()
 })
@@ -62,11 +54,6 @@ async function git(...args) {
   return stdout.trim()
 }
 
-/** Escape markdown special chars so Telegram doesn't choke */
-function esc(text) {
-  return text.replace(/([_*\[\]()~`>#+\-=|{}.!])/g, '\\$1')
-}
-
 async function runClaude(prompt, { tools, model, timeout } = {}) {
   const args = [
     '-p', prompt,
@@ -76,10 +63,7 @@ async function runClaude(prompt, { tools, model, timeout } = {}) {
     '--mcp-config', '{"mcpServers":{}}',
     '--strict-mcp-config'
   ]
-  if (tools) {
-    args.push('--allowedTools', tools)
-    args.push('--tools', tools)
-  }
+  if (tools) args.push('--tools', tools)
   if (model) args.push('--model', model)
 
   const start = Date.now()
