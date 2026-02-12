@@ -154,7 +154,7 @@ export function ChatInterfacePanel({ node, onClose }: ChatInterfacePanelProps) {
 
         for (const table of tables) {
           try {
-            const queryResult = await api.executeQuery(config, `SELECT * FROM ${table.name} LIMIT 5`, 5)
+            const queryResult = await api.executeQuery(config, `SELECT * FROM ${table.name} LIMIT 25`, 25)
             if (queryResult.success && queryResult.rows && queryResult.rows.length > 0) {
               tableData[table.name] = queryResult.rows
               console.log(`[ChatInterface] ✅ ${table.name}: ${queryResult.rows.length} rows`)
