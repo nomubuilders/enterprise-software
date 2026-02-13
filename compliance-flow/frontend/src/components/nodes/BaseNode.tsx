@@ -1,9 +1,10 @@
-import { memo } from 'react'
+import { memo, useCallback } from 'react'
 import type { ReactNode } from 'react'
 import { Handle, Position } from '@xyflow/react'
 import type { NodeProps } from '@xyflow/react'
-import { CheckCircle2, XCircle, PowerOff } from 'lucide-react'
+import { CheckCircle2, XCircle, Power } from 'lucide-react'
 import { useWorkflowStore } from '../../store/workflowStore'
+import { useFlowStore } from '../../store/flowStore'
 
 interface BaseNodeProps extends NodeProps {
   icon: ReactNode
@@ -12,8 +13,14 @@ interface BaseNodeProps extends NodeProps {
 }
 
 export const BaseNode = memo(({ id, data, selected, icon, color, children }: BaseNodeProps) => {
-  const nodeData = data as { label: string; config?: Record<string, unknown>; disabled?: boolean }
+  const nodeData = data as { label: string; config?: Record<string, unknown>; disabled?: boolean; type?: string }
   const disabled = nodeData.disabled ?? false
+  const isTrigger = nodeData.type === 'trigger'
+
+  const toggleDisabled = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation() // prevent node selection
+    useFlowStore.getState().updateNodeData(id, { disabled: !disabled })
+  }, [id, disabled])
 
   // Derive per-node execution status from current execution logs
   const nodeExecStatus = useWorkflowStore((state) => {
@@ -47,12 +54,25 @@ export const BaseNode = memo(({ id, data, selected, icon, color, children }: Bas
       {/* Disabled indicator */}
       {disabled && (
         <div className="absolute -right-1.5 -top-1.5 z-10">
-          <PowerOff size={16} className="rounded-full bg-[var(--nomu-surface)] text-[var(--nomu-text-muted)]" />
+          <Power size={16} className="rounded-full bg-[var(--nomu-surface)] text-[var(--nomu-text-muted)]" />
         </div>
       )}
       <div className={`flex items-center gap-2 rounded-t-md px-3 py-2 ${color}`}>
         <div className="text-white">{icon}</div>
-        <span className="text-sm font-medium text-white">{nodeData.label}</span>
+        <span className="text-sm font-medium text-white flex-1">{nodeData.label}</span>
+        {/* Power toggle — not shown on trigger nodes */}
+        {!isTrigger && (
+          <button
+            onClick={toggleDisabled}
+            title={disabled ? 'Enable node' : 'Disable node'}
+            className={`
+              p-0.5 rounded transition-all duration-150 hover:scale-110
+              ${disabled ? 'opacity-50 hover:opacity-100' : 'opacity-70 hover:opacity-100'}
+            `}
+          >
+            <Power size={14} className={disabled ? 'text-white/40' : 'text-white'} />
+          </button>
+        )}
       </div>
       <div className="p-3 text-xs text-[var(--nomu-text-secondary)]">{children}</div>
       <Handle

@@ -296,9 +296,15 @@ export const useWorkflowStore = create<WorkflowState>()(
 
           // Execute nodes in order based on edges (simplified - assumes linear flow)
           for (const node of workflow.nodes) {
-            const nodeData = node.data as { label?: string; config?: Record<string, unknown>; type?: string }
+            const nodeData = node.data as { label?: string; config?: Record<string, unknown>; type?: string; disabled?: boolean }
             const nodeName = nodeData.label || node.id
             const config = nodeData.config || {}
+
+            // Skip disabled nodes — they pass data through without processing
+            if (nodeData.disabled) {
+              addLog(node.id, nodeName, 'info', `⏭️ Skipped (disabled)`)
+              continue
+            }
 
             try {
               if (node.type === 'triggerNode') {
