@@ -407,7 +407,10 @@ Rules:
     }
 
     // ── 3. Document context from upstream document nodes (real-time) ──
-    if (documentSources.length > 0) {
+    // IMPORTANT: Skip raw documents if PII-filtered content exists from workflow.
+    // Loading raw docs would leak personal data that the PII Redact node removed.
+    const hasPIIFiltered = workflowResults?.filteredResponse
+    if (documentSources.length > 0 && !hasPIIFiltered) {
       const { getSummaryForDocument } = useDocumentStore.getState()
       systemPrompt += `\n\n## Document Sources`
 
@@ -424,6 +427,8 @@ Rules:
           }
         }
       }
+    } else if (hasPIIFiltered) {
+      console.log('[ChatInterface] Skipping raw documents — using PII-filtered content instead')
     }
 
     console.log('[ChatInterface] System prompt length:', systemPrompt.length, 'chars')
