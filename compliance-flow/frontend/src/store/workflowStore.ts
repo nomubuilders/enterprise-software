@@ -431,7 +431,8 @@ export const useWorkflowStore = create<WorkflowState>()(
                 if (contextParts.length > 0) {
                   prompt += 'Context from previous workflow steps:\n\n' + contextParts.join('\n\n') + '\n\n'
                 }
-                prompt += 'Please analyze this data and provide insights.'
+                const userPrompt = (config.prompt as string) || 'Please analyze this data and provide insights.'
+                prompt += userPrompt
 
                 try {
                   const result = await api.generate({

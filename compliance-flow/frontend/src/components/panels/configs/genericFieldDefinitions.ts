@@ -1,6 +1,13 @@
 import type { FieldDef } from './types'
 
 export const genericNodeFields: Record<string, FieldDef[]> = {
+  llmNode: [
+    { key: 'model', label: 'Model', type: 'select', options: [{ value: 'llama3.2:3b', label: 'Llama 3.2 (3B)' }, { value: 'llama3.2:1b', label: 'Llama 3.2 (1B)' }, { value: 'mistral', label: 'Mistral' }, { value: 'codellama', label: 'CodeLlama' }] },
+    { key: 'systemPrompt', label: 'System Prompt', type: 'textarea', placeholder: 'You are a helpful compliance analyst...' },
+    { key: 'prompt', label: 'Prompt', type: 'textarea', placeholder: 'Analyze the upstream data for SOC2 compliance gaps and summarize findings...' },
+    { key: 'temperature', label: 'Temperature', type: 'number', placeholder: '0.7' },
+    { key: 'maxTokens', label: 'Max Tokens', type: 'number', placeholder: '2048' },
+  ],
   spreadsheetNode: [
     { key: 'format', label: 'Format', type: 'select', options: [{ value: 'csv', label: 'CSV' }, { value: 'xlsx', label: 'Excel (XLSX)' }, { value: 'google_sheets', label: 'Google Sheets' }] },
     { key: 'operation', label: 'Operation', type: 'select', options: [{ value: 'import', label: 'Import' }, { value: 'export', label: 'Export' }, { value: 'transform', label: 'Transform' }] },

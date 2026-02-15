@@ -349,7 +349,8 @@ def generate_markdown(content: str, title: str) -> bytes:
 def generate_pdf(content: str, title: str) -> bytes:
     """Convert markdown content to a styled PDF using reportlab.
 
-    Pure function. No side effects.
+    Uses Nomu brand fonts (Barlow for headings, Open Sans for body) and
+    brand colors (primary #4004DA, accent #FF6C1D).
 
     Args:
         content: Markdown content body.
@@ -359,67 +360,386 @@ def generate_pdf(content: str, title: str) -> bytes:
         PDF file as bytes.
     """
     import io as _io
+    import os as _os
+    import re as _re
+    from pathlib import Path as _Path
     from reportlab.lib.pagesizes import A4
     from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
     from reportlab.lib.units import mm
-    from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
+    from reportlab.lib.colors import HexColor
+    from reportlab.lib.enums import TA_CENTER, TA_LEFT
+    from reportlab.pdfbase import pdfmetrics
+    from reportlab.pdfbase.ttfonts import TTFont
+    from reportlab.platypus import (
+        SimpleDocTemplate,
+        Paragraph,
+        Spacer,
+        Table,
+        TableStyle,
+        HRFlowable,
+        PageBreak,
+        KeepTogether,
+    )
+    from reportlab.graphics.shapes import Drawing, Line
 
+    # ── Nomu Brand Colors ────────────────────────────────────────────
+    NOMU_PRIMARY = HexColor("#4004DA")       # Purple-blue
+    NOMU_PRIMARY_LIGHT = HexColor("#EDE9F8") # Very light purple tint
+    NOMU_BLACK = HexColor("#1A1A2E")         # Near-black
+    NOMU_WHITE = HexColor("#FFFFFF")         # White
+    NOMU_SURFACE = HexColor("#F8F8FA")       # Light surface
+    NOMU_MUTED = HexColor("#9CA3AF")         # Muted text
+    NOMU_DARK = HexColor("#374151")          # Dark gray for headings
+    NOMU_BORDER = HexColor("#E5E7EB")        # Border gray
+    NOMU_TABLE_ALT = HexColor("#FAFAFA")     # Alternating row
+
+    # ── Font Registration ────────────────────────────────────────────
+    fonts_dir = _Path(__file__).parent.parent / "assets" / "fonts"
+
+    # Heading font: Barlow
+    HEADING_FONT = "Helvetica"
+    HEADING_FONT_BOLD = "Helvetica-Bold"
+    # Body font: Open Sans
+    BODY_FONT = "Helvetica"
+    BODY_FONT_BOLD = "Helvetica-Bold"
+    BODY_FONT_ITALIC = "Helvetica-Oblique"
+    BODY_FONT_BOLDITALIC = "Helvetica-BoldOblique"
+
+    try:
+        if (fonts_dir / "Barlow-Regular.ttf").exists():
+            pdfmetrics.registerFont(TTFont("Barlow", str(fonts_dir / "Barlow-Regular.ttf")))
+            pdfmetrics.registerFont(TTFont("Barlow-SemiBold", str(fonts_dir / "Barlow-SemiBold.ttf")))
+            pdfmetrics.registerFont(TTFont("Barlow-Bold", str(fonts_dir / "Barlow-Bold.ttf")))
+            HEADING_FONT = "Barlow"
+            HEADING_FONT_BOLD = "Barlow-Bold"
+
+        if (fonts_dir / "OpenSans-Regular.ttf").exists():
+            pdfmetrics.registerFont(TTFont("OpenSans", str(fonts_dir / "OpenSans-Regular.ttf")))
+            pdfmetrics.registerFont(TTFont("OpenSans-Bold", str(fonts_dir / "OpenSans-Bold.ttf")))
+            pdfmetrics.registerFont(TTFont("OpenSans-Italic", str(fonts_dir / "OpenSans-Italic.ttf")))
+            pdfmetrics.registerFont(TTFont("OpenSans-BoldItalic", str(fonts_dir / "OpenSans-BoldItalic.ttf")))
+            pdfmetrics.registerFontFamily(
+                "OpenSans",
+                normal="OpenSans",
+                bold="OpenSans-Bold",
+                italic="OpenSans-Italic",
+                boldItalic="OpenSans-BoldItalic",
+            )
+            BODY_FONT = "OpenSans"
+            BODY_FONT_BOLD = "OpenSans-Bold"
+            BODY_FONT_ITALIC = "OpenSans-Italic"
+            BODY_FONT_BOLDITALIC = "OpenSans-BoldItalic"
+    except Exception:
+        pass  # Fall back to Helvetica
+
+    # ── Helpers ───────────────────────────────────────────────────────
+    def _escape_xml(text: str) -> str:
+        return (
+            text.replace("&", "&amp;")
+            .replace("<", "&lt;")
+            .replace(">", "&gt;")
+        )
+
+    def _apply_inline_formatting(text: str) -> str:
+        escaped: str = _escape_xml(text)
+        escaped = _re.sub(r"\*\*\*(.+?)\*\*\*", r"<b><i>\1</i></b>", escaped)
+        escaped = _re.sub(r"\*\*(.+?)\*\*", r"<b>\1</b>", escaped)
+        escaped = _re.sub(r"__(.+?)__", r"<b>\1</b>", escaped)
+        escaped = _re.sub(r"\*(.+?)\*", r"<i>\1</i>", escaped)
+        escaped = _re.sub(r"`(.+?)`", rf"<font face='{BODY_FONT_BOLD}' color='#4004DA'>\1</font>", escaped)
+        return escaped
+
+    def _parse_md_table(lines: list) -> tuple:
+        headers: list = []
+        rows: list = []
+        for line in lines:
+            cells = [c.strip() for c in line.strip().strip("|").split("|")]
+            if all(_re.match(r"^[-:]+$", c) for c in cells):
+                continue
+            if not headers:
+                headers = cells
+            else:
+                rows.append(cells)
+        return headers, rows
+
+    # ── Document Setup ───────────────────────────────────────────────
     buffer = _io.BytesIO()
+    page_w, page_h = A4
+
     doc = SimpleDocTemplate(
         buffer,
         pagesize=A4,
-        leftMargin=25 * mm,
-        rightMargin=25 * mm,
-        topMargin=25 * mm,
-        bottomMargin=25 * mm,
+        leftMargin=22 * mm,
+        rightMargin=22 * mm,
+        topMargin=20 * mm,
+        bottomMargin=28 * mm,  # Extra space for page number footer
     )
 
-    styles = getSampleStyleSheet()
-    # Custom styles for report sections
+    # Page number & branded footer drawn on every page
+    def _draw_page_footer(canvas, doc_obj):
+        canvas.saveState()
+        # Thin hairline divider
+        canvas.setStrokeColor(NOMU_BORDER)
+        canvas.setLineWidth(0.5)
+        canvas.line(22 * mm, 18 * mm, page_w - 22 * mm, 18 * mm)
+        # Left: brand text
+        canvas.setFont(BODY_FONT, 7)
+        canvas.setFillColor(NOMU_MUTED)
+        canvas.drawString(22 * mm, 13.5 * mm, "Nomu Compliance Flow")
+        # Right: page number
+        page_num = canvas.getPageNumber()
+        canvas.drawRightString(page_w - 22 * mm, 13.5 * mm, f"Page {page_num}")
+        canvas.restoreState()
+
+    # ── Styles ───────────────────────────────────────────────────────
     title_style = ParagraphStyle(
         "ReportTitle",
-        parent=styles["Title"],
-        fontSize=20,
-        spaceAfter=12,
+        fontName=HEADING_FONT_BOLD,
+        fontSize=24,
+        leading=30,
+        spaceAfter=4,
+        textColor=NOMU_WHITE,
+        alignment=TA_LEFT,
     )
-    heading_style = ParagraphStyle(
-        "ReportHeading",
-        parent=styles["Heading2"],
-        fontSize=14,
-        spaceBefore=12,
+    subtitle_style = ParagraphStyle(
+        "ReportSubtitle",
+        fontName=BODY_FONT,
+        fontSize=11,
+        leading=15,
+        textColor=HexColor("#E0D4F7"),
+        alignment=TA_LEFT,
+    )
+    h1_style = ParagraphStyle(
+        "H1",
+        fontName=HEADING_FONT_BOLD,
+        fontSize=17,
+        leading=22,
+        spaceBefore=16,
         spaceAfter=6,
+        textColor=NOMU_PRIMARY,
     )
-    body_style = styles["BodyText"]
+    h2_style = ParagraphStyle(
+        "H2",
+        fontName=HEADING_FONT_BOLD,
+        fontSize=14,
+        leading=19,
+        spaceBefore=14,
+        spaceAfter=5,
+        textColor=NOMU_BLACK,
+    )
+    h3_style = ParagraphStyle(
+        "H3",
+        fontName=HEADING_FONT_BOLD,
+        fontSize=11.5,
+        leading=16,
+        spaceBefore=12,
+        spaceAfter=4,
+        textColor=NOMU_DARK,
+    )
+    h4_style = ParagraphStyle(
+        "H4",
+        fontName=HEADING_FONT,
+        fontSize=11,
+        leading=16,
+        spaceBefore=10,
+        spaceAfter=4,
+        textColor=NOMU_MUTED,
+        fontStyle="italic",
+    )
+    body_style = ParagraphStyle(
+        "ReportBody",
+        fontName=BODY_FONT,
+        fontSize=9.5,
+        leading=15,
+        spaceAfter=5,
+        textColor=NOMU_BLACK,
+    )
+    bullet_style = ParagraphStyle(
+        "ReportBullet",
+        fontName=BODY_FONT,
+        fontSize=9.5,
+        leading=15,
+        leftIndent=14,
+        bulletIndent=4,
+        spaceAfter=3,
+        textColor=NOMU_BLACK,
+    )
+    numbered_style = ParagraphStyle(
+        "ReportNumbered",
+        fontName=BODY_FONT,
+        fontSize=9.5,
+        leading=15,
+        leftIndent=14,
+        spaceAfter=3,
+        textColor=NOMU_BLACK,
+    )
+    table_cell_style = ParagraphStyle(
+        "TableCell",
+        fontName=BODY_FONT,
+        fontSize=9,
+        leading=13,
+        textColor=NOMU_BLACK,
+    )
+    table_header_style = ParagraphStyle(
+        "TableHeader",
+        fontName=BODY_FONT_BOLD,
+        fontSize=9,
+        leading=13,
+        textColor=NOMU_BLACK,
+    )
 
+    # ── Build Story ──────────────────────────────────────────────────
     story: list = []
     title_str: str = title or "Compliance Report"
-    story.append(Paragraph(title_str, title_style))
-    story.append(Spacer(1, 6 * mm))
 
-    # Parse markdown lines into styled paragraphs
-    for line in content.split("\n"):
+    # ── Title header block (colored background) ──────────────────────
+    import datetime as _dt
+    date_str: str = _dt.datetime.now().strftime("%B %d, %Y")
+
+    header_data = [[
+        Paragraph(_escape_xml(title_str), title_style),
+    ], [
+        Paragraph(f"Generated {date_str}", subtitle_style),
+    ]]
+    available_width: float = page_w - 44 * mm
+    header_table = Table(
+        header_data,
+        colWidths=[available_width],
+    )
+    header_table.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, -1), NOMU_PRIMARY),
+        ("TOPPADDING", (0, 0), (-1, 0), 18),
+        ("BOTTOMPADDING", (0, -1), (-1, -1), 16),
+        ("LEFTPADDING", (0, 0), (-1, -1), 22),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 22),
+        ("TOPPADDING", (0, 1), (-1, 1), 2),
+    ]))
+    story.append(header_table)
+    story.append(Spacer(1, 12 * mm))
+
+    h1_seen: bool = False  # Track whether we've seen the first H1
+
+    # ── Parse content ────────────────────────────────────────────────
+    lines = content.split("\n")
+    i: int = 0
+    while i < len(lines):
+        line: str = lines[i]
         stripped: str = line.strip()
+
         if not stripped:
             story.append(Spacer(1, 3 * mm))
+            i += 1
             continue
 
-        # Heading detection
-        if stripped.startswith("## "):
-            story.append(Paragraph(stripped[3:], heading_style))
-        elif stripped.startswith("# "):
-            story.append(Paragraph(stripped[2:], heading_style))
-        elif stripped.startswith("- ") or stripped.startswith("* "):
-            story.append(Paragraph(f"• {stripped[2:]}", body_style))
-        else:
-            # Escape XML-unsafe characters for reportlab
-            safe_text: str = (
-                stripped.replace("&", "&amp;")
-                .replace("<", "&lt;")
-                .replace(">", "&gt;")
-            )
-            story.append(Paragraph(safe_text, body_style))
+        # Table detection
+        if "|" in stripped and i + 1 < len(lines) and _re.search(r"[-|:]{3,}", lines[i + 1]):
+            table_lines: list = []
+            while i < len(lines) and "|" in lines[i].strip():
+                table_lines.append(lines[i])
+                i += 1
 
-    doc.build(story)
+            headers, rows = _parse_md_table(table_lines)
+            if headers:
+                col_count: int = len(headers)
+                tbl_data: list = [
+                    [Paragraph(_escape_xml(h), table_header_style) for h in headers]
+                ]
+                for row in rows:
+                    padded = row + [""] * (col_count - len(row))
+                    tbl_data.append(
+                        [Paragraph(_apply_inline_formatting(c), table_cell_style) for c in padded[:col_count]]
+                    )
+
+                tbl_width: float = page_w - 44 * mm
+                col_widths: list = [tbl_width / col_count] * col_count
+
+                t = Table(tbl_data, colWidths=col_widths, repeatRows=1)
+                t.setStyle(TableStyle([
+                    # Header row — light background, not heavy
+                    ("BACKGROUND", (0, 0), (-1, 0), NOMU_PRIMARY_LIGHT),
+                    ("TEXTCOLOR", (0, 0), (-1, 0), NOMU_BLACK),
+                    ("FONTSIZE", (0, 0), (-1, 0), 9),
+                    ("BOTTOMPADDING", (0, 0), (-1, 0), 8),
+                    ("TOPPADDING", (0, 0), (-1, 0), 8),
+                    # Body rows
+                    ("ROWBACKGROUNDS", (0, 1), (-1, -1), [NOMU_WHITE, NOMU_TABLE_ALT]),
+                    ("BOTTOMPADDING", (0, 1), (-1, -1), 7),
+                    ("TOPPADDING", (0, 1), (-1, -1), 7),
+                    # Borders — clean hairlines only
+                    ("LINEBELOW", (0, 0), (-1, 0), 0.75, NOMU_PRIMARY),
+                    ("LINEBELOW", (0, 1), (-1, -2), 0.25, NOMU_BORDER),
+                    ("LINEBELOW", (0, -1), (-1, -1), 0.5, NOMU_BORDER),
+                    ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                    ("LEFTPADDING", (0, 0), (-1, -1), 8),
+                    ("RIGHTPADDING", (0, 0), (-1, -1), 8),
+                ]))
+                story.append(Spacer(1, 3 * mm))
+                story.append(KeepTogether([t]))
+                story.append(Spacer(1, 6 * mm))
+            continue
+
+        # Headings — H1 gets a page break, H2 gets an underline accent
+        if stripped.startswith("#### "):
+            story.append(Paragraph(_apply_inline_formatting(stripped[5:]), h4_style))
+        elif stripped.startswith("### "):
+            story.append(Paragraph(_apply_inline_formatting(stripped[4:]), h3_style))
+        elif stripped.startswith("## "):
+            story.append(Paragraph(_apply_inline_formatting(stripped[3:]), h2_style))
+            story.append(HRFlowable(
+                width="20%", thickness=0.5, color=NOMU_BORDER,
+                spaceBefore=1, spaceAfter=5,
+            ))
+        elif stripped.startswith("# "):
+            if h1_seen:
+                story.append(PageBreak())
+            h1_seen = True
+            story.append(Paragraph(_apply_inline_formatting(stripped[2:]), h1_style))
+        # Bullet points
+        elif stripped.startswith("- ") or stripped.startswith("* ") or stripped.startswith("• "):
+            bullet_text: str = stripped[2:] if stripped[0] in "-*" else stripped[2:]
+            story.append(Paragraph(
+                f"<font color='#9CA3AF' size='7'>•</font>  {_apply_inline_formatting(bullet_text)}",
+                bullet_style,
+            ))
+        # Numbered lists
+        elif _re.match(r"^\d+\.\s", stripped):
+            num_match = _re.match(r"^(\d+)\.\s(.+)", stripped)
+            if num_match:
+                num, text = num_match.group(1), num_match.group(2)
+                story.append(Paragraph(
+                    f"<font color='#374151'><b>{num}.</b></font>  {_apply_inline_formatting(text)}",
+                    numbered_style,
+                ))
+            else:
+                story.append(Paragraph(_apply_inline_formatting(stripped), numbered_style))
+        # Horizontal rule
+        elif _re.match(r"^[-*_]{3,}$", stripped):
+            story.append(HRFlowable(
+                width="100%", thickness=0.5, color=NOMU_BORDER,
+                spaceBefore=4, spaceAfter=4,
+            ))
+        # Regular paragraph
+        else:
+            story.append(Paragraph(_apply_inline_formatting(stripped), body_style))
+
+        i += 1
+
+    # ── End-of-report marker ──────────────────────────────────────────
+    story.append(Spacer(1, 12 * mm))
+    story.append(HRFlowable(
+        width="30%", thickness=0.5, color=NOMU_BORDER,
+        spaceBefore=0, spaceAfter=6,
+    ))
+    end_style = ParagraphStyle(
+        "EndMark",
+        fontName=HEADING_FONT_BOLD,
+        fontSize=9,
+        textColor=NOMU_MUTED,
+        alignment=TA_CENTER,
+    )
+    story.append(Paragraph("— End of Report —", end_style))
+
+    doc.build(story, onFirstPage=_draw_page_footer, onLaterPages=_draw_page_footer)
     return buffer.getvalue()
 
 
