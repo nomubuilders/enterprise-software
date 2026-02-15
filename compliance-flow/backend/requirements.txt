@@ -34,9 +34,10 @@ python-multipart>=0.0.6           # Form data
 # WebSocket & Real-time
 websockets>=12.0
 
-# Document Parsing
+# Document Parsing & Generation
 PyPDF2>=3.0.0
 python-docx>=1.0.0
+reportlab>=4.0.0             # PDF generation for compliance reports
 
 # Utilities
 python-dotenv>=1.0.0

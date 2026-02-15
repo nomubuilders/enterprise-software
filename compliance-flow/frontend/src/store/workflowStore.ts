@@ -4,7 +4,7 @@ import type { Node, Edge } from '@xyflow/react'
 import type { Workflow, DatabaseConfig, WorkflowExecution, WorkflowVersion } from '../types'
 import type { DocumentSummary } from '../types/document'
 import { toast } from 'sonner'
-import { api } from '../services/api'
+import { api, downloadBase64File } from '../services/api'
 import { dockerApi } from '../services/dockerApi'
 import { useFlowStore } from './flowStore'
 import { useDocumentStore } from './documentStore'
@@ -1143,12 +1143,49 @@ export const useWorkflowStore = create<WorkflowState>()(
                 addLog(node.id, nodeName, 'info', 'Generating compliance report...')
                 const frameworks = (config.frameworks as string[]) || []
                 const reportFormat = (config.reportFormat as string) || 'pdf'
-                workflowData.complianceReport = {
-                  reportId: generateId(),
-                  generatedAt: new Date().toISOString(),
-                  frameworks,
-                  format: reportFormat,
-                  dataKeys: Object.keys(workflowData),
+                const reportTitle = (config.reportTitle as string) || 'Compliance Report'
+                const includeEvidence = config.includeEvidence !== false
+                const reportPrompt = (config.reportPrompt as string) || ''
+
+                try {
+                  const reportResult = await api.generateReport({
+                    input_data: workflowData,
+                    format: reportFormat,
+                    frameworks,
+                    title: reportTitle,
+                    include_evidence: includeEvidence,
+                    report_prompt: reportPrompt,
+                  })
+
+                  if (reportResult.success && reportResult.file_content) {
+                    // Trigger browser download
+                    downloadBase64File(
+                      reportResult.file_content,
+                      reportResult.filename,
+                      reportResult.mime_type
+                    )
+                    addLog(node.id, nodeName, 'info', `✅ Report downloaded: ${reportResult.filename}`)
+                  }
+
+                  workflowData.complianceReport = {
+                    reportId: generateId(),
+                    generatedAt: new Date().toISOString(),
+                    frameworks,
+                    format: reportFormat,
+                    filename: reportResult.filename,
+                    documentGenerated: reportResult.success,
+                    dataKeys: Object.keys(workflowData),
+                  }
+                } catch (err) {
+                  addLog(node.id, nodeName, 'warn', `Report generation API failed, using metadata: ${err}`)
+                  workflowData.complianceReport = {
+                    reportId: generateId(),
+                    generatedAt: new Date().toISOString(),
+                    frameworks,
+                    format: reportFormat,
+                    documentGenerated: false,
+                    dataKeys: Object.keys(workflowData),
+                  }
                 }
                 addLog(node.id, nodeName, 'info', `Compliance report generated (${reportFormat.toUpperCase()}, ${frameworks.length} frameworks)`)
               }

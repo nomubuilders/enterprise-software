@@ -1192,11 +1192,17 @@ class WorkflowExecutionEngine:
         }
 
     async def _execute_compliance_dashboard_node(self, node: WorkflowNode, input_data: Dict[str, Any]) -> Dict[str, Any]:
-        """Execute a compliance dashboard node - generates compliance report data."""
+        """Execute a compliance dashboard node - generates compliance report with AI content."""
+        from app.services.report_generator import generate_report
+
         frameworks = node.data.get("frameworks", [])
         report_format = node.data.get("reportFormat", node.data.get("report_format", "pdf"))
         include_evidence = node.data.get("includeEvidence", node.data.get("include_evidence", True))
+        report_title = node.data.get("reportTitle", node.data.get("report_title", "Compliance Report"))
+        report_prompt = node.data.get("reportPrompt", node.data.get("report_prompt", ""))
+        model = node.data.get("model", "llama3.2:3b")
 
+        # Base metadata (always returned, even if generation fails)
         report = {
             "report_id": str(uuid.uuid4()),
             "generated_at": datetime.utcnow().isoformat(),
@@ -1206,7 +1212,6 @@ class WorkflowExecutionEngine:
             "compliance_score": 0,
         }
 
-        # Collect compliance data from upstream nodes
         if input_data:
             report["input_summary"] = {k: str(v)[:200] for k, v in input_data.items()}
 
@@ -1217,6 +1222,26 @@ class WorkflowExecutionEngine:
                 "findings": [],
                 "evidence_count": len(input_data) if include_evidence else 0,
             })
+
+        # Generate actual document via ReportGeneratorService
+        try:
+            result = await generate_report(
+                input_data=input_data,
+                report_format=report_format,
+                frameworks=frameworks,
+                report_title=report_title,
+                include_evidence=include_evidence,
+                model=model,
+                report_prompt=report_prompt,
+            )
+            report["file_content"] = result["file_content"]
+            report["filename"] = result["filename"]
+            report["mime_type"] = result["mime_type"]
+            report["document_generated"] = True
+        except Exception as e:
+            logger.warning(f"Report generation failed, returning metadata only: {e}")
+            report["document_generated"] = False
+            report["generation_error"] = str(e)
 
         return {**report, **input_data}
 

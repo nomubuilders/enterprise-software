@@ -56,10 +56,11 @@ export const genericNodeFields: Record<string, FieldDef[]> = {
     { key: 'escalationEmail', label: 'Escalation Email', type: 'text', placeholder: 'manager@company.com' },
   ],
   complianceDashboardNode: [
-    { key: 'reportFormat', label: 'Report Format', type: 'select', options: [{ value: 'pdf', label: 'PDF' }, { value: 'docx', label: 'DOCX' }, { value: 'html', label: 'HTML' }, { value: 'json', label: 'JSON' }] },
+    { key: 'reportFormat', label: 'Report Format', type: 'select', options: [{ value: 'pdf', label: 'PDF' }, { value: 'docx', label: 'DOCX' }, { value: 'xlsx', label: 'Excel (XLSX)' }, { value: 'md', label: 'Markdown' }] },
     { key: 'autoGenerate', label: 'Auto-Generate Reports', type: 'checkbox' },
     { key: 'includeEvidence', label: 'Include Evidence', type: 'checkbox' },
     { key: 'reportTitle', label: 'Report Title', type: 'text', placeholder: 'Compliance Assessment Report' },
+    { key: 'reportPrompt', label: 'Report Prompt', type: 'textarea', placeholder: 'Optional: guide the AI on what to focus...' },
   ],
   modelRegistryNode: [
     { key: 'modelName', label: 'Model Name', type: 'text', placeholder: 'e.g. llama3.2, mistral' },

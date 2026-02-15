@@ -496,6 +496,54 @@ class ApiClient {
       body: JSON.stringify(payload),
     })
   }
+
+  // Report Generation
+  async generateReport(params: {
+    input_data?: Record<string, unknown>
+    format?: string
+    frameworks?: string[]
+    title?: string
+    include_evidence?: boolean
+    model?: string
+    report_prompt?: string
+  }): Promise<{
+    success: boolean
+    file_content: string
+    filename: string
+    mime_type: string
+    format: string
+    error?: string
+  }> {
+    return this.fetch('/outputs/report/generate', {
+      method: 'POST',
+      body: JSON.stringify(params),
+    })
+  }
+}
+
+/**
+ * Trigger a browser download from base64-encoded file content.
+ */
+export function downloadBase64File(
+  base64Content: string,
+  filename: string,
+  mimeType: string
+): void {
+  const byteChars = atob(base64Content)
+  const byteNumbers = new Array(byteChars.length)
+  for (let i = 0; i < byteChars.length; i++) {
+    byteNumbers[i] = byteChars.charCodeAt(i)
+  }
+  const byteArray = new Uint8Array(byteNumbers)
+  const blob = new Blob([byteArray], { type: mimeType })
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = filename
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
+  URL.revokeObjectURL(url)
 }
 
 // Export singleton instance

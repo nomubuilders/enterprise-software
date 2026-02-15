@@ -33,15 +33,7 @@ This Non-Disclosure Agreement ("Agreement") is entered into by the above-named p
   - Solvency II Directive – Directive 2009/138/EC
 
 2. DEFINITION OF CONFIDENTIAL INFORMATION
-
-"Confidential Information" includes, but is not limited to:
-  a) Technical specifications of AI models used for automated decision-making in insurance underwriting
-  b) Customer databases including policyholder personal data (names, BSN/NIE numbers, financial records)
-  c) Proprietary algorithms for risk assessment and claims processing
-  d) Source code, architecture diagrams, and API documentation
-  e) Business strategies, financial projections, and pricing models
-  f) Employee records including salary data, performance reviews, and health information
-  g) Trade secrets related to machine learning model training data and methodologies
+ learning model training data and methodologies
 
 3. OBLIGATIONS OF THE RECEIVING PARTY
 
