@@ -23,3 +23,7 @@ dist/
 
 # Claude Code - track shared config, ignore local/private files
 .claude/settings.local.json
+.claude/worktrees/
+
+# JetBrains IDEs
+.idea/
