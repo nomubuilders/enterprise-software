@@ -521,8 +521,10 @@ class WorkflowExecutionEngine:
 
         # Resolve query: prefer node.data.query, then input_data.query
         query = data.get("query") or input_data.get("query", "")
+        db_type_str = data.get("dbType", data.get("database_type", "postgresql"))
+
         if not query:
-            raise ValueError("No SQL query provided in node configuration")
+            return {"database_type": db_type_str, "query_executed": "", "rows_affected": 0, "result": [], "columns": [], "error": "No SQL query provided in node configuration"}
 
         # Resolve connection params — the frontend stores them flat in config
         host = data.get("host", "localhost")
@@ -531,10 +533,9 @@ class WorkflowExecutionEngine:
         username = data.get("username", "")
         password = data.get("password", "")
         ssl = bool(data.get("ssl", False))
-        db_type_str = data.get("dbType", data.get("database_type", "postgresql"))
 
         if not database:
-            raise ValueError("No database name configured")
+            return {"database_type": db_type_str, "query_executed": query, "rows_affected": 0, "result": [], "columns": [], "error": "No database name configured"}
 
         logger.info(f"Database query: {db_type_str}://{host}:{port}/{database} — {query[:120]}")
 
@@ -602,8 +603,8 @@ class WorkflowExecutionEngine:
         """
         try:
             node_data = LLMNodeData(**node.data)
-        except ValidationError as e:
-            raise ValueError(f"Invalid LLM node configuration: {e}")
+        except ValidationError:
+            return {"model": node.data.get("model", "mistral"), "prompt_sent": "", "response": "", "error": "LLM node requires a prompt to be configured"}
 
         # Template the prompt with input data
         templated_prompt = self._template_string(node_data.prompt, {**input_data, **self.execution_context.variables})
