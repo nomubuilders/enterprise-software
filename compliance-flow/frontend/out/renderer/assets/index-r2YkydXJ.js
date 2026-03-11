@@ -29984,7 +29984,7 @@ const createLucideIcon = (iconName, iconNode) => {
   Component.displayName = toPascalCase(iconName);
   return Component;
 };
-const __iconNode$1u = [
+const __iconNode$1w = [
   [
     "path",
     {
@@ -29993,14 +29993,25 @@ const __iconNode$1u = [
     }
   ]
 ];
-const Activity = createLucideIcon("activity", __iconNode$1u);
-const __iconNode$1t = [
+const Activity = createLucideIcon("activity", __iconNode$1w);
+const __iconNode$1v = [
+  ["path", { d: "M12 6.528V3a1 1 0 0 1 1-1h0", key: "11qiee" }],
+  [
+    "path",
+    {
+      d: "M18.237 21A15 15 0 0 0 22 11a6 6 0 0 0-10-4.472A6 6 0 0 0 2 11a15.1 15.1 0 0 0 3.763 10 3 3 0 0 0 3.648.648 5.5 5.5 0 0 1 5.178 0A3 3 0 0 0 18.237 21",
+      key: "110c12"
+    }
+  ]
+];
+const Apple = createLucideIcon("apple", __iconNode$1v);
+const __iconNode$1u = [
   ["rect", { width: "20", height: "5", x: "2", y: "3", rx: "1", key: "1wp1u1" }],
   ["path", { d: "M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8", key: "1s80jp" }],
   ["path", { d: "M10 12h4", key: "a56b0p" }]
 ];
-const Archive = createLucideIcon("archive", __iconNode$1t);
-const __iconNode$1s = [
+const Archive = createLucideIcon("archive", __iconNode$1u);
+const __iconNode$1t = [
   ["path", { d: "M10.268 21a2 2 0 0 0 3.464 0", key: "vwvbt9" }],
   [
     "path",
@@ -30010,8 +30021,8 @@ const __iconNode$1s = [
     }
   ]
 ];
-const Bell = createLucideIcon("bell", __iconNode$1s);
-const __iconNode$1r = [
+const Bell = createLucideIcon("bell", __iconNode$1t);
+const __iconNode$1s = [
   ["path", { d: "M12 8V4H8", key: "hb8ula" }],
   ["rect", { width: "16", height: "12", x: "4", y: "8", rx: "2", key: "enze0r" }],
   ["path", { d: "M2 14h2", key: "vft8re" }],
@@ -30019,8 +30030,8 @@ const __iconNode$1r = [
   ["path", { d: "M15 13v2", key: "1xurst" }],
   ["path", { d: "M9 13v2", key: "rq6x2g" }]
 ];
-const Bot = createLucideIcon("bot", __iconNode$1r);
-const __iconNode$1q = [
+const Bot = createLucideIcon("bot", __iconNode$1s);
+const __iconNode$1r = [
   ["path", { d: "M12 18V5", key: "adv99a" }],
   ["path", { d: "M15 13a4.17 4.17 0 0 1-3-4 4.17 4.17 0 0 1-3 4", key: "1e3is1" }],
   ["path", { d: "M17.598 6.5A3 3 0 1 0 12 5a3 3 0 1 0-5.598 1.5", key: "1gqd8o" }],
@@ -30030,8 +30041,8 @@ const __iconNode$1q = [
   ["path", { d: "M6 18a4 4 0 0 1-2-7.464", key: "k1g0md" }],
   ["path", { d: "M6.003 5.125a4 4 0 0 0-2.526 5.77", key: "q97ue3" }]
 ];
-const Brain = createLucideIcon("brain", __iconNode$1q);
-const __iconNode$1p = [
+const Brain = createLucideIcon("brain", __iconNode$1r);
+const __iconNode$1q = [
   ["path", { d: "M12 20v-9", key: "1qisl0" }],
   ["path", { d: "M14 7a4 4 0 0 1 4 4v3a6 6 0 0 1-12 0v-3a4 4 0 0 1 4-4z", key: "uouzyp" }],
   ["path", { d: "M14.12 3.88 16 2", key: "qol33r" }],
@@ -30044,8 +30055,8 @@ const __iconNode$1p = [
   ["path", { d: "m8 2 1.88 1.88", key: "fmnt4t" }],
   ["path", { d: "M9 7.13V6a3 3 0 1 1 6 0v1.13", key: "1vgav8" }]
 ];
-const Bug = createLucideIcon("bug", __iconNode$1p);
-const __iconNode$1o = [
+const Bug = createLucideIcon("bug", __iconNode$1q);
+const __iconNode$1p = [
   ["path", { d: "M10 12h4", key: "a56b0p" }],
   ["path", { d: "M10 8h4", key: "1sr2af" }],
   ["path", { d: "M14 21v-3a2 2 0 0 0-4 0v3", key: "1rgiei" }],
@@ -30058,55 +30069,55 @@ const __iconNode$1o = [
   ],
   ["path", { d: "M6 21V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v16", key: "16ra0t" }]
 ];
-const Building2 = createLucideIcon("building-2", __iconNode$1o);
-const __iconNode$1n = [
+const Building2 = createLucideIcon("building-2", __iconNode$1p);
+const __iconNode$1o = [
   ["path", { d: "M3 3v16a2 2 0 0 0 2 2h16", key: "c24i48" }],
   ["path", { d: "M18 17V9", key: "2bz60n" }],
   ["path", { d: "M13 17V5", key: "1frdt8" }],
   ["path", { d: "M8 17v-3", key: "17ska0" }]
 ];
-const ChartColumn = createLucideIcon("chart-column", __iconNode$1n);
-const __iconNode$1m = [["path", { d: "M20 6 9 17l-5-5", key: "1gmf2c" }]];
-const Check = createLucideIcon("check", __iconNode$1m);
-const __iconNode$1l = [["path", { d: "m6 9 6 6 6-6", key: "qrunsl" }]];
-const ChevronDown = createLucideIcon("chevron-down", __iconNode$1l);
-const __iconNode$1k = [["path", { d: "m9 18 6-6-6-6", key: "mthhwq" }]];
-const ChevronRight = createLucideIcon("chevron-right", __iconNode$1k);
-const __iconNode$1j = [["path", { d: "m18 15-6-6-6 6", key: "153udz" }]];
-const ChevronUp = createLucideIcon("chevron-up", __iconNode$1j);
-const __iconNode$1i = [
+const ChartColumn = createLucideIcon("chart-column", __iconNode$1o);
+const __iconNode$1n = [["path", { d: "M20 6 9 17l-5-5", key: "1gmf2c" }]];
+const Check = createLucideIcon("check", __iconNode$1n);
+const __iconNode$1m = [["path", { d: "m6 9 6 6 6-6", key: "qrunsl" }]];
+const ChevronDown = createLucideIcon("chevron-down", __iconNode$1m);
+const __iconNode$1l = [["path", { d: "m9 18 6-6-6-6", key: "mthhwq" }]];
+const ChevronRight = createLucideIcon("chevron-right", __iconNode$1l);
+const __iconNode$1k = [["path", { d: "m18 15-6-6-6 6", key: "153udz" }]];
+const ChevronUp = createLucideIcon("chevron-up", __iconNode$1k);
+const __iconNode$1j = [
   ["circle", { cx: "12", cy: "12", r: "10", key: "1mglay" }],
   ["line", { x1: "12", x2: "12", y1: "8", y2: "12", key: "1pkeuh" }],
   ["line", { x1: "12", x2: "12.01", y1: "16", y2: "16", key: "4dfq90" }]
 ];
-const CircleAlert = createLucideIcon("circle-alert", __iconNode$1i);
-const __iconNode$1h = [
+const CircleAlert = createLucideIcon("circle-alert", __iconNode$1j);
+const __iconNode$1i = [
   ["circle", { cx: "12", cy: "12", r: "10", key: "1mglay" }],
   ["path", { d: "m9 12 2 2 4-4", key: "dzmm74" }]
 ];
-const CircleCheck = createLucideIcon("circle-check", __iconNode$1h);
-const __iconNode$1g = [
+const CircleCheck = createLucideIcon("circle-check", __iconNode$1i);
+const __iconNode$1h = [
   ["circle", { cx: "12", cy: "12", r: "10", key: "1mglay" }],
   ["circle", { cx: "12", cy: "10", r: "3", key: "ilqhr7" }],
   ["path", { d: "M7 20.662V19a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v1.662", key: "154egf" }]
 ];
-const CircleUser = createLucideIcon("circle-user", __iconNode$1g);
-const __iconNode$1f = [
+const CircleUser = createLucideIcon("circle-user", __iconNode$1h);
+const __iconNode$1g = [
   ["circle", { cx: "12", cy: "12", r: "10", key: "1mglay" }],
   ["path", { d: "m15 9-6 6", key: "1uzhvr" }],
   ["path", { d: "m9 9 6 6", key: "z0biqf" }]
 ];
-const CircleX = createLucideIcon("circle-x", __iconNode$1f);
-const __iconNode$1e = [
+const CircleX = createLucideIcon("circle-x", __iconNode$1g);
+const __iconNode$1f = [
   ["path", { d: "M12 6v6l4 2", key: "mmk7yg" }],
   ["circle", { cx: "12", cy: "12", r: "10", key: "1mglay" }]
 ];
-const Clock = createLucideIcon("clock", __iconNode$1e);
-const __iconNode$1d = [
+const Clock = createLucideIcon("clock", __iconNode$1f);
+const __iconNode$1e = [
   ["path", { d: "M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z", key: "p7xjir" }]
 ];
-const Cloud = createLucideIcon("cloud", __iconNode$1d);
-const __iconNode$1c = [
+const Cloud = createLucideIcon("cloud", __iconNode$1e);
+const __iconNode$1d = [
   [
     "path",
     {
@@ -30119,39 +30130,39 @@ const __iconNode$1c = [
   ["path", { d: "M14 19.8v-8.1", key: "159ecu" }],
   ["path", { d: "M18 17.5V9.4", key: "11uown" }]
 ];
-const Container = createLucideIcon("container", __iconNode$1c);
-const __iconNode$1b = [
+const Container = createLucideIcon("container", __iconNode$1d);
+const __iconNode$1c = [
   ["rect", { width: "14", height: "14", x: "8", y: "8", rx: "2", ry: "2", key: "17jyea" }],
   ["path", { d: "M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2", key: "zix9uf" }]
 ];
-const Copy = createLucideIcon("copy", __iconNode$1b);
-const __iconNode$1a = [
+const Copy = createLucideIcon("copy", __iconNode$1c);
+const __iconNode$1b = [
   ["ellipse", { cx: "12", cy: "5", rx: "9", ry: "3", key: "msslwz" }],
   ["path", { d: "M3 5V19A9 3 0 0 0 15 21.84", key: "14ibmq" }],
   ["path", { d: "M21 5V8", key: "1marbg" }],
   ["path", { d: "M21 12L18 17H22L19 22", key: "zafso" }],
   ["path", { d: "M3 12A9 3 0 0 0 14.59 14.87", key: "1y4wr8" }]
 ];
-const DatabaseZap = createLucideIcon("database-zap", __iconNode$1a);
-const __iconNode$19 = [
+const DatabaseZap = createLucideIcon("database-zap", __iconNode$1b);
+const __iconNode$1a = [
   ["ellipse", { cx: "12", cy: "5", rx: "9", ry: "3", key: "msslwz" }],
   ["path", { d: "M3 5V19A9 3 0 0 0 21 19V5", key: "1wlel7" }],
   ["path", { d: "M3 12A9 3 0 0 0 21 12", key: "mv7ke4" }]
 ];
-const Database = createLucideIcon("database", __iconNode$19);
-const __iconNode$18 = [
+const Database = createLucideIcon("database", __iconNode$1a);
+const __iconNode$19 = [
   ["path", { d: "M12 15V3", key: "m9g1x1" }],
   ["path", { d: "M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4", key: "ih7n3h" }],
   ["path", { d: "m7 10 5 5 5-5", key: "brsn70" }]
 ];
-const Download = createLucideIcon("download", __iconNode$18);
-const __iconNode$17 = [
+const Download = createLucideIcon("download", __iconNode$19);
+const __iconNode$18 = [
   ["circle", { cx: "12", cy: "12", r: "1", key: "41hilf" }],
   ["circle", { cx: "12", cy: "5", r: "1", key: "gxeob9" }],
   ["circle", { cx: "12", cy: "19", r: "1", key: "lyex9k" }]
 ];
-const EllipsisVertical = createLucideIcon("ellipsis-vertical", __iconNode$17);
-const __iconNode$16 = [
+const EllipsisVertical = createLucideIcon("ellipsis-vertical", __iconNode$18);
+const __iconNode$17 = [
   [
     "path",
     {
@@ -30161,14 +30172,14 @@ const __iconNode$16 = [
   ],
   ["path", { d: "m5.082 11.09 8.828 8.828", key: "1wx5vj" }]
 ];
-const Eraser = createLucideIcon("eraser", __iconNode$16);
-const __iconNode$15 = [
+const Eraser = createLucideIcon("eraser", __iconNode$17);
+const __iconNode$16 = [
   ["path", { d: "M15 3h6v6", key: "1q9fwt" }],
   ["path", { d: "M10 14 21 3", key: "gplh6r" }],
   ["path", { d: "M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6", key: "a6xqqp" }]
 ];
-const ExternalLink = createLucideIcon("external-link", __iconNode$15);
-const __iconNode$14 = [
+const ExternalLink = createLucideIcon("external-link", __iconNode$16);
+const __iconNode$15 = [
   [
     "path",
     {
@@ -30178,8 +30189,8 @@ const __iconNode$14 = [
   ],
   ["circle", { cx: "12", cy: "12", r: "3", key: "1v7zrd" }]
 ];
-const Eye = createLucideIcon("eye", __iconNode$14);
-const __iconNode$13 = [
+const Eye = createLucideIcon("eye", __iconNode$15);
+const __iconNode$14 = [
   [
     "path",
     {
@@ -30190,8 +30201,8 @@ const __iconNode$13 = [
   ["path", { d: "M14 2v5a1 1 0 0 0 1 1h5", key: "wfsgrz" }],
   ["path", { d: "m9 15 2 2 4-4", key: "1grp1n" }]
 ];
-const FileCheck = createLucideIcon("file-check", __iconNode$13);
-const __iconNode$12 = [
+const FileCheck = createLucideIcon("file-check", __iconNode$14);
+const __iconNode$13 = [
   [
     "path",
     {
@@ -30203,8 +30214,8 @@ const __iconNode$12 = [
   ["path", { d: "M10 12.5 8 15l2 2.5", key: "1tg20x" }],
   ["path", { d: "m14 12.5 2 2.5-2 2.5", key: "yinavb" }]
 ];
-const FileCode = createLucideIcon("file-code", __iconNode$12);
-const __iconNode$11 = [
+const FileCode = createLucideIcon("file-code", __iconNode$13);
+const __iconNode$12 = [
   [
     "path",
     {
@@ -30216,8 +30227,8 @@ const __iconNode$11 = [
   ["path", { d: "M12 18v-6", key: "17g6i2" }],
   ["path", { d: "m9 15 3 3 3-3", key: "1npd3o" }]
 ];
-const FileDown = createLucideIcon("file-down", __iconNode$11);
-const __iconNode$10 = [
+const FileDown = createLucideIcon("file-down", __iconNode$12);
+const __iconNode$11 = [
   [
     "path",
     {
@@ -30234,8 +30245,8 @@ const __iconNode$10 = [
     }
   ]
 ];
-const FilePen = createLucideIcon("file-pen", __iconNode$10);
-const __iconNode$$ = [
+const FilePen = createLucideIcon("file-pen", __iconNode$11);
+const __iconNode$10 = [
   [
     "path",
     {
@@ -30249,8 +30260,8 @@ const __iconNode$$ = [
   ["path", { d: "M8 17h2", key: "2yhykz" }],
   ["path", { d: "M14 17h2", key: "10kma7" }]
 ];
-const FileSpreadsheet = createLucideIcon("file-spreadsheet", __iconNode$$);
-const __iconNode$_ = [
+const FileSpreadsheet = createLucideIcon("file-spreadsheet", __iconNode$10);
+const __iconNode$$ = [
   [
     "path",
     {
@@ -30263,8 +30274,8 @@ const __iconNode$_ = [
   ["path", { d: "M16 13H8", key: "t4e002" }],
   ["path", { d: "M16 17H8", key: "z1uh3a" }]
 ];
-const FileText = createLucideIcon("file-text", __iconNode$_);
-const __iconNode$Z = [
+const FileText = createLucideIcon("file-text", __iconNode$$);
+const __iconNode$_ = [
   [
     "path",
     {
@@ -30277,8 +30288,8 @@ const __iconNode$Z = [
   ["path", { d: "M12 12v6", key: "3ahymv" }],
   ["path", { d: "M9 13v-.5a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 .5.5v.5", key: "qbrxap" }]
 ];
-const FileType = createLucideIcon("file-type", __iconNode$Z);
-const __iconNode$Y = [
+const FileType = createLucideIcon("file-type", __iconNode$_);
+const __iconNode$Z = [
   [
     "path",
     {
@@ -30288,8 +30299,8 @@ const __iconNode$Y = [
   ],
   ["path", { d: "M14 2v5a1 1 0 0 0 1 1h5", key: "wfsgrz" }]
 ];
-const File = createLucideIcon("file", __iconNode$Y);
-const __iconNode$X = [
+const File = createLucideIcon("file", __iconNode$Z);
+const __iconNode$Y = [
   [
     "path",
     {
@@ -30298,21 +30309,21 @@ const __iconNode$X = [
     }
   ]
 ];
-const FolderOpen = createLucideIcon("folder-open", __iconNode$X);
-const __iconNode$W = [
+const FolderOpen = createLucideIcon("folder-open", __iconNode$Y);
+const __iconNode$X = [
   ["line", { x1: "6", x2: "6", y1: "3", y2: "15", key: "17qcm7" }],
   ["circle", { cx: "18", cy: "6", r: "3", key: "1h7g24" }],
   ["circle", { cx: "6", cy: "18", r: "3", key: "fqmcym" }],
   ["path", { d: "M18 9a9 9 0 0 1-9 9", key: "n2h4wq" }]
 ];
-const GitBranch = createLucideIcon("git-branch", __iconNode$W);
-const __iconNode$V = [
+const GitBranch = createLucideIcon("git-branch", __iconNode$X);
+const __iconNode$W = [
   ["circle", { cx: "12", cy: "12", r: "10", key: "1mglay" }],
   ["path", { d: "M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20", key: "13o1zl" }],
   ["path", { d: "M2 12h20", key: "9i4pu4" }]
 ];
-const Globe = createLucideIcon("globe", __iconNode$V);
-const __iconNode$U = [
+const Globe = createLucideIcon("globe", __iconNode$W);
+const __iconNode$V = [
   [
     "path",
     {
@@ -30323,8 +30334,8 @@ const __iconNode$U = [
   ["path", { d: "M22 10v6", key: "1lu8f3" }],
   ["path", { d: "M6 12.5V16a6 3 0 0 0 12 0v-3.5", key: "1r8lef" }]
 ];
-const GraduationCap = createLucideIcon("graduation-cap", __iconNode$U);
-const __iconNode$T = [
+const GraduationCap = createLucideIcon("graduation-cap", __iconNode$V);
+const __iconNode$U = [
   ["circle", { cx: "12", cy: "9", r: "1", key: "124mty" }],
   ["circle", { cx: "19", cy: "9", r: "1", key: "1ruzo2" }],
   ["circle", { cx: "5", cy: "9", r: "1", key: "1a8b28" }],
@@ -30332,8 +30343,8 @@ const __iconNode$T = [
   ["circle", { cx: "19", cy: "15", r: "1", key: "1a92ep" }],
   ["circle", { cx: "5", cy: "15", r: "1", key: "5r1jwy" }]
 ];
-const GripHorizontal = createLucideIcon("grip-horizontal", __iconNode$T);
-const __iconNode$S = [
+const GripHorizontal = createLucideIcon("grip-horizontal", __iconNode$U);
+const __iconNode$T = [
   ["circle", { cx: "9", cy: "12", r: "1", key: "1vctgf" }],
   ["circle", { cx: "9", cy: "5", r: "1", key: "hp0tcf" }],
   ["circle", { cx: "9", cy: "19", r: "1", key: "fkjjf6" }],
@@ -30341,8 +30352,8 @@ const __iconNode$S = [
   ["circle", { cx: "15", cy: "5", r: "1", key: "19l28e" }],
   ["circle", { cx: "15", cy: "19", r: "1", key: "f4zoj3" }]
 ];
-const GripVertical = createLucideIcon("grip-vertical", __iconNode$S);
-const __iconNode$R = [
+const GripVertical = createLucideIcon("grip-vertical", __iconNode$T);
+const __iconNode$S = [
   [
     "path",
     {
@@ -30352,14 +30363,14 @@ const __iconNode$R = [
   ],
   ["path", { d: "M3.22 13H9.5l.5-1 2 4.5 2-7 1.5 3.5h5.27", key: "auskq0" }]
 ];
-const HeartPulse = createLucideIcon("heart-pulse", __iconNode$R);
-const __iconNode$Q = [
+const HeartPulse = createLucideIcon("heart-pulse", __iconNode$S);
+const __iconNode$R = [
   ["circle", { cx: "12", cy: "12", r: "10", key: "1mglay" }],
   ["path", { d: "M12 16v-4", key: "1dtifu" }],
   ["path", { d: "M12 8h.01", key: "e9boi3" }]
 ];
-const Info$1 = createLucideIcon("info", __iconNode$Q);
-const __iconNode$P = [
+const Info$1 = createLucideIcon("info", __iconNode$R);
+const __iconNode$Q = [
   ["path", { d: "M10 18v-7", key: "wt116b" }],
   [
     "path",
@@ -30373,8 +30384,8 @@ const __iconNode$P = [
   ["path", { d: "M3 22h18", key: "8prr45" }],
   ["path", { d: "M6 18v-7", key: "1ivflk" }]
 ];
-const Landmark = createLucideIcon("landmark", __iconNode$P);
-const __iconNode$O = [
+const Landmark = createLucideIcon("landmark", __iconNode$Q);
+const __iconNode$P = [
   [
     "path",
     {
@@ -30397,8 +30408,8 @@ const __iconNode$O = [
     }
   ]
 ];
-const Layers = createLucideIcon("layers", __iconNode$O);
-const __iconNode$N = [
+const Layers = createLucideIcon("layers", __iconNode$P);
+const __iconNode$O = [
   [
     "path",
     {
@@ -30409,27 +30420,27 @@ const __iconNode$N = [
   ["path", { d: "M9 18h6", key: "x1upvd" }],
   ["path", { d: "M10 22h4", key: "ceow96" }]
 ];
-const Lightbulb = createLucideIcon("lightbulb", __iconNode$N);
-const __iconNode$M = [["path", { d: "M21 12a9 9 0 1 1-6.219-8.56", key: "13zald" }]];
-const LoaderCircle = createLucideIcon("loader-circle", __iconNode$M);
-const __iconNode$L = [
+const Lightbulb = createLucideIcon("lightbulb", __iconNode$O);
+const __iconNode$N = [["path", { d: "M21 12a9 9 0 1 1-6.219-8.56", key: "13zald" }]];
+const LoaderCircle = createLucideIcon("loader-circle", __iconNode$N);
+const __iconNode$M = [
   ["rect", { width: "18", height: "11", x: "3", y: "11", rx: "2", ry: "2", key: "1w4ew1" }],
   ["path", { d: "M7 11V7a5 5 0 0 1 10 0v4", key: "fwvmzm" }]
 ];
-const Lock = createLucideIcon("lock", __iconNode$L);
-const __iconNode$K = [
+const Lock = createLucideIcon("lock", __iconNode$M);
+const __iconNode$L = [
   ["path", { d: "m22 7-8.991 5.727a2 2 0 0 1-2.009 0L2 7", key: "132q7q" }],
   ["rect", { x: "2", y: "4", width: "20", height: "16", rx: "2", key: "izxlao" }]
 ];
-const Mail = createLucideIcon("mail", __iconNode$K);
-const __iconNode$J = [
+const Mail = createLucideIcon("mail", __iconNode$L);
+const __iconNode$K = [
   ["path", { d: "M15 3h6v6", key: "1q9fwt" }],
   ["path", { d: "m21 3-7 7", key: "1l2asr" }],
   ["path", { d: "m3 21 7-7", key: "tjx5ai" }],
   ["path", { d: "M9 21H3v-6", key: "wtvkvv" }]
 ];
-const Maximize2 = createLucideIcon("maximize-2", __iconNode$J);
-const __iconNode$I = [
+const Maximize2 = createLucideIcon("maximize-2", __iconNode$K);
+const __iconNode$J = [
   [
     "path",
     {
@@ -30441,8 +30452,8 @@ const __iconNode$I = [
   ["path", { d: "M16 11h.01", key: "xkw8gn" }],
   ["path", { d: "M8 11h.01", key: "1dfujw" }]
 ];
-const MessageSquareMore = createLucideIcon("message-square-more", __iconNode$I);
-const __iconNode$H = [
+const MessageSquareMore = createLucideIcon("message-square-more", __iconNode$J);
+const __iconNode$I = [
   [
     "path",
     {
@@ -30451,8 +30462,8 @@ const __iconNode$H = [
     }
   ]
 ];
-const MessageSquare = createLucideIcon("message-square", __iconNode$H);
-const __iconNode$G = [
+const MessageSquare = createLucideIcon("message-square", __iconNode$I);
+const __iconNode$H = [
   ["path", { d: "M12 19v3", key: "npa21l" }],
   ["path", { d: "M15 9.34V5a3 3 0 0 0-5.68-1.33", key: "1gzdoj" }],
   ["path", { d: "M16.95 16.95A7 7 0 0 1 5 12v-2", key: "cqa7eg" }],
@@ -30460,22 +30471,28 @@ const __iconNode$G = [
   ["path", { d: "m2 2 20 20", key: "1ooewy" }],
   ["path", { d: "M9 9v3a3 3 0 0 0 5.12 2.12", key: "r2i35w" }]
 ];
-const MicOff = createLucideIcon("mic-off", __iconNode$G);
-const __iconNode$F = [
+const MicOff = createLucideIcon("mic-off", __iconNode$H);
+const __iconNode$G = [
   ["path", { d: "M12 19v3", key: "npa21l" }],
   ["path", { d: "M19 10v2a7 7 0 0 1-14 0v-2", key: "1vc78b" }],
   ["rect", { x: "9", y: "2", width: "6", height: "13", rx: "3", key: "s6n7sd" }]
 ];
-const Mic = createLucideIcon("mic", __iconNode$F);
-const __iconNode$E = [
+const Mic = createLucideIcon("mic", __iconNode$G);
+const __iconNode$F = [
   ["path", { d: "m14 10 7-7", key: "oa77jy" }],
   ["path", { d: "M20 10h-6V4", key: "mjg0md" }],
   ["path", { d: "m3 21 7-7", key: "tjx5ai" }],
   ["path", { d: "M4 14h6v6", key: "rmj7iw" }]
 ];
-const Minimize2 = createLucideIcon("minimize-2", __iconNode$E);
-const __iconNode$D = [["path", { d: "M5 12h14", key: "1ays0h" }]];
-const Minus = createLucideIcon("minus", __iconNode$D);
+const Minimize2 = createLucideIcon("minimize-2", __iconNode$F);
+const __iconNode$E = [["path", { d: "M5 12h14", key: "1ays0h" }]];
+const Minus = createLucideIcon("minus", __iconNode$E);
+const __iconNode$D = [
+  ["rect", { width: "20", height: "14", x: "2", y: "3", rx: "2", key: "48i651" }],
+  ["line", { x1: "8", x2: "16", y1: "21", y2: "21", key: "1svkeh" }],
+  ["line", { x1: "12", x2: "12", y1: "17", y2: "21", key: "vw1qmm" }]
+];
+const Monitor = createLucideIcon("monitor", __iconNode$D);
 const __iconNode$C = [
   [
     "path",
@@ -52113,7 +52130,58 @@ const useElectronStore = create$1()((set2) => ({
   updateHealth: (report) => set2({ servicesHealth: report.services, allServicesHealthy: report.allHealthy }),
   setModelPullProgress: (progress2, message) => set2({ modelPullProgress: progress2, modelPullMessage: message })
 }));
-const STEPS = ["Welcome", "Docker", "Pull Images", "Start Services", "AI Model", "Ready"];
+const STEPS = ["Welcome", "Prerequisites", "Setup", "AI Model", "Ready"];
+const DOCKER_URLS = {
+  mac: {
+    label: "Docker Desktop for macOS",
+    url: "https://docs.docker.com/desktop/install/mac-install/",
+    size: "~600 MB"
+  },
+  windows: {
+    label: "Docker Desktop for Windows",
+    url: "https://docs.docker.com/desktop/install/windows-install/",
+    size: "~550 MB"
+  },
+  linux: {
+    label: "Docker Engine for Linux",
+    url: "https://docs.docker.com/engine/install/",
+    size: "~400 MB"
+  }
+};
+const PLATFORM_TIPS = {
+  mac: [
+    "Apple Silicon (M1/M2/M3): Download the Apple chip version",
+    "Intel Mac: Download the Intel chip version",
+    "After installing, open Docker Desktop and wait for it to start"
+  ],
+  windows: [
+    "Requires Windows 10/11 with WSL 2 enabled",
+    "Run in PowerShell as Admin: wsl --install",
+    "After installing Docker Desktop, restart your computer"
+  ],
+  linux: [
+    "Ubuntu/Debian: Follow the apt repository instructions",
+    "Also install Docker Compose: sudo apt install docker-compose-plugin",
+    "Add your user to docker group: sudo usermod -aG docker $USER"
+  ]
+};
+function CopyButton({ text: text2 }) {
+  const [copied, setCopied] = reactExports.useState(false);
+  const handleCopy = reactExports.useCallback(() => {
+    navigator.clipboard.writeText(text2);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2e3);
+  }, [text2]);
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(
+    "button",
+    {
+      onClick: handleCopy,
+      className: "ml-2 rounded p-1 text-[var(--nomu-text-muted)] hover:bg-[var(--nomu-surface-hover)] hover:text-[var(--nomu-text)] transition",
+      title: "Copy to clipboard",
+      children: copied ? /* @__PURE__ */ jsxRuntimeExports.jsx(CircleCheck, { size: 14, className: "text-green-400" }) : /* @__PURE__ */ jsxRuntimeExports.jsx(Copy, { size: 14 })
+    }
+  );
+}
 function SetupWizard({ onComplete }) {
   const bridge = getElectronBridge();
   const {
@@ -52132,6 +52200,16 @@ function SetupWizard({ onComplete }) {
     modelPullMessage,
     setModelPullProgress
   } = useElectronStore();
+  const [platform, setPlatform] = reactExports.useState("mac");
+  const [checkedPrereqs, setCheckedPrereqs] = reactExports.useState({ docker: false });
+  reactExports.useEffect(() => {
+    if (!bridge) return;
+    bridge.app.getPlatform().then((p) => {
+      if (p === "darwin") setPlatform("mac");
+      else if (p === "win32") setPlatform("windows");
+      else setPlatform("linux");
+    });
+  }, [bridge]);
   reactExports.useEffect(() => {
     if (!bridge) return;
     const unsub1 = bridge.docker.onPullProgress((data) => {
@@ -52153,22 +52231,20 @@ function SetupWizard({ onComplete }) {
     if (!bridge) return;
     const result = await bridge.docker.checkInstalled();
     setDockerInstalled(result.installed, result.version);
+    if (result.installed) setCheckedPrereqs((p) => ({ ...p, docker: true }));
   }, [bridge, setDockerInstalled]);
   reactExports.useEffect(() => {
     if (setupStep === 1) checkDocker();
   }, [setupStep, checkDocker]);
-  const handlePullImages = reactExports.useCallback(async () => {
+  const handleAutoSetup = reactExports.useCallback(async () => {
     if (!bridge) return;
-    setPullProgress(0, "Starting pull...");
+    setPullProgress(1, "Downloading services...");
     try {
       await bridge.docker.pullImages();
-      setSetupStep(3);
     } catch (e) {
       setPullProgress(-1, `Pull failed: ${e instanceof Error ? e.message : "Unknown error"}`);
+      return;
     }
-  }, [bridge, setPullProgress, setSetupStep]);
-  const handleStartServices = reactExports.useCallback(async () => {
-    if (!bridge) return;
     try {
       await bridge.docker.startServices();
       const health = await bridge.docker.getHealth();
@@ -52176,10 +52252,10 @@ function SetupWizard({ onComplete }) {
     } catch (e) {
       console.error("[SetupWizard] Start failed:", e);
     }
-  }, [bridge, updateHealth]);
+  }, [bridge, setPullProgress, updateHealth]);
   reactExports.useEffect(() => {
-    if (setupStep === 3) handleStartServices();
-  }, [setupStep, handleStartServices]);
+    if (setupStep === 2) handleAutoSetup();
+  }, [setupStep, handleAutoSetup]);
   const handlePullModel = reactExports.useCallback(async () => {
     if (!bridge) return;
     setModelPullProgress(1, "Checking for model...");
@@ -52195,7 +52271,7 @@ function SetupWizard({ onComplete }) {
     }
   }, [bridge, setModelPullProgress]);
   reactExports.useEffect(() => {
-    if (setupStep === 4) handlePullModel();
+    if (setupStep === 3) handlePullModel();
   }, [setupStep, handlePullModel]);
   const handleFinish = reactExports.useCallback(async () => {
     if (bridge) {
@@ -52213,6 +52289,10 @@ function SetupWizard({ onComplete }) {
         return "bg-red-500";
     }
   };
+  const platformIcon = platform === "mac" ? Apple : platform === "windows" ? Monitor : Terminal;
+  const PlatformIcon = platformIcon;
+  const dockerInfo = DOCKER_URLS[platform];
+  const tips = PLATFORM_TIPS[platform];
   return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "fixed inset-0 z-[100] flex items-center justify-center bg-[var(--nomu-bg)]", children: [
     /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "absolute top-8 flex gap-2", children: STEPS.map((label, i) => /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center gap-2", children: [
       /* @__PURE__ */ jsxRuntimeExports.jsx(
@@ -52237,63 +52317,99 @@ function SetupWizard({ onComplete }) {
           setupStep === 0 && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "text-center", children: [
             /* @__PURE__ */ jsxRuntimeExports.jsx(NomuLogo, { className: "mx-auto mb-6 h-10" }),
             /* @__PURE__ */ jsxRuntimeExports.jsx("h1", { className: "mb-2 font-['Barlow'] text-2xl font-bold text-[var(--nomu-text)]", children: "Welcome to Compliance Ready AI" }),
-            /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "mb-8 text-sm text-[var(--nomu-text-muted)]", children: "Let's set up your local AI compliance environment. This wizard will guide you through installing dependencies and starting services." }),
-            /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center justify-center gap-3 rounded-lg bg-[var(--nomu-bg)] p-4 text-sm text-[var(--nomu-text-muted)]", children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsx(Sparkles, { size: 18, className: "text-[var(--nomu-primary)]" }),
-              "100% on-premises. Your data never leaves your machine."
+            /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "mb-6 text-sm text-[var(--nomu-text-muted)]", children: "Build AI compliance workflows that run 100% on your machine. This wizard will help you set everything up." }),
+            /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mb-6 rounded-lg bg-[var(--nomu-bg)] p-4 text-left", children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "mb-3 text-xs font-semibold uppercase tracking-wide text-[var(--nomu-text-muted)]", children: "What you'll need" }),
+              /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "space-y-2", children: [
+                { icon: Server, label: "Docker Desktop", detail: "Runs backend services locally", required: true },
+                { icon: Brain, label: "AI Model (Llama 3.2)", detail: "Downloaded automatically (~2GB)", required: false }
+              ].map(({ icon: Icon2, label, detail, required }) => /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center gap-3", children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsx(Icon2, { size: 16, className: "text-[var(--nomu-primary)]" }),
+                /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex-1", children: [
+                  /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-sm text-[var(--nomu-text)]", children: label }),
+                  /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "ml-2 text-xs text-[var(--nomu-text-muted)]", children: detail })
+                ] }),
+                required ? /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-[10px] rounded bg-[var(--nomu-accent)]/20 px-1.5 py-0.5 text-[var(--nomu-accent)]", children: "Required" }) : /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-[10px] rounded bg-green-500/20 px-1.5 py-0.5 text-green-400", children: "Auto" })
+              ] }, label)) })
+            ] }),
+            /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mb-6 flex items-center justify-center gap-3 rounded-lg bg-[var(--nomu-primary)]/5 p-3 text-sm text-[var(--nomu-text-muted)]", children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsx(Shield, { size: 16, className: "text-[var(--nomu-primary)]" }),
+              "100% on-premises — your data never leaves your machine"
             ] }),
             /* @__PURE__ */ jsxRuntimeExports.jsx(
               "button",
               {
                 onClick: () => setSetupStep(1),
-                className: "mt-8 w-full rounded-lg bg-[var(--nomu-primary)] py-3 font-medium text-white transition hover:bg-[var(--nomu-primary-hover)]",
+                className: "w-full rounded-lg bg-[var(--nomu-primary)] py-3 font-medium text-white transition hover:bg-[var(--nomu-primary-hover)]",
                 children: "Get Started"
               }
             )
           ] }),
           setupStep === 1 && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
             /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mb-6 flex items-center gap-3", children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "rounded-lg bg-[var(--nomu-primary)]/20 p-2", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Server, { size: 20, className: "text-[var(--nomu-primary)]" }) }),
-              /* @__PURE__ */ jsxRuntimeExports.jsx("h2", { className: "font-['Barlow'] text-xl font-bold text-[var(--nomu-text)]", children: "Docker Check" })
+              /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "rounded-lg bg-[var(--nomu-primary)]/20 p-2", children: /* @__PURE__ */ jsxRuntimeExports.jsx(PlatformIcon, { size: 20, className: "text-[var(--nomu-primary)]" }) }),
+              /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsx("h2", { className: "font-['Barlow'] text-xl font-bold text-[var(--nomu-text)]", children: "Install Docker" }),
+                /* @__PURE__ */ jsxRuntimeExports.jsxs("p", { className: "text-xs text-[var(--nomu-text-muted)] capitalize", children: [
+                  "Detected: ",
+                  platform === "mac" ? "macOS" : platform === "windows" ? "Windows" : "Linux"
+                ] })
+              ] })
             ] }),
-            /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "mb-6 text-sm text-[var(--nomu-text-muted)]", children: "Compliance Ready AI uses Docker to run backend services locally." }),
-            dockerInstalled ? /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mb-6 rounded-lg bg-green-500/10 p-4", children: [
+            dockerInstalled ? /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mb-5 rounded-lg bg-green-500/10 p-4", children: [
               /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center gap-2 text-green-400", children: [
                 /* @__PURE__ */ jsxRuntimeExports.jsx(Check, { size: 18 }),
-                /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "font-medium", children: "Docker is installed" })
+                /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "font-medium", children: "Docker is installed and running" })
               ] }),
               /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "mt-1 text-xs text-[var(--nomu-text-muted)]", children: dockerVersion })
-            ] }) : /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mb-6 rounded-lg bg-red-500/10 p-4", children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center gap-2 text-red-400", children: [
-                /* @__PURE__ */ jsxRuntimeExports.jsx(CircleAlert, { size: 18 }),
-                /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "font-medium", children: "Docker not found" })
-              ] }),
-              /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "mt-3 text-xs text-[var(--nomu-text-muted)]", children: "Please install Docker Desktop for your platform:" }),
-              /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "mt-2 flex flex-col gap-2", children: [
-                { label: "macOS", url: "https://docs.docker.com/desktop/install/mac-install/" },
-                { label: "Windows", url: "https://docs.docker.com/desktop/install/windows-install/" },
-                { label: "Linux", url: "https://docs.docker.com/desktop/install/linux/" }
-              ].map(({ label, url }) => /* @__PURE__ */ jsxRuntimeExports.jsxs(
+            ] }) : /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsxs(
                 "a",
                 {
-                  href: url,
+                  href: dockerInfo.url,
                   target: "_blank",
                   rel: "noreferrer",
-                  className: "flex items-center gap-2 text-xs text-[var(--nomu-primary)] hover:underline",
+                  className: "mb-4 flex items-center gap-3 rounded-lg border border-[var(--nomu-primary)]/30 bg-[var(--nomu-primary)]/5 p-4 transition hover:border-[var(--nomu-primary)]/60 hover:bg-[var(--nomu-primary)]/10",
                   children: [
-                    /* @__PURE__ */ jsxRuntimeExports.jsx(ExternalLink, { size: 12 }),
-                    " ",
-                    label
+                    /* @__PURE__ */ jsxRuntimeExports.jsx(Download, { size: 20, className: "text-[var(--nomu-primary)]" }),
+                    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex-1", children: [
+                      /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-sm font-medium text-[var(--nomu-text)]", children: dockerInfo.label }),
+                      /* @__PURE__ */ jsxRuntimeExports.jsxs("p", { className: "text-xs text-[var(--nomu-text-muted)]", children: [
+                        "Free download · ",
+                        dockerInfo.size
+                      ] })
+                    ] }),
+                    /* @__PURE__ */ jsxRuntimeExports.jsx(ExternalLink, { size: 16, className: "text-[var(--nomu-primary)]" })
                   ]
-                },
-                label
-              )) }),
-              /* @__PURE__ */ jsxRuntimeExports.jsx(
+                }
+              ),
+              /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mb-4 rounded-lg bg-[var(--nomu-bg)] p-3", children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsxs("p", { className: "mb-2 text-xs font-semibold uppercase tracking-wide text-[var(--nomu-text-muted)]", children: [
+                  "Setup tips for ",
+                  platform === "mac" ? "macOS" : platform === "windows" ? "Windows" : "Linux"
+                ] }),
+                /* @__PURE__ */ jsxRuntimeExports.jsx("ul", { className: "space-y-1.5", children: tips.map((tip, i) => /* @__PURE__ */ jsxRuntimeExports.jsxs("li", { className: "flex items-start gap-2 text-xs text-[var(--nomu-text-muted)]", children: [
+                  /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "mt-0.5 text-[var(--nomu-primary)]", children: "•" }),
+                  /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: tip })
+                ] }, i)) })
+              ] }),
+              platform === "linux" && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mb-4 flex items-center rounded-lg bg-[var(--nomu-bg)] px-3 py-2 font-mono text-xs text-[var(--nomu-text)]", children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsx("code", { className: "flex-1", children: "curl -fsSL https://get.docker.com | sh" }),
+                /* @__PURE__ */ jsxRuntimeExports.jsx(CopyButton, { text: "curl -fsSL https://get.docker.com | sh" })
+              ] }),
+              /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mb-4 flex items-center gap-2 rounded-lg bg-yellow-500/10 p-3", children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsx(CircleAlert, { size: 16, className: "text-yellow-400" }),
+                /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-xs text-yellow-400", children: 'Install Docker, then open it and wait until it says "Docker is running" before continuing.' })
+              ] }),
+              /* @__PURE__ */ jsxRuntimeExports.jsxs(
                 "button",
                 {
                   onClick: checkDocker,
-                  className: "mt-4 w-full rounded-lg bg-[var(--nomu-surface-hover)] py-2 text-sm text-[var(--nomu-text)] transition hover:bg-[var(--nomu-border)]",
-                  children: "Re-check"
+                  className: "mb-3 w-full rounded-lg bg-[var(--nomu-surface-hover)] py-2.5 text-sm text-[var(--nomu-text)] transition hover:bg-[var(--nomu-border)]",
+                  children: [
+                    /* @__PURE__ */ jsxRuntimeExports.jsx(LoaderCircle, { size: 14, className: "mr-2 inline" }),
+                    "I've installed Docker — Check again"
+                  ]
                 }
               )
             ] }),
@@ -52303,19 +52419,19 @@ function SetupWizard({ onComplete }) {
                 onClick: () => setSetupStep(2),
                 disabled: !dockerInstalled,
                 className: "w-full rounded-lg bg-[var(--nomu-primary)] py-3 font-medium text-white transition hover:bg-[var(--nomu-primary-hover)] disabled:cursor-not-allowed disabled:opacity-50",
-                children: "Continue"
+                children: dockerInstalled ? "Continue — Start Automatic Setup" : "Install Docker to Continue"
               }
             )
           ] }),
           setupStep === 2 && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
             /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mb-6 flex items-center gap-3", children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "rounded-lg bg-[var(--nomu-accent)]/20 p-2", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Download, { size: 20, className: "text-[var(--nomu-accent)]" }) }),
-              /* @__PURE__ */ jsxRuntimeExports.jsx("h2", { className: "font-['Barlow'] text-xl font-bold text-[var(--nomu-text)]", children: "Pull Images" })
+              /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "rounded-lg bg-[var(--nomu-accent)]/20 p-2", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Server, { size: 20, className: "text-[var(--nomu-accent)]" }) }),
+              /* @__PURE__ */ jsxRuntimeExports.jsx("h2", { className: "font-['Barlow'] text-xl font-bold text-[var(--nomu-text)]", children: "Setting Up Services" })
             ] }),
-            /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "mb-6 text-sm text-[var(--nomu-text-muted)]", children: "Download Docker images for all services. This may take a few minutes on first run." }),
-            pullProgress > 0 && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mb-6", children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "mb-6 text-sm text-[var(--nomu-text-muted)]", children: "Downloading and starting all backend services. This takes a few minutes on first run." }),
+            pullProgress > 0 && pullProgress < 100 && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mb-4", children: [
               /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mb-2 flex justify-between text-xs text-[var(--nomu-text-muted)]", children: [
-                /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: "Downloading..." }),
+                /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: "Downloading services..." }),
                 /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { children: [
                   Math.round(pullProgress),
                   "%"
@@ -52330,43 +52446,18 @@ function SetupWizard({ onComplete }) {
               ) }),
               /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "mt-2 truncate text-xs text-[var(--nomu-text-muted)]", children: pullMessage })
             ] }),
-            pullProgress === -1 && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "mb-6 rounded-lg bg-red-500/10 p-3 text-xs text-red-400", children: pullMessage }),
-            pullProgress === 100 ? /* @__PURE__ */ jsxRuntimeExports.jsx(
-              "button",
-              {
-                onClick: () => setSetupStep(3),
-                className: "w-full rounded-lg bg-[var(--nomu-primary)] py-3 font-medium text-white transition hover:bg-[var(--nomu-primary-hover)]",
-                children: "Continue"
-              }
-            ) : pullProgress > 0 && pullProgress < 100 ? /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center justify-center gap-2 py-3 text-sm text-[var(--nomu-text-muted)]", children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsx(LoaderCircle, { size: 16, className: "animate-spin" }),
-              "Pulling images..."
-            ] }) : /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex gap-3", children: [
+            pullProgress === -1 && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mb-4 rounded-lg bg-red-500/10 p-3 text-xs text-red-400", children: [
+              pullMessage,
               /* @__PURE__ */ jsxRuntimeExports.jsx(
                 "button",
                 {
-                  onClick: handlePullImages,
-                  className: "flex-1 rounded-lg bg-[var(--nomu-accent)] py-3 font-medium text-white transition hover:bg-[var(--nomu-accent-hover)]",
-                  children: "Pull Images"
-                }
-              ),
-              /* @__PURE__ */ jsxRuntimeExports.jsx(
-                "button",
-                {
-                  onClick: () => setSetupStep(3),
-                  className: "rounded-lg bg-[var(--nomu-surface-hover)] px-4 py-3 text-sm text-[var(--nomu-text-muted)] transition hover:bg-[var(--nomu-border)]",
-                  children: "Skip"
+                  onClick: handleAutoSetup,
+                  className: "mt-2 w-full rounded-lg bg-[var(--nomu-surface-hover)] py-2 text-sm text-[var(--nomu-text)] transition hover:bg-[var(--nomu-border)]",
+                  children: "Retry"
                 }
               )
-            ] })
-          ] }),
-          setupStep === 3 && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mb-6 flex items-center gap-3", children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "rounded-lg bg-[var(--nomu-primary)]/20 p-2", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Server, { size: 20, className: "text-[var(--nomu-primary)]" }) }),
-              /* @__PURE__ */ jsxRuntimeExports.jsx("h2", { className: "font-['Barlow'] text-xl font-bold text-[var(--nomu-text)]", children: "Start Services" })
             ] }),
-            /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "mb-6 text-sm text-[var(--nomu-text-muted)]", children: "Starting backend services. This may take a moment..." }),
-            /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "mb-6 space-y-2", children: ["backend", "postgres", "redis", "mongo", "ollama"].map((name2) => {
+            (pullProgress >= 100 || allServicesHealthy) && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "mb-4 space-y-2", children: ["backend", "postgres", "redis", "mongo", "ollama"].map((name2) => {
               const svc = servicesHealth.find((s) => s.name === name2);
               const st = svc?.status || "starting";
               return /* @__PURE__ */ jsxRuntimeExports.jsxs(
@@ -52384,22 +52475,27 @@ function SetupWizard({ onComplete }) {
                 name2
               );
             }) }),
-            /* @__PURE__ */ jsxRuntimeExports.jsx(
+            allServicesHealthy ? /* @__PURE__ */ jsxRuntimeExports.jsx(
               "button",
               {
-                onClick: () => setSetupStep(4),
-                disabled: !allServicesHealthy,
-                className: "w-full rounded-lg bg-[var(--nomu-primary)] py-3 font-medium text-white transition hover:bg-[var(--nomu-primary-hover)] disabled:cursor-not-allowed disabled:opacity-50",
-                children: allServicesHealthy ? "Continue" : "Waiting for services..."
+                onClick: () => setSetupStep(3),
+                className: "w-full rounded-lg bg-[var(--nomu-primary)] py-3 font-medium text-white transition hover:bg-[var(--nomu-primary-hover)]",
+                children: "Continue"
               }
-            )
+            ) : pullProgress >= 0 && pullProgress < 100 ? /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center justify-center gap-2 py-3 text-sm text-[var(--nomu-text-muted)]", children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsx(LoaderCircle, { size: 16, className: "animate-spin" }),
+              "Setting up..."
+            ] }) : pullProgress >= 100 && !allServicesHealthy ? /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center justify-center gap-2 py-3 text-sm text-[var(--nomu-text-muted)]", children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsx(LoaderCircle, { size: 16, className: "animate-spin" }),
+              "Starting services..."
+            ] }) : null
           ] }),
-          setupStep === 4 && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
+          setupStep === 3 && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
             /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mb-6 flex items-center gap-3", children: [
               /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "rounded-lg bg-[var(--nomu-primary)]/20 p-2", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Brain, { size: 20, className: "text-[var(--nomu-primary)]" }) }),
               /* @__PURE__ */ jsxRuntimeExports.jsx("h2", { className: "font-['Barlow'] text-xl font-bold text-[var(--nomu-text)]", children: "Download AI Model" })
             ] }),
-            /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "mb-6 text-sm text-[var(--nomu-text-muted)]", children: "Downloading Llama 3.2 for local AI processing. This is a one-time download (~2GB)." }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "mb-6 text-sm text-[var(--nomu-text-muted)]", children: "Downloading Llama 3.2 for local AI processing. One-time download (~2GB). This model runs entirely on your machine." }),
             modelPullProgress > 0 && modelPullProgress < 100 && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mb-6", children: [
               /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mb-2 flex justify-between text-xs text-[var(--nomu-text-muted)]", children: [
                 /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: modelPullMessage }),
@@ -52434,7 +52530,7 @@ function SetupWizard({ onComplete }) {
             modelPullProgress === 100 ? /* @__PURE__ */ jsxRuntimeExports.jsx(
               "button",
               {
-                onClick: () => setSetupStep(5),
+                onClick: () => setSetupStep(4),
                 className: "w-full rounded-lg bg-[var(--nomu-primary)] py-3 font-medium text-white transition hover:bg-[var(--nomu-primary-hover)]",
                 children: "Continue"
               }
@@ -52446,10 +52542,33 @@ function SetupWizard({ onComplete }) {
               "Checking models..."
             ] }) : null
           ] }),
-          setupStep === 5 && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "text-center", children: [
+          setupStep === 4 && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "text-center", children: [
             /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-green-500/20", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Rocket, { size: 32, className: "text-green-400" }) }),
             /* @__PURE__ */ jsxRuntimeExports.jsx("h2", { className: "mb-2 font-['Barlow'] text-2xl font-bold text-[var(--nomu-text)]", children: "You're All Set!" }),
-            /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "mb-8 text-sm text-[var(--nomu-text-muted)]", children: "All services are running. Start building AI compliance workflows by dragging nodes from the sidebar onto the canvas." }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "mb-6 text-sm text-[var(--nomu-text-muted)]", children: "All services are running and your AI model is ready. Start building compliance workflows by dragging nodes from the sidebar." }),
+            /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mb-6 rounded-lg bg-[var(--nomu-bg)] p-4 text-left", children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "mb-2 text-xs font-semibold uppercase tracking-wide text-[var(--nomu-text-muted)]", children: "Quick start" }),
+              /* @__PURE__ */ jsxRuntimeExports.jsxs("ul", { className: "space-y-1.5 text-xs text-[var(--nomu-text-muted)]", children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsxs("li", { className: "flex items-start gap-2", children: [
+                  /* @__PURE__ */ jsxRuntimeExports.jsx(Sparkles, { size: 12, className: "mt-0.5 text-[var(--nomu-primary)]" }),
+                  "Drag a ",
+                  /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { className: "text-[var(--nomu-text)]", children: "Manual Trigger" }),
+                  " to the canvas to start a workflow"
+                ] }),
+                /* @__PURE__ */ jsxRuntimeExports.jsxs("li", { className: "flex items-start gap-2", children: [
+                  /* @__PURE__ */ jsxRuntimeExports.jsx(Sparkles, { size: 12, className: "mt-0.5 text-[var(--nomu-primary)]" }),
+                  "Connect it to an ",
+                  /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { className: "text-[var(--nomu-text)]", children: "AI Agent" }),
+                  " node for LLM processing"
+                ] }),
+                /* @__PURE__ */ jsxRuntimeExports.jsxs("li", { className: "flex items-start gap-2", children: [
+                  /* @__PURE__ */ jsxRuntimeExports.jsx(Sparkles, { size: 12, className: "mt-0.5 text-[var(--nomu-primary)]" }),
+                  "Or load a ",
+                  /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { className: "text-[var(--nomu-text)]", children: "Template" }),
+                  " from the Workflows menu"
+                ] })
+              ] })
+            ] }),
             /* @__PURE__ */ jsxRuntimeExports.jsx(
               "button",
               {

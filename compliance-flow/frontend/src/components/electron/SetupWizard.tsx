@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Sparkles,
@@ -10,12 +10,75 @@ import {
   Loader2,
   AlertCircle,
   Brain,
+  Monitor,
+  Apple,
+  Terminal,
+  Copy,
+  CheckCircle2,
+  Shield,
 } from 'lucide-react'
 import { NomuLogo } from '../common/NomuLogo'
 import { getElectronBridge } from '../../services/electronBridge'
 import { useElectronStore } from '../../store/electronStore'
 
-const STEPS = ['Welcome', 'Docker', 'Pull Images', 'Start Services', 'AI Model', 'Ready']
+const STEPS = ['Welcome', 'Prerequisites', 'Setup', 'AI Model', 'Ready']
+
+type Platform = 'mac' | 'windows' | 'linux'
+
+const DOCKER_URLS: Record<Platform, { label: string; url: string; size: string }> = {
+  mac: {
+    label: 'Docker Desktop for macOS',
+    url: 'https://docs.docker.com/desktop/install/mac-install/',
+    size: '~600 MB',
+  },
+  windows: {
+    label: 'Docker Desktop for Windows',
+    url: 'https://docs.docker.com/desktop/install/windows-install/',
+    size: '~550 MB',
+  },
+  linux: {
+    label: 'Docker Engine for Linux',
+    url: 'https://docs.docker.com/engine/install/',
+    size: '~400 MB',
+  },
+}
+
+const PLATFORM_TIPS: Record<Platform, string[]> = {
+  mac: [
+    'Apple Silicon (M1/M2/M3): Download the Apple chip version',
+    'Intel Mac: Download the Intel chip version',
+    'After installing, open Docker Desktop and wait for it to start',
+  ],
+  windows: [
+    'Requires Windows 10/11 with WSL 2 enabled',
+    'Run in PowerShell as Admin: wsl --install',
+    'After installing Docker Desktop, restart your computer',
+  ],
+  linux: [
+    'Ubuntu/Debian: Follow the apt repository instructions',
+    'Also install Docker Compose: sudo apt install docker-compose-plugin',
+    'Add your user to docker group: sudo usermod -aG docker $USER',
+  ],
+}
+
+function CopyButton({ text }: { text: string }) {
+  const [copied, setCopied] = useState(false)
+  const handleCopy = useCallback(() => {
+    navigator.clipboard.writeText(text)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }, [text])
+
+  return (
+    <button
+      onClick={handleCopy}
+      className="ml-2 rounded p-1 text-[var(--nomu-text-muted)] hover:bg-[var(--nomu-surface-hover)] hover:text-[var(--nomu-text)] transition"
+      title="Copy to clipboard"
+    >
+      {copied ? <CheckCircle2 size={14} className="text-green-400" /> : <Copy size={14} />}
+    </button>
+  )
+}
 
 export function SetupWizard({ onComplete }: { onComplete: () => void }) {
   const bridge = getElectronBridge()
@@ -35,6 +98,19 @@ export function SetupWizard({ onComplete }: { onComplete: () => void }) {
     modelPullMessage,
     setModelPullProgress,
   } = useElectronStore()
+
+  const [platform, setPlatform] = useState<Platform>('mac')
+  const [checkedPrereqs, setCheckedPrereqs] = useState({ docker: false })
+
+  // Detect platform
+  useEffect(() => {
+    if (!bridge) return
+    bridge.app.getPlatform().then((p) => {
+      if (p === 'darwin') setPlatform('mac')
+      else if (p === 'win32') setPlatform('windows')
+      else setPlatform('linux')
+    })
+  }, [bridge])
 
   // Subscribe to IPC events
   useEffect(() => {
@@ -59,40 +135,38 @@ export function SetupWizard({ onComplete }: { onComplete: () => void }) {
     if (!bridge) return
     const result = await bridge.docker.checkInstalled()
     setDockerInstalled(result.installed, result.version)
+    if (result.installed) setCheckedPrereqs((p) => ({ ...p, docker: true }))
   }, [bridge, setDockerInstalled])
 
-  // Auto-check Docker when entering step 1
+  // Auto-check Docker on prerequisites step
   useEffect(() => {
     if (setupStep === 1) checkDocker()
   }, [setupStep, checkDocker])
 
-  const handlePullImages = useCallback(async () => {
+  const handleAutoSetup = useCallback(async () => {
     if (!bridge) return
-    setPullProgress(0, 'Starting pull...')
+    // Pull images
+    setPullProgress(1, 'Downloading services...')
     try {
       await bridge.docker.pullImages()
-      setSetupStep(3)
     } catch (e) {
       setPullProgress(-1, `Pull failed: ${e instanceof Error ? e.message : 'Unknown error'}`)
+      return
     }
-  }, [bridge, setPullProgress, setSetupStep])
-
-  const handleStartServices = useCallback(async () => {
-    if (!bridge) return
+    // Start services
     try {
       await bridge.docker.startServices()
-      // Poll health immediately
       const health = await bridge.docker.getHealth()
       updateHealth(health)
     } catch (e) {
       console.error('[SetupWizard] Start failed:', e)
     }
-  }, [bridge, updateHealth])
+  }, [bridge, setPullProgress, updateHealth])
 
-  // Auto-start services on step 3
+  // Auto-start setup on step 2
   useEffect(() => {
-    if (setupStep === 3) handleStartServices()
-  }, [setupStep, handleStartServices])
+    if (setupStep === 2) handleAutoSetup()
+  }, [setupStep, handleAutoSetup])
 
   const handlePullModel = useCallback(async () => {
     if (!bridge) return
@@ -109,9 +183,9 @@ export function SetupWizard({ onComplete }: { onComplete: () => void }) {
     }
   }, [bridge, setModelPullProgress])
 
-  // Auto-pull model on step 4
+  // Auto-pull model on step 3
   useEffect(() => {
-    if (setupStep === 4) handlePullModel()
+    if (setupStep === 3) handlePullModel()
   }, [setupStep, handlePullModel])
 
   const handleFinish = useCallback(async () => {
@@ -128,6 +202,11 @@ export function SetupWizard({ onComplete }: { onComplete: () => void }) {
       default: return 'bg-red-500'
     }
   }
+
+  const platformIcon = platform === 'mac' ? Apple : platform === 'windows' ? Monitor : Terminal
+  const PlatformIcon = platformIcon
+  const dockerInfo = DOCKER_URLS[platform]
+  const tips = PLATFORM_TIPS[platform]
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[var(--nomu-bg)]">
@@ -171,77 +250,130 @@ export function SetupWizard({ onComplete }: { onComplete: () => void }) {
               <h1 className="mb-2 font-['Barlow'] text-2xl font-bold text-[var(--nomu-text)]">
                 Welcome to Compliance Ready AI
               </h1>
-              <p className="mb-8 text-sm text-[var(--nomu-text-muted)]">
-                Let's set up your local AI compliance environment. This wizard will guide you through
-                installing dependencies and starting services.
+              <p className="mb-6 text-sm text-[var(--nomu-text-muted)]">
+                Build AI compliance workflows that run 100% on your machine.
+                This wizard will help you set everything up.
               </p>
-              <div className="flex items-center justify-center gap-3 rounded-lg bg-[var(--nomu-bg)] p-4 text-sm text-[var(--nomu-text-muted)]">
-                <Sparkles size={18} className="text-[var(--nomu-primary)]" />
-                100% on-premises. Your data never leaves your machine.
+
+              {/* What you'll need */}
+              <div className="mb-6 rounded-lg bg-[var(--nomu-bg)] p-4 text-left">
+                <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-[var(--nomu-text-muted)]">
+                  What you'll need
+                </p>
+                <div className="space-y-2">
+                  {[
+                    { icon: Server, label: 'Docker Desktop', detail: 'Runs backend services locally', required: true },
+                    { icon: Brain, label: 'AI Model (Llama 3.2)', detail: 'Downloaded automatically (~2GB)', required: false },
+                  ].map(({ icon: Icon, label, detail, required }) => (
+                    <div key={label} className="flex items-center gap-3">
+                      <Icon size={16} className="text-[var(--nomu-primary)]" />
+                      <div className="flex-1">
+                        <span className="text-sm text-[var(--nomu-text)]">{label}</span>
+                        <span className="ml-2 text-xs text-[var(--nomu-text-muted)]">{detail}</span>
+                      </div>
+                      {required ? (
+                        <span className="text-[10px] rounded bg-[var(--nomu-accent)]/20 px-1.5 py-0.5 text-[var(--nomu-accent)]">Required</span>
+                      ) : (
+                        <span className="text-[10px] rounded bg-green-500/20 px-1.5 py-0.5 text-green-400">Auto</span>
+                      )}
+                    </div>
+                  ))}
+                </div>
               </div>
+
+              <div className="mb-6 flex items-center justify-center gap-3 rounded-lg bg-[var(--nomu-primary)]/5 p-3 text-sm text-[var(--nomu-text-muted)]">
+                <Shield size={16} className="text-[var(--nomu-primary)]" />
+                100% on-premises — your data never leaves your machine
+              </div>
+
               <button
                 onClick={() => setSetupStep(1)}
-                className="mt-8 w-full rounded-lg bg-[var(--nomu-primary)] py-3 font-medium text-white transition hover:bg-[var(--nomu-primary-hover)]"
+                className="w-full rounded-lg bg-[var(--nomu-primary)] py-3 font-medium text-white transition hover:bg-[var(--nomu-primary-hover)]"
               >
                 Get Started
               </button>
             </div>
           )}
 
-          {/* Step 1: Docker Check */}
+          {/* Step 1: Prerequisites — platform-aware Docker instructions */}
           {setupStep === 1 && (
             <div>
               <div className="mb-6 flex items-center gap-3">
                 <div className="rounded-lg bg-[var(--nomu-primary)]/20 p-2">
-                  <Server size={20} className="text-[var(--nomu-primary)]" />
+                  <PlatformIcon size={20} className="text-[var(--nomu-primary)]" />
                 </div>
-                <h2 className="font-['Barlow'] text-xl font-bold text-[var(--nomu-text)]">Docker Check</h2>
+                <div>
+                  <h2 className="font-['Barlow'] text-xl font-bold text-[var(--nomu-text)]">Install Docker</h2>
+                  <p className="text-xs text-[var(--nomu-text-muted)] capitalize">
+                    Detected: {platform === 'mac' ? 'macOS' : platform === 'windows' ? 'Windows' : 'Linux'}
+                  </p>
+                </div>
               </div>
-              <p className="mb-6 text-sm text-[var(--nomu-text-muted)]">
-                Compliance Ready AI uses Docker to run backend services locally.
-              </p>
 
+              {/* Docker status */}
               {dockerInstalled ? (
-                <div className="mb-6 rounded-lg bg-green-500/10 p-4">
+                <div className="mb-5 rounded-lg bg-green-500/10 p-4">
                   <div className="flex items-center gap-2 text-green-400">
                     <Check size={18} />
-                    <span className="font-medium">Docker is installed</span>
+                    <span className="font-medium">Docker is installed and running</span>
                   </div>
                   <p className="mt-1 text-xs text-[var(--nomu-text-muted)]">{dockerVersion}</p>
                 </div>
               ) : (
-                <div className="mb-6 rounded-lg bg-red-500/10 p-4">
-                  <div className="flex items-center gap-2 text-red-400">
-                    <AlertCircle size={18} />
-                    <span className="font-medium">Docker not found</span>
+                <>
+                  {/* Download link */}
+                  <a
+                    href={dockerInfo.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="mb-4 flex items-center gap-3 rounded-lg border border-[var(--nomu-primary)]/30 bg-[var(--nomu-primary)]/5 p-4 transition hover:border-[var(--nomu-primary)]/60 hover:bg-[var(--nomu-primary)]/10"
+                  >
+                    <Download size={20} className="text-[var(--nomu-primary)]" />
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-[var(--nomu-text)]">{dockerInfo.label}</p>
+                      <p className="text-xs text-[var(--nomu-text-muted)]">Free download · {dockerInfo.size}</p>
+                    </div>
+                    <ExternalLink size={16} className="text-[var(--nomu-primary)]" />
+                  </a>
+
+                  {/* Platform-specific tips */}
+                  <div className="mb-4 rounded-lg bg-[var(--nomu-bg)] p-3">
+                    <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-[var(--nomu-text-muted)]">
+                      Setup tips for {platform === 'mac' ? 'macOS' : platform === 'windows' ? 'Windows' : 'Linux'}
+                    </p>
+                    <ul className="space-y-1.5">
+                      {tips.map((tip, i) => (
+                        <li key={i} className="flex items-start gap-2 text-xs text-[var(--nomu-text-muted)]">
+                          <span className="mt-0.5 text-[var(--nomu-primary)]">•</span>
+                          <span>{tip}</span>
+                        </li>
+                      ))}
+                    </ul>
                   </div>
-                  <p className="mt-3 text-xs text-[var(--nomu-text-muted)]">
-                    Please install Docker Desktop for your platform:
-                  </p>
-                  <div className="mt-2 flex flex-col gap-2">
-                    {[
-                      { label: 'macOS', url: 'https://docs.docker.com/desktop/install/mac-install/' },
-                      { label: 'Windows', url: 'https://docs.docker.com/desktop/install/windows-install/' },
-                      { label: 'Linux', url: 'https://docs.docker.com/desktop/install/linux/' },
-                    ].map(({ label, url }) => (
-                      <a
-                        key={label}
-                        href={url}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="flex items-center gap-2 text-xs text-[var(--nomu-primary)] hover:underline"
-                      >
-                        <ExternalLink size={12} /> {label}
-                      </a>
-                    ))}
+
+                  {/* Terminal command for Linux */}
+                  {platform === 'linux' && (
+                    <div className="mb-4 flex items-center rounded-lg bg-[var(--nomu-bg)] px-3 py-2 font-mono text-xs text-[var(--nomu-text)]">
+                      <code className="flex-1">curl -fsSL https://get.docker.com | sh</code>
+                      <CopyButton text="curl -fsSL https://get.docker.com | sh" />
+                    </div>
+                  )}
+
+                  <div className="mb-4 flex items-center gap-2 rounded-lg bg-yellow-500/10 p-3">
+                    <AlertCircle size={16} className="text-yellow-400" />
+                    <p className="text-xs text-yellow-400">
+                      Install Docker, then open it and wait until it says "Docker is running" before continuing.
+                    </p>
                   </div>
+
                   <button
                     onClick={checkDocker}
-                    className="mt-4 w-full rounded-lg bg-[var(--nomu-surface-hover)] py-2 text-sm text-[var(--nomu-text)] transition hover:bg-[var(--nomu-border)]"
+                    className="mb-3 w-full rounded-lg bg-[var(--nomu-surface-hover)] py-2.5 text-sm text-[var(--nomu-text)] transition hover:bg-[var(--nomu-border)]"
                   >
-                    Re-check
+                    <Loader2 size={14} className="mr-2 inline" />
+                    I've installed Docker — Check again
                   </button>
-                </div>
+                </>
               )}
 
               <button
@@ -249,28 +381,29 @@ export function SetupWizard({ onComplete }: { onComplete: () => void }) {
                 disabled={!dockerInstalled}
                 className="w-full rounded-lg bg-[var(--nomu-primary)] py-3 font-medium text-white transition hover:bg-[var(--nomu-primary-hover)] disabled:cursor-not-allowed disabled:opacity-50"
               >
-                Continue
+                {dockerInstalled ? 'Continue — Start Automatic Setup' : 'Install Docker to Continue'}
               </button>
             </div>
           )}
 
-          {/* Step 2: Pull Images */}
+          {/* Step 2: Automatic Setup — pull images + start services */}
           {setupStep === 2 && (
             <div>
               <div className="mb-6 flex items-center gap-3">
                 <div className="rounded-lg bg-[var(--nomu-accent)]/20 p-2">
-                  <Download size={20} className="text-[var(--nomu-accent)]" />
+                  <Server size={20} className="text-[var(--nomu-accent)]" />
                 </div>
-                <h2 className="font-['Barlow'] text-xl font-bold text-[var(--nomu-text)]">Pull Images</h2>
+                <h2 className="font-['Barlow'] text-xl font-bold text-[var(--nomu-text)]">Setting Up Services</h2>
               </div>
               <p className="mb-6 text-sm text-[var(--nomu-text-muted)]">
-                Download Docker images for all services. This may take a few minutes on first run.
+                Downloading and starting all backend services. This takes a few minutes on first run.
               </p>
 
-              {pullProgress > 0 && (
-                <div className="mb-6">
+              {/* Pull progress */}
+              {pullProgress > 0 && pullProgress < 100 && (
+                <div className="mb-4">
                   <div className="mb-2 flex justify-between text-xs text-[var(--nomu-text-muted)]">
-                    <span>Downloading...</span>
+                    <span>Downloading services...</span>
                     <span>{Math.round(pullProgress)}%</span>
                   </div>
                   <div className="h-2 overflow-hidden rounded-full bg-[var(--nomu-bg)]">
@@ -284,86 +417,62 @@ export function SetupWizard({ onComplete }: { onComplete: () => void }) {
               )}
 
               {pullProgress === -1 && (
-                <div className="mb-6 rounded-lg bg-red-500/10 p-3 text-xs text-red-400">
+                <div className="mb-4 rounded-lg bg-red-500/10 p-3 text-xs text-red-400">
                   {pullMessage}
+                  <button
+                    onClick={handleAutoSetup}
+                    className="mt-2 w-full rounded-lg bg-[var(--nomu-surface-hover)] py-2 text-sm text-[var(--nomu-text)] transition hover:bg-[var(--nomu-border)]"
+                  >
+                    Retry
+                  </button>
                 </div>
               )}
 
-              {pullProgress === 100 ? (
+              {/* Service health */}
+              {(pullProgress >= 100 || allServicesHealthy) && (
+                <div className="mb-4 space-y-2">
+                  {(['backend', 'postgres', 'redis', 'mongo', 'ollama'] as const).map((name) => {
+                    const svc = servicesHealth.find((s) => s.name === name)
+                    const st = svc?.status || 'starting'
+                    return (
+                      <div
+                        key={name}
+                        className="flex items-center justify-between rounded-lg bg-[var(--nomu-bg)] px-4 py-2"
+                      >
+                        <span className="text-sm capitalize text-[var(--nomu-text)]">{name}</span>
+                        <div className="flex items-center gap-2">
+                          <div className={`h-2 w-2 rounded-full ${statusDot(st)}`} />
+                          <span className="text-xs capitalize text-[var(--nomu-text-muted)]">{st}</span>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+
+              {allServicesHealthy ? (
                 <button
                   onClick={() => setSetupStep(3)}
                   className="w-full rounded-lg bg-[var(--nomu-primary)] py-3 font-medium text-white transition hover:bg-[var(--nomu-primary-hover)]"
                 >
                   Continue
                 </button>
-              ) : pullProgress > 0 && pullProgress < 100 ? (
+              ) : pullProgress >= 0 && pullProgress < 100 ? (
                 <div className="flex items-center justify-center gap-2 py-3 text-sm text-[var(--nomu-text-muted)]">
                   <Loader2 size={16} className="animate-spin" />
-                  Pulling images...
+                  Setting up...
                 </div>
-              ) : (
-                <div className="flex gap-3">
-                  <button
-                    onClick={handlePullImages}
-                    className="flex-1 rounded-lg bg-[var(--nomu-accent)] py-3 font-medium text-white transition hover:bg-[var(--nomu-accent-hover)]"
-                  >
-                    Pull Images
-                  </button>
-                  <button
-                    onClick={() => setSetupStep(3)}
-                    className="rounded-lg bg-[var(--nomu-surface-hover)] px-4 py-3 text-sm text-[var(--nomu-text-muted)] transition hover:bg-[var(--nomu-border)]"
-                  >
-                    Skip
-                  </button>
+              ) : pullProgress >= 100 && !allServicesHealthy ? (
+                <div className="flex items-center justify-center gap-2 py-3 text-sm text-[var(--nomu-text-muted)]">
+                  <Loader2 size={16} className="animate-spin" />
+                  Starting services...
                 </div>
-              )}
+              ) : null}
             </div>
           )}
 
-          {/* Step 3: Start Services */}
+          {/* Step 3: AI Model Download */}
           {setupStep === 3 && (
-            <div>
-              <div className="mb-6 flex items-center gap-3">
-                <div className="rounded-lg bg-[var(--nomu-primary)]/20 p-2">
-                  <Server size={20} className="text-[var(--nomu-primary)]" />
-                </div>
-                <h2 className="font-['Barlow'] text-xl font-bold text-[var(--nomu-text)]">Start Services</h2>
-              </div>
-              <p className="mb-6 text-sm text-[var(--nomu-text-muted)]">
-                Starting backend services. This may take a moment...
-              </p>
-
-              <div className="mb-6 space-y-2">
-                {(['backend', 'postgres', 'redis', 'mongo', 'ollama'] as const).map((name) => {
-                  const svc = servicesHealth.find((s) => s.name === name)
-                  const st = svc?.status || 'starting'
-                  return (
-                    <div
-                      key={name}
-                      className="flex items-center justify-between rounded-lg bg-[var(--nomu-bg)] px-4 py-2"
-                    >
-                      <span className="text-sm capitalize text-[var(--nomu-text)]">{name}</span>
-                      <div className="flex items-center gap-2">
-                        <div className={`h-2 w-2 rounded-full ${statusDot(st)}`} />
-                        <span className="text-xs capitalize text-[var(--nomu-text-muted)]">{st}</span>
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
-
-              <button
-                onClick={() => setSetupStep(4)}
-                disabled={!allServicesHealthy}
-                className="w-full rounded-lg bg-[var(--nomu-primary)] py-3 font-medium text-white transition hover:bg-[var(--nomu-primary-hover)] disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                {allServicesHealthy ? 'Continue' : 'Waiting for services...'}
-              </button>
-            </div>
-          )}
-
-          {/* Step 4: AI Model Download */}
-          {setupStep === 4 && (
             <div>
               <div className="mb-6 flex items-center gap-3">
                 <div className="rounded-lg bg-[var(--nomu-primary)]/20 p-2">
@@ -372,7 +481,8 @@ export function SetupWizard({ onComplete }: { onComplete: () => void }) {
                 <h2 className="font-['Barlow'] text-xl font-bold text-[var(--nomu-text)]">Download AI Model</h2>
               </div>
               <p className="mb-6 text-sm text-[var(--nomu-text-muted)]">
-                Downloading Llama 3.2 for local AI processing. This is a one-time download (~2GB).
+                Downloading Llama 3.2 for local AI processing. One-time download (~2GB).
+                This model runs entirely on your machine.
               </p>
 
               {modelPullProgress > 0 && modelPullProgress < 100 && (
@@ -413,7 +523,7 @@ export function SetupWizard({ onComplete }: { onComplete: () => void }) {
 
               {modelPullProgress === 100 ? (
                 <button
-                  onClick={() => setSetupStep(5)}
+                  onClick={() => setSetupStep(4)}
                   className="w-full rounded-lg bg-[var(--nomu-primary)] py-3 font-medium text-white transition hover:bg-[var(--nomu-primary-hover)]"
                 >
                   Continue
@@ -432,8 +542,8 @@ export function SetupWizard({ onComplete }: { onComplete: () => void }) {
             </div>
           )}
 
-          {/* Step 5: Ready */}
-          {setupStep === 5 && (
+          {/* Step 4: Ready */}
+          {setupStep === 4 && (
             <div className="text-center">
               <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-green-500/20">
                 <Rocket size={32} className="text-green-400" />
@@ -441,10 +551,29 @@ export function SetupWizard({ onComplete }: { onComplete: () => void }) {
               <h2 className="mb-2 font-['Barlow'] text-2xl font-bold text-[var(--nomu-text)]">
                 You're All Set!
               </h2>
-              <p className="mb-8 text-sm text-[var(--nomu-text-muted)]">
-                All services are running. Start building AI compliance workflows by dragging nodes
-                from the sidebar onto the canvas.
+              <p className="mb-6 text-sm text-[var(--nomu-text-muted)]">
+                All services are running and your AI model is ready.
+                Start building compliance workflows by dragging nodes from the sidebar.
               </p>
+
+              <div className="mb-6 rounded-lg bg-[var(--nomu-bg)] p-4 text-left">
+                <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-[var(--nomu-text-muted)]">Quick start</p>
+                <ul className="space-y-1.5 text-xs text-[var(--nomu-text-muted)]">
+                  <li className="flex items-start gap-2">
+                    <Sparkles size={12} className="mt-0.5 text-[var(--nomu-primary)]" />
+                    Drag a <strong className="text-[var(--nomu-text)]">Manual Trigger</strong> to the canvas to start a workflow
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <Sparkles size={12} className="mt-0.5 text-[var(--nomu-primary)]" />
+                    Connect it to an <strong className="text-[var(--nomu-text)]">AI Agent</strong> node for LLM processing
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <Sparkles size={12} className="mt-0.5 text-[var(--nomu-primary)]" />
+                    Or load a <strong className="text-[var(--nomu-text)]">Template</strong> from the Workflows menu
+                  </li>
+                </ul>
+              </div>
+
               <button
                 onClick={handleFinish}
                 className="w-full rounded-lg bg-[var(--nomu-primary)] py-3 font-medium text-white transition hover:bg-[var(--nomu-primary-hover)]"
