@@ -46,6 +46,17 @@ const electronAPI = {
     checkExists: (filePath: string) => ipcRenderer.invoke('fs:check-exists', filePath),
   },
 
+  // Ollama model management
+  ollama: {
+    listModels: () => ipcRenderer.invoke('ollama:list-models'),
+    pullModel: (modelName: string) => ipcRenderer.invoke('ollama:pull-model', modelName),
+    onPullProgress: (callback: (data: { progress: number; message: string }) => void) => {
+      const handler = (_event: IpcRendererEvent, data: { progress: number; message: string }) => callback(data)
+      ipcRenderer.on('ollama:pull-progress', handler)
+      return () => ipcRenderer.removeListener('ollama:pull-progress', handler)
+    },
+  },
+
   // Whisper voice transcription
   whisper: {
     listModels: () => ipcRenderer.invoke('whisper:list-models'),

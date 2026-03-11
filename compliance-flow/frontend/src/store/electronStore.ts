@@ -11,6 +11,8 @@ interface ElectronState {
   pullMessage: string
   servicesHealth: ServiceHealth[]
   allServicesHealthy: boolean
+  modelPullProgress: number
+  modelPullMessage: string
 
   // Actions
   setIsFirstRun: (v: boolean) => void
@@ -18,6 +20,7 @@ interface ElectronState {
   setDockerInstalled: (installed: boolean, version?: string) => void
   setPullProgress: (progress: number, message: string) => void
   updateHealth: (report: HealthReport) => void
+  setModelPullProgress: (progress: number, message: string) => void
 }
 
 export const useElectronStore = create<ElectronState>()((set) => ({
@@ -29,6 +32,8 @@ export const useElectronStore = create<ElectronState>()((set) => ({
   pullMessage: '',
   servicesHealth: [],
   allServicesHealthy: false,
+  modelPullProgress: 0,
+  modelPullMessage: '',
 
   setIsFirstRun: (v) => set({ isFirstRun: v }),
   setSetupStep: (step) => set({ setupStep: step }),
@@ -37,4 +42,6 @@ export const useElectronStore = create<ElectronState>()((set) => ({
   setPullProgress: (progress, message) => set({ pullProgress: progress, pullMessage: message }),
   updateHealth: (report) =>
     set({ servicesHealth: report.services, allServicesHealthy: report.allHealthy }),
+  setModelPullProgress: (progress, message) =>
+    set({ modelPullProgress: progress, modelPullMessage: message }),
 }))

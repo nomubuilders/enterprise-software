@@ -80,6 +80,11 @@ export interface ElectronAPI {
     onUpdateAvailable: (callback: (info: unknown) => void) => () => void
     onUpdateDownloaded: (callback: () => void) => () => void
   }
+  ollama: {
+    listModels: () => Promise<string[]>
+    pullModel: (modelName: string) => Promise<void>
+    onPullProgress: (callback: (data: PullProgress) => void) => () => void
+  }
   whisper: {
     listModels: () => Promise<WhisperModel[]>
     getModelStatus: (modelName: string) => Promise<WhisperModel | null>

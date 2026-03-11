@@ -9,12 +9,13 @@ import {
   ExternalLink,
   Loader2,
   AlertCircle,
+  Brain,
 } from 'lucide-react'
 import { NomuLogo } from '../common/NomuLogo'
 import { getElectronBridge } from '../../services/electronBridge'
 import { useElectronStore } from '../../store/electronStore'
 
-const STEPS = ['Welcome', 'Docker', 'Pull Images', 'Start Services', 'Ready']
+const STEPS = ['Welcome', 'Docker', 'Pull Images', 'Start Services', 'AI Model', 'Ready']
 
 export function SetupWizard({ onComplete }: { onComplete: () => void }) {
   const bridge = getElectronBridge()
@@ -30,6 +31,9 @@ export function SetupWizard({ onComplete }: { onComplete: () => void }) {
     servicesHealth,
     allServicesHealthy,
     updateHealth,
+    modelPullProgress,
+    modelPullMessage,
+    setModelPullProgress,
   } = useElectronStore()
 
   // Subscribe to IPC events
@@ -41,11 +45,15 @@ export function SetupWizard({ onComplete }: { onComplete: () => void }) {
     const unsub2 = bridge.docker.onHealthUpdate((health) => {
       updateHealth(health)
     })
+    const unsub3 = bridge.ollama.onPullProgress((data) => {
+      setModelPullProgress(data.progress, data.message)
+    })
     return () => {
       unsub1()
       unsub2()
+      unsub3()
     }
-  }, [bridge, setPullProgress, updateHealth])
+  }, [bridge, setPullProgress, updateHealth, setModelPullProgress])
 
   const checkDocker = useCallback(async () => {
     if (!bridge) return
@@ -85,6 +93,26 @@ export function SetupWizard({ onComplete }: { onComplete: () => void }) {
   useEffect(() => {
     if (setupStep === 3) handleStartServices()
   }, [setupStep, handleStartServices])
+
+  const handlePullModel = useCallback(async () => {
+    if (!bridge) return
+    setModelPullProgress(1, 'Checking for model...')
+    try {
+      const models: string[] = await bridge.ollama.listModels()
+      if (models.some((m) => m.startsWith('llama3.2'))) {
+        setModelPullProgress(100, 'Model already installed')
+        return
+      }
+      await bridge.ollama.pullModel('llama3.2')
+    } catch (e) {
+      setModelPullProgress(-1, `Failed: ${e instanceof Error ? e.message : 'Connection error'}`)
+    }
+  }, [bridge, setModelPullProgress])
+
+  // Auto-pull model on step 4
+  useEffect(() => {
+    if (setupStep === 4) handlePullModel()
+  }, [setupStep, handlePullModel])
 
   const handleFinish = useCallback(async () => {
     if (bridge) {
@@ -334,8 +362,78 @@ export function SetupWizard({ onComplete }: { onComplete: () => void }) {
             </div>
           )}
 
-          {/* Step 4: Ready */}
+          {/* Step 4: AI Model Download */}
           {setupStep === 4 && (
+            <div>
+              <div className="mb-6 flex items-center gap-3">
+                <div className="rounded-lg bg-[var(--nomu-primary)]/20 p-2">
+                  <Brain size={20} className="text-[var(--nomu-primary)]" />
+                </div>
+                <h2 className="font-['Barlow'] text-xl font-bold text-[var(--nomu-text)]">Download AI Model</h2>
+              </div>
+              <p className="mb-6 text-sm text-[var(--nomu-text-muted)]">
+                Downloading Llama 3.2 for local AI processing. This is a one-time download (~2GB).
+              </p>
+
+              {modelPullProgress > 0 && modelPullProgress < 100 && (
+                <div className="mb-6">
+                  <div className="mb-2 flex justify-between text-xs text-[var(--nomu-text-muted)]">
+                    <span>{modelPullMessage}</span>
+                    <span>{modelPullProgress}%</span>
+                  </div>
+                  <div className="h-2 overflow-hidden rounded-full bg-[var(--nomu-bg)]">
+                    <div
+                      className="h-full rounded-full bg-[var(--nomu-primary)] transition-all duration-300"
+                      style={{ width: `${modelPullProgress}%` }}
+                    />
+                  </div>
+                </div>
+              )}
+
+              {modelPullProgress === 100 && (
+                <div className="mb-6 rounded-lg bg-green-500/10 p-4">
+                  <div className="flex items-center gap-2 text-green-400">
+                    <Check size={18} />
+                    <span className="font-medium">{modelPullMessage}</span>
+                  </div>
+                </div>
+              )}
+
+              {modelPullProgress === -1 && (
+                <div className="mb-6 rounded-lg bg-red-500/10 p-3 text-xs text-red-400">
+                  {modelPullMessage}
+                  <button
+                    onClick={handlePullModel}
+                    className="mt-2 w-full rounded-lg bg-[var(--nomu-surface-hover)] py-2 text-sm text-[var(--nomu-text)] transition hover:bg-[var(--nomu-border)]"
+                  >
+                    Retry
+                  </button>
+                </div>
+              )}
+
+              {modelPullProgress === 100 ? (
+                <button
+                  onClick={() => setSetupStep(5)}
+                  className="w-full rounded-lg bg-[var(--nomu-primary)] py-3 font-medium text-white transition hover:bg-[var(--nomu-primary-hover)]"
+                >
+                  Continue
+                </button>
+              ) : modelPullProgress > 0 && modelPullProgress < 100 ? (
+                <div className="flex items-center justify-center gap-2 py-3 text-sm text-[var(--nomu-text-muted)]">
+                  <Loader2 size={16} className="animate-spin" />
+                  Downloading model...
+                </div>
+              ) : modelPullProgress !== -1 ? (
+                <div className="flex items-center justify-center gap-2 py-3 text-sm text-[var(--nomu-text-muted)]">
+                  <Loader2 size={16} className="animate-spin" />
+                  Checking models...
+                </div>
+              ) : null}
+            </div>
+          )}
+
+          {/* Step 5: Ready */}
+          {setupStep === 5 && (
             <div className="text-center">
               <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-green-500/20">
                 <Rocket size={32} className="text-green-400" />

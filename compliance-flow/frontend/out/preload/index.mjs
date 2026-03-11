@@ -40,6 +40,16 @@ const electronAPI = {
     writeFile: (filePath, content) => ipcRenderer.invoke("fs:write-file", filePath, content),
     checkExists: (filePath) => ipcRenderer.invoke("fs:check-exists", filePath)
   },
+  // Ollama model management
+  ollama: {
+    listModels: () => ipcRenderer.invoke("ollama:list-models"),
+    pullModel: (modelName) => ipcRenderer.invoke("ollama:pull-model", modelName),
+    onPullProgress: (callback) => {
+      const handler = (_event, data) => callback(data);
+      ipcRenderer.on("ollama:pull-progress", handler);
+      return () => ipcRenderer.removeListener("ollama:pull-progress", handler);
+    }
+  },
   // Whisper voice transcription
   whisper: {
     listModels: () => ipcRenderer.invoke("whisper:list-models"),

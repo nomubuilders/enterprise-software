@@ -52104,13 +52104,16 @@ const useElectronStore = create$1()((set2) => ({
   pullMessage: "",
   servicesHealth: [],
   allServicesHealthy: false,
+  modelPullProgress: 0,
+  modelPullMessage: "",
   setIsFirstRun: (v) => set2({ isFirstRun: v }),
   setSetupStep: (step) => set2({ setupStep: step }),
   setDockerInstalled: (installed, version) => set2({ dockerInstalled: installed, dockerVersion: version || "" }),
   setPullProgress: (progress2, message) => set2({ pullProgress: progress2, pullMessage: message }),
-  updateHealth: (report) => set2({ servicesHealth: report.services, allServicesHealthy: report.allHealthy })
+  updateHealth: (report) => set2({ servicesHealth: report.services, allServicesHealthy: report.allHealthy }),
+  setModelPullProgress: (progress2, message) => set2({ modelPullProgress: progress2, modelPullMessage: message })
 }));
-const STEPS = ["Welcome", "Docker", "Pull Images", "Start Services", "Ready"];
+const STEPS = ["Welcome", "Docker", "Pull Images", "Start Services", "AI Model", "Ready"];
 function SetupWizard({ onComplete }) {
   const bridge = getElectronBridge();
   const {
@@ -52124,7 +52127,10 @@ function SetupWizard({ onComplete }) {
     setPullProgress,
     servicesHealth,
     allServicesHealthy,
-    updateHealth
+    updateHealth,
+    modelPullProgress,
+    modelPullMessage,
+    setModelPullProgress
   } = useElectronStore();
   reactExports.useEffect(() => {
     if (!bridge) return;
@@ -52134,11 +52140,15 @@ function SetupWizard({ onComplete }) {
     const unsub2 = bridge.docker.onHealthUpdate((health) => {
       updateHealth(health);
     });
+    const unsub3 = bridge.ollama.onPullProgress((data) => {
+      setModelPullProgress(data.progress, data.message);
+    });
     return () => {
       unsub1();
       unsub2();
+      unsub3();
     };
-  }, [bridge, setPullProgress, updateHealth]);
+  }, [bridge, setPullProgress, updateHealth, setModelPullProgress]);
   const checkDocker = reactExports.useCallback(async () => {
     if (!bridge) return;
     const result = await bridge.docker.checkInstalled();
@@ -52170,6 +52180,23 @@ function SetupWizard({ onComplete }) {
   reactExports.useEffect(() => {
     if (setupStep === 3) handleStartServices();
   }, [setupStep, handleStartServices]);
+  const handlePullModel = reactExports.useCallback(async () => {
+    if (!bridge) return;
+    setModelPullProgress(1, "Checking for model...");
+    try {
+      const models = await bridge.ollama.listModels();
+      if (models.some((m) => m.startsWith("llama3.2"))) {
+        setModelPullProgress(100, "Model already installed");
+        return;
+      }
+      await bridge.ollama.pullModel("llama3.2");
+    } catch (e) {
+      setModelPullProgress(-1, `Failed: ${e instanceof Error ? e.message : "Connection error"}`);
+    }
+  }, [bridge, setModelPullProgress]);
+  reactExports.useEffect(() => {
+    if (setupStep === 4) handlePullModel();
+  }, [setupStep, handlePullModel]);
   const handleFinish = reactExports.useCallback(async () => {
     if (bridge) {
       await bridge.app.setFirstRunComplete();
@@ -52367,7 +52394,59 @@ function SetupWizard({ onComplete }) {
               }
             )
           ] }),
-          setupStep === 4 && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "text-center", children: [
+          setupStep === 4 && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mb-6 flex items-center gap-3", children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "rounded-lg bg-[var(--nomu-primary)]/20 p-2", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Brain, { size: 20, className: "text-[var(--nomu-primary)]" }) }),
+              /* @__PURE__ */ jsxRuntimeExports.jsx("h2", { className: "font-['Barlow'] text-xl font-bold text-[var(--nomu-text)]", children: "Download AI Model" })
+            ] }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "mb-6 text-sm text-[var(--nomu-text-muted)]", children: "Downloading Llama 3.2 for local AI processing. This is a one-time download (~2GB)." }),
+            modelPullProgress > 0 && modelPullProgress < 100 && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mb-6", children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mb-2 flex justify-between text-xs text-[var(--nomu-text-muted)]", children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: modelPullMessage }),
+                /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { children: [
+                  modelPullProgress,
+                  "%"
+                ] })
+              ] }),
+              /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "h-2 overflow-hidden rounded-full bg-[var(--nomu-bg)]", children: /* @__PURE__ */ jsxRuntimeExports.jsx(
+                "div",
+                {
+                  className: "h-full rounded-full bg-[var(--nomu-primary)] transition-all duration-300",
+                  style: { width: `${modelPullProgress}%` }
+                }
+              ) })
+            ] }),
+            modelPullProgress === 100 && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "mb-6 rounded-lg bg-green-500/10 p-4", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center gap-2 text-green-400", children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsx(Check, { size: 18 }),
+              /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "font-medium", children: modelPullMessage })
+            ] }) }),
+            modelPullProgress === -1 && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mb-6 rounded-lg bg-red-500/10 p-3 text-xs text-red-400", children: [
+              modelPullMessage,
+              /* @__PURE__ */ jsxRuntimeExports.jsx(
+                "button",
+                {
+                  onClick: handlePullModel,
+                  className: "mt-2 w-full rounded-lg bg-[var(--nomu-surface-hover)] py-2 text-sm text-[var(--nomu-text)] transition hover:bg-[var(--nomu-border)]",
+                  children: "Retry"
+                }
+              )
+            ] }),
+            modelPullProgress === 100 ? /* @__PURE__ */ jsxRuntimeExports.jsx(
+              "button",
+              {
+                onClick: () => setSetupStep(5),
+                className: "w-full rounded-lg bg-[var(--nomu-primary)] py-3 font-medium text-white transition hover:bg-[var(--nomu-primary-hover)]",
+                children: "Continue"
+              }
+            ) : modelPullProgress > 0 && modelPullProgress < 100 ? /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center justify-center gap-2 py-3 text-sm text-[var(--nomu-text-muted)]", children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsx(LoaderCircle, { size: 16, className: "animate-spin" }),
+              "Downloading model..."
+            ] }) : modelPullProgress !== -1 ? /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center justify-center gap-2 py-3 text-sm text-[var(--nomu-text-muted)]", children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsx(LoaderCircle, { size: 16, className: "animate-spin" }),
+              "Checking models..."
+            ] }) : null
+          ] }),
+          setupStep === 5 && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "text-center", children: [
             /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-green-500/20", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Rocket, { size: 32, className: "text-green-400" }) }),
             /* @__PURE__ */ jsxRuntimeExports.jsx("h2", { className: "mb-2 font-['Barlow'] text-2xl font-bold text-[var(--nomu-text)]", children: "You're All Set!" }),
             /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "mb-8 text-sm text-[var(--nomu-text-muted)]", children: "All services are running. Start building AI compliance workflows by dragging nodes from the sidebar onto the canvas." }),
