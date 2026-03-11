@@ -103,7 +103,7 @@ function App() {
   } = useWorkflowStore()
 
   // Initialize theme store (ensures theme class is applied to root)
-  useThemeStore()
+  const theme = useThemeStore((s) => s.theme)
 
   // Close settings dropdown on Escape
   useEffect(() => {
@@ -448,7 +448,7 @@ function App() {
         </Modal>
       </ReactFlowProvider>
       <Toaster
-        theme="dark"
+        theme={theme}
         position="bottom-right"
         toastOptions={{
           style: {

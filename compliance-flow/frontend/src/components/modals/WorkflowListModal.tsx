@@ -139,13 +139,13 @@ export function WorkflowListModal({ isOpen, onClose }: WorkflowListModalProps) {
     <Modal isOpen={isOpen} onClose={onClose} title="Workflows" size="lg">
       <div className="space-y-4">
         {/* Tab Bar */}
-        <div className="flex gap-1 mb-4 bg-zinc-800 rounded-lg p-1">
+        <div className="flex gap-1 mb-4 bg-[var(--nomu-input-bg)] rounded-lg p-1">
           <button
             onClick={() => setActiveTab('workflows')}
             className={`flex-1 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
               activeTab === 'workflows'
-                ? 'bg-[#4004DA] text-white'
-                : 'text-zinc-400 hover:text-white'
+                ? 'bg-[var(--nomu-primary)] text-white'
+                : 'text-[var(--nomu-text-muted)] hover:text-[var(--nomu-text)]'
             }`}
           >
             My Workflows
@@ -154,8 +154,8 @@ export function WorkflowListModal({ isOpen, onClose }: WorkflowListModalProps) {
             onClick={() => setActiveTab('templates')}
             className={`flex-1 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
               activeTab === 'templates'
-                ? 'bg-[#4004DA] text-white'
-                : 'text-zinc-400 hover:text-white'
+                ? 'bg-[var(--nomu-primary)] text-white'
+                : 'text-[var(--nomu-text-muted)] hover:text-[var(--nomu-text)]'
             }`}
           >
             Templates
@@ -302,9 +302,9 @@ export function WorkflowListModal({ isOpen, onClose }: WorkflowListModalProps) {
                 <button
                   key={demo.id}
                   onClick={() => handleLoadDemo(demo.id)}
-                  className="flex items-start gap-3 p-3 rounded-lg bg-[var(--nomu-surface)]/50 hover:bg-[var(--nomu-surface-hover)] border border-[var(--nomu-border)] hover:border-[#4004DA]/50 transition-all text-left group"
+                  className="flex items-start gap-3 p-3 rounded-lg bg-[var(--nomu-surface)]/50 hover:bg-[var(--nomu-surface-hover)] border border-[var(--nomu-border)] hover:border-[var(--nomu-primary)]/50 transition-all text-left group"
                 >
-                  <div className="p-2 rounded-lg bg-[#4004DA]/10 text-[#4004DA] group-hover:bg-[#4004DA]/20">
+                  <div className="p-2 rounded-lg bg-[var(--nomu-primary)]/10 text-[var(--nomu-primary)] group-hover:bg-[var(--nomu-primary)]/20">
                     <Icon size={20} />
                   </div>
                   <div className="flex-1 min-w-0">

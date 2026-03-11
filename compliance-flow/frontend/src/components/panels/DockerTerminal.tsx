@@ -36,15 +36,15 @@ export const DockerTerminal = memo(({ containerId, isRunning }: DockerTerminalPr
   const clearLogs = () => setLogs([])
 
   return (
-    <div className="rounded-lg border border-slate-700 overflow-hidden">
+    <div className="rounded-lg border border-[var(--nomu-border)] overflow-hidden">
       {/* Header */}
       <div
-        className="flex items-center justify-between px-3 py-2 bg-slate-800 cursor-pointer"
+        className="flex items-center justify-between px-3 py-2 bg-[var(--nomu-surface)] cursor-pointer"
         onClick={() => setIsExpanded(!isExpanded)}
       >
         <div className="flex items-center gap-2">
-          <TerminalIcon size={14} className="text-purple-400" />
-          <span className="text-sm font-medium text-white">Execution Console</span>
+          <TerminalIcon size={14} className="text-[var(--nomu-primary)]" />
+          <span className="text-sm font-medium text-[var(--nomu-text)]">Execution Console</span>
           {isRunning && (
             <span className="inline-flex h-2 w-2 rounded-full bg-green-500 animate-pulse" />
           )}
@@ -53,13 +53,13 @@ export const DockerTerminal = memo(({ containerId, isRunning }: DockerTerminalPr
           {logs.length > 0 && (
             <button
               onClick={(e) => { e.stopPropagation(); clearLogs() }}
-              className="text-slate-400 hover:text-white p-1"
+              className="text-[var(--nomu-text-muted)] hover:text-[var(--nomu-text)] p-1"
               title="Clear logs"
             >
               <Trash2 size={12} />
             </button>
           )}
-          <span className="text-xs text-slate-400">
+          <span className="text-xs text-[var(--nomu-text-muted)]">
             {isExpanded ? '\u25BC' : '\u25B6'}
           </span>
         </div>
@@ -69,16 +69,16 @@ export const DockerTerminal = memo(({ containerId, isRunning }: DockerTerminalPr
       {isExpanded && (
         <div
           ref={scrollRef}
-          className="h-48 overflow-y-auto bg-black p-3 font-mono text-xs leading-5"
+          className="h-48 overflow-y-auto bg-[var(--nomu-bg)] p-3 font-mono text-xs leading-5"
         >
           {logs.length === 0 ? (
-            <div className="text-gray-500 italic">
+            <div className="text-[var(--nomu-text-muted)] italic">
               {isRunning ? 'Waiting for output...' : 'No logs yet. Run the container to see output.'}
             </div>
           ) : (
             logs.map((entry, i) => (
               <div key={i} className={entry.stream === 'stderr' ? 'text-red-400' : 'text-green-300'}>
-                <span className="text-gray-600 select-none">[{new Date(entry.timestamp).toLocaleTimeString()}] </span>
+                <span className="text-[var(--nomu-text-muted)] select-none">[{new Date(entry.timestamp).toLocaleTimeString()}] </span>
                 {entry.message}
               </div>
             ))

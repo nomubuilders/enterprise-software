@@ -58,6 +58,7 @@
   --nomu-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
   --nomu-shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.5);
   --nomu-logo-filter: brightness(0) invert(1);
+  --nomu-input-bg: #2A2522;
   --nomu-dots: #4D4D4D;
   --nomu-cat-compliance: #1B6B93;
   --nomu-cat-compliance-hover: #155A7A;
@@ -84,6 +85,7 @@
   --nomu-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
   --nomu-shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
   --nomu-logo-filter: none;
+  --nomu-input-bg: #F5F5F5;
   --nomu-dots: #C8C8C8;
   --nomu-cat-compliance: #1B6B93;
   --nomu-cat-compliance-hover: #155A7A;

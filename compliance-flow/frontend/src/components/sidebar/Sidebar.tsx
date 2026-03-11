@@ -515,7 +515,7 @@ export function Sidebar() {
               <h3 className="mb-2 font-['Barlow'] text-xs font-semibold uppercase tracking-wider text-[var(--nomu-text-muted)]">
                 {category}
                 {category === 'Containers' && (
-                  <span className={`ml-1.5 inline-block h-1.5 w-1.5 rounded-full ${dockerAvailable ? 'bg-green-500' : 'bg-gray-500'}`} />
+                  <span className={`ml-1.5 inline-block h-1.5 w-1.5 rounded-full ${dockerAvailable ? 'bg-green-500' : 'bg-[var(--nomu-text-muted)]'}`} />
                 )}
               </h3>
               <div className="space-y-1">

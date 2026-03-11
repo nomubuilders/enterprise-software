@@ -55,7 +55,7 @@ export const DockerContainerNode = memo((props: NodeProps) => {
             </span>
           )}
           {!dockerAvailable && (
-            <span className="inline-flex items-center gap-1 rounded-full bg-gray-500/20 px-2 py-0.5 text-[10px] font-medium text-gray-400">
+            <span className="inline-flex items-center gap-1 rounded-full bg-[var(--nomu-text-muted)]/20 px-2 py-0.5 text-[10px] font-medium text-[var(--nomu-text-muted)]">
               Docker Unavailable
             </span>
           )}
