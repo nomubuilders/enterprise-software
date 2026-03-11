@@ -9,6 +9,8 @@ import { dockerApi } from '../services/dockerApi'
 import { useFlowStore } from './flowStore'
 import { useDocumentStore } from './documentStore'
 import { summarizeDocument, summarizeBatch, searchDocuments } from '../services/summarizationService'
+import { demoWorkflows } from '../data/demoWorkflows'
+import type { DemoWorkflow } from '../data/demoWorkflows'
 
 interface WorkflowState {
   // Workflows
@@ -34,6 +36,7 @@ interface WorkflowState {
   duplicateWorkflow: (id: string) => Workflow
   renameWorkflow: (id: string, name: string) => void
   setCurrentWorkflow: (id: string | null) => void
+  loadDemoWorkflow: (demoId: string) => Workflow | null
 
   // Database Config Actions
   addDatabaseConfig: (config: Omit<DatabaseConfig, 'id' | 'status'>) => DatabaseConfig
@@ -167,6 +170,48 @@ export const useWorkflowStore = create<WorkflowState>()(
 
       setCurrentWorkflow: (id) => {
         set({ currentWorkflowId: id })
+      },
+
+      loadDemoWorkflow: (demoId) => {
+        const demo = demoWorkflows.find(d => d.id === demoId)
+        if (!demo) return null
+
+        // Check if already loaded
+        const existing = get().workflows.find(w => w.name === demo.name)
+        if (existing) {
+          set({ currentWorkflowId: existing.id })
+          // Load nodes/edges into flowStore
+          const flowStore = useFlowStore.getState()
+          flowStore.clearFlow()
+          useFlowStore.setState({ nodes: existing.nodes, edges: existing.edges })
+          return existing
+        }
+
+        // Create new workflow from demo
+        const workflow: Workflow = {
+          id: generateId(),
+          name: demo.name,
+          description: demo.description,
+          nodes: JSON.parse(JSON.stringify(demo.nodes)),
+          edges: JSON.parse(JSON.stringify(demo.edges)),
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          status: 'saved',
+          version: 1,
+        }
+
+        set({
+          workflows: [...get().workflows, workflow],
+          currentWorkflowId: workflow.id,
+        })
+
+        // Load nodes/edges into flowStore for rendering
+        useFlowStore.setState({
+          nodes: JSON.parse(JSON.stringify(demo.nodes)),
+          edges: JSON.parse(JSON.stringify(demo.edges))
+        })
+
+        return workflow
       },
 
       // Database Config Actions

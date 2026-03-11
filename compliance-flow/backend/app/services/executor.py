@@ -934,13 +934,21 @@ class WorkflowExecutionEngine:
         flag_auto_denials = node.data.get("flagAutoDenials", node.data.get("flag_auto_denials", True))
         generate_explanation = node.data.get("generateExplanation", node.data.get("generate_explanation", True))
 
+        claims = input_data.get("claims", [])
+        claims_count = len(claims) if isinstance(claims, list) else 0
+        auto_denials = (
+            sum(1 for c in claims if isinstance(c, dict) and c.get("status") in ("denied", "rejected"))
+            if flag_auto_denials and isinstance(claims, list)
+            else 0
+        )
+
         return {
             "claims_audit": {
                 "audit_type": audit_type,
                 "flag_auto_denials": flag_auto_denials,
                 "generate_explanation": generate_explanation,
-                "claims_reviewed": 0,
-                "auto_denials_flagged": 0,
+                "claims_reviewed": claims_count,
+                "auto_denials_flagged": auto_denials,
                 "audited_at": datetime.utcnow().isoformat(),
             },
             **input_data,
@@ -1128,13 +1136,22 @@ class WorkflowExecutionEngine:
         drift_threshold = float(node.data.get("driftThreshold", node.data.get("drift_threshold", 0.15)))
         schedule = node.data.get("schedule", "daily")
 
+        baseline = input_data.get("baseline", [])
+        current = input_data.get("current", [])
+        if baseline and current and len(baseline) == len(current):
+            # Simple PSI approximation: mean absolute difference
+            drift_value = sum(abs(b - c) for b, c in zip(baseline, current)) / len(baseline)
+        else:
+            drift_value = 0.0
+        drift_detected = drift_value > drift_threshold
+
         return {
             "drift_analysis": {
                 "metric": metric,
                 "threshold": drift_threshold,
                 "schedule": schedule,
-                "current_drift": 0.05,  # Placeholder
-                "drift_detected": False,
+                "current_drift": round(drift_value, 6),
+                "drift_detected": drift_detected,
                 "analyzed_at": datetime.utcnow().isoformat(),
             },
             **input_data,
@@ -1302,6 +1319,15 @@ class WorkflowExecutionEngine:
         approvers = node.data.get("approvers", [])
         approval_status = node.data.get("approvalStatus", node.data.get("approval_status", "pending"))
         timeout_hours = node.data.get("timeoutHours", node.data.get("timeout_hours", 24))
+
+        auto_approve = node.data.get("autoApprove", node.data.get("auto_approve", False))
+        if auto_approve:
+            return {
+                "approval_status": "approved",
+                "approval_type": approval_type,
+                "auto_approved": True,
+                **input_data,
+            }
 
         if approval_status == "approved":
             return {
@@ -1494,11 +1520,15 @@ class WorkflowExecutionEngine:
     @staticmethod
     def _get_pii_pattern(pattern_type: str) -> Optional[str]:
         """Get regex pattern for PII type."""
+        _person_pattern = r"\b[A-Z][a-z]+ [A-Z][a-z]+\b"
         patterns = {
             "email": r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b",
             "phone": r"\b\d{3}[-.]?\d{3}[-.]?\d{4}\b",
             "ssn": r"\b\d{3}-\d{2}-\d{4}\b",
             "credit_card": r"\b\d{4}[\s\-]?\d{4}[\s\-]?\d{4}[\s\-]?\d{4}\b",
+            "person": _person_pattern,
+            "name": _person_pattern,
+            "PERSON": _person_pattern,
         }
         return patterns.get(pattern_type)
 

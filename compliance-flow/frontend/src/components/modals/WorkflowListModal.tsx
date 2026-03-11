@@ -10,10 +10,17 @@ import {
   Play,
   FileEdit,
   MoreVertical,
+  Shield,
+  FileText,
+  Eye,
+  GitBranch,
+  Upload,
+  Sparkles,
 } from 'lucide-react'
 import { Modal, Button, Input, ConfirmModal } from '../common'
 import { useWorkflowStore } from '../../store/workflowStore'
 import { useFlowStore } from '../../store/flowStore'
+import { demoWorkflows } from '../../data/demoWorkflows'
 import type { Workflow } from '../../types'
 
 interface WorkflowListModalProps {
@@ -30,6 +37,7 @@ export function WorkflowListModal({ isOpen, onClose }: WorkflowListModalProps) {
     duplicateWorkflow,
     loadWorkflow,
     renameWorkflow,
+    loadDemoWorkflow,
   } = useWorkflowStore()
 
   const { clearFlow } = useFlowStore()
@@ -40,6 +48,23 @@ export function WorkflowListModal({ isOpen, onClose }: WorkflowListModalProps) {
   const [editName, setEditName] = useState('')
   const [menuOpenId, setMenuOpenId] = useState<string | null>(null)
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null)
+  const [activeTab, setActiveTab] = useState<'workflows' | 'templates'>('workflows')
+
+  const getCategoryIcon = (category: string) => {
+    switch (category) {
+      case 'fraud': return Shield
+      case 'writing': return FileText
+      case 'governance': return Eye
+      case 'tools': return GitBranch
+      case 'analysis': return Upload
+      default: return Sparkles
+    }
+  }
+
+  const handleLoadDemo = useCallback((demoId: string) => {
+    loadDemoWorkflow(demoId)
+    onClose()
+  }, [loadDemoWorkflow, onClose])
 
   const handleCreateWorkflow = useCallback(() => {
     if (newWorkflowName.trim()) {
@@ -113,135 +138,189 @@ export function WorkflowListModal({ isOpen, onClose }: WorkflowListModalProps) {
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Workflows" size="lg">
       <div className="space-y-4">
-        {/* New Workflow Form */}
-        {showNewWorkflow ? (
-          <div className="flex gap-2">
-            <Input
-              placeholder="Workflow name..."
-              value={newWorkflowName}
-              onChange={(e) => setNewWorkflowName(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleCreateWorkflow()}
-              autoFocus
-            />
-            <Button variant="primary" onClick={handleCreateWorkflow}>
-              Create
-            </Button>
-            <Button variant="ghost" onClick={() => setShowNewWorkflow(false)}>
-              Cancel
-            </Button>
-          </div>
-        ) : (
-          <Button
-            variant="secondary"
-            onClick={() => setShowNewWorkflow(true)}
-            leftIcon={<Plus size={16} />}
-            className="w-full"
+        {/* Tab Bar */}
+        <div className="flex gap-1 mb-4 bg-zinc-800 rounded-lg p-1">
+          <button
+            onClick={() => setActiveTab('workflows')}
+            className={`flex-1 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+              activeTab === 'workflows'
+                ? 'bg-[#4004DA] text-white'
+                : 'text-zinc-400 hover:text-white'
+            }`}
           >
-            New Workflow
-          </Button>
-        )}
-
-        {/* Workflow List */}
-        <div className="max-h-96 overflow-y-auto space-y-2">
-          {workflows.length === 0 ? (
-            <div className="py-8 text-center">
-              <FolderOpen size={48} className="mx-auto mb-3 text-[var(--nomu-text-muted)]" />
-              <p className="text-[var(--nomu-text-muted)]">No workflows yet</p>
-              <p className="text-sm text-[var(--nomu-text-muted)]">Create your first workflow to get started</p>
-            </div>
-          ) : (
-            workflows.map((workflow) => (
-              <div
-                key={workflow.id}
-                className={`
-                  group relative flex items-center justify-between rounded-lg border p-3 transition cursor-pointer
-                  ${currentWorkflowId === workflow.id
-                    ? 'border-[var(--nomu-primary)] bg-[var(--nomu-primary)]/10'
-                    : 'border-[var(--nomu-border)] hover:border-[var(--nomu-border)] hover:bg-[var(--nomu-surface)]/50'}
-                `}
-                onClick={() => handleLoadWorkflow(workflow)}
-              >
-                <div className="flex-1 min-w-0">
-                  {editingId === workflow.id ? (
-                    <input
-                      className="w-full bg-[var(--nomu-bg)] border border-[var(--nomu-primary)] rounded px-2 py-1 text-sm text-[var(--nomu-text)] focus:outline-none"
-                      value={editName}
-                      onChange={(e) => setEditName(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') handleSaveRename()
-                        if (e.key === 'Escape') setEditingId(null)
-                      }}
-                      onBlur={handleSaveRename}
-                      onClick={(e) => e.stopPropagation()}
-                      autoFocus
-                    />
-                  ) : (
-                    <>
-                      <div className="flex items-center gap-2">
-                        {getStatusIcon(workflow.status)}
-                        <span className="font-medium text-[var(--nomu-text)] truncate">{workflow.name}</span>
-                      </div>
-                      <div className="mt-1 flex items-center gap-3 text-xs text-[var(--nomu-text-muted)]">
-                        <span>{workflow.nodes.length} nodes</span>
-                        <span>•</span>
-                        <span>Updated {formatDate(workflow.updatedAt)}</span>
-                      </div>
-                    </>
-                  )}
-                </div>
-
-                {/* Actions Menu */}
-                <div className="relative ml-2">
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      setMenuOpenId(menuOpenId === workflow.id ? null : workflow.id)
-                    }}
-                    className="rounded p-1.5 text-[var(--nomu-text-muted)] opacity-0 group-hover:opacity-100 hover:bg-[var(--nomu-surface-hover)] hover:text-[var(--nomu-text)] transition"
-                  >
-                    <MoreVertical size={16} />
-                  </button>
-
-                  {menuOpenId === workflow.id && (
-                    <div className="absolute right-0 top-full mt-1 w-36 rounded-lg bg-[var(--nomu-surface-hover)] py-1 shadow-xl z-10">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          handleStartRename(workflow)
-                        }}
-                        className="flex w-full items-center gap-2 px-3 py-2 text-sm text-[var(--nomu-text)] hover:bg-[var(--nomu-surface)]"
-                      >
-                        <FileEdit size={14} />
-                        Rename
-                      </button>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          handleDuplicate(workflow.id)
-                        }}
-                        className="flex w-full items-center gap-2 px-3 py-2 text-sm text-[var(--nomu-text)] hover:bg-[var(--nomu-surface)]"
-                      >
-                        <Copy size={14} />
-                        Duplicate
-                      </button>
-                      <hr className="my-1 border-[var(--nomu-border)]" />
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          handleDelete(workflow.id)
-                        }}
-                        className="flex w-full items-center gap-2 px-3 py-2 text-sm text-red-400 hover:bg-[var(--nomu-surface)]"
-                      >
-                        <Trash2 size={14} />
-                        Delete
-                      </button>
-                    </div>
-                  )}
-                </div>
-              </div>
-            ))
-          )}
+            My Workflows
+          </button>
+          <button
+            onClick={() => setActiveTab('templates')}
+            className={`flex-1 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+              activeTab === 'templates'
+                ? 'bg-[#4004DA] text-white'
+                : 'text-zinc-400 hover:text-white'
+            }`}
+          >
+            Templates
+          </button>
         </div>
+
+        {activeTab === 'workflows' ? (
+          <>
+            {/* New Workflow Form */}
+            {showNewWorkflow ? (
+              <div className="flex gap-2">
+                <Input
+                  placeholder="Workflow name..."
+                  value={newWorkflowName}
+                  onChange={(e) => setNewWorkflowName(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleCreateWorkflow()}
+                  autoFocus
+                />
+                <Button variant="primary" onClick={handleCreateWorkflow}>
+                  Create
+                </Button>
+                <Button variant="ghost" onClick={() => setShowNewWorkflow(false)}>
+                  Cancel
+                </Button>
+              </div>
+            ) : (
+              <Button
+                variant="secondary"
+                onClick={() => setShowNewWorkflow(true)}
+                leftIcon={<Plus size={16} />}
+                className="w-full"
+              >
+                New Workflow
+              </Button>
+            )}
+
+            {/* Workflow List */}
+            <div className="max-h-96 overflow-y-auto space-y-2">
+              {workflows.length === 0 ? (
+                <div className="py-8 text-center">
+                  <FolderOpen size={48} className="mx-auto mb-3 text-[var(--nomu-text-muted)]" />
+                  <p className="text-[var(--nomu-text-muted)]">No workflows yet</p>
+                  <p className="text-sm text-[var(--nomu-text-muted)]">Create your first workflow to get started</p>
+                </div>
+              ) : (
+                workflows.map((workflow) => (
+                  <div
+                    key={workflow.id}
+                    className={`
+                      group relative flex items-center justify-between rounded-lg border p-3 transition cursor-pointer
+                      ${currentWorkflowId === workflow.id
+                        ? 'border-[var(--nomu-primary)] bg-[var(--nomu-primary)]/10'
+                        : 'border-[var(--nomu-border)] hover:border-[var(--nomu-border)] hover:bg-[var(--nomu-surface)]/50'}
+                    `}
+                    onClick={() => handleLoadWorkflow(workflow)}
+                  >
+                    <div className="flex-1 min-w-0">
+                      {editingId === workflow.id ? (
+                        <input
+                          className="w-full bg-[var(--nomu-bg)] border border-[var(--nomu-primary)] rounded px-2 py-1 text-sm text-[var(--nomu-text)] focus:outline-none"
+                          value={editName}
+                          onChange={(e) => setEditName(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') handleSaveRename()
+                            if (e.key === 'Escape') setEditingId(null)
+                          }}
+                          onBlur={handleSaveRename}
+                          onClick={(e) => e.stopPropagation()}
+                          autoFocus
+                        />
+                      ) : (
+                        <>
+                          <div className="flex items-center gap-2">
+                            {getStatusIcon(workflow.status)}
+                            <span className="font-medium text-[var(--nomu-text)] truncate">{workflow.name}</span>
+                          </div>
+                          <div className="mt-1 flex items-center gap-3 text-xs text-[var(--nomu-text-muted)]">
+                            <span>{workflow.nodes.length} nodes</span>
+                            <span>•</span>
+                            <span>Updated {formatDate(workflow.updatedAt)}</span>
+                          </div>
+                        </>
+                      )}
+                    </div>
+
+                    {/* Actions Menu */}
+                    <div className="relative ml-2">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          setMenuOpenId(menuOpenId === workflow.id ? null : workflow.id)
+                        }}
+                        className="rounded p-1.5 text-[var(--nomu-text-muted)] opacity-0 group-hover:opacity-100 hover:bg-[var(--nomu-surface-hover)] hover:text-[var(--nomu-text)] transition"
+                      >
+                        <MoreVertical size={16} />
+                      </button>
+
+                      {menuOpenId === workflow.id && (
+                        <div className="absolute right-0 top-full mt-1 w-36 rounded-lg bg-[var(--nomu-surface-hover)] py-1 shadow-xl z-10">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              handleStartRename(workflow)
+                            }}
+                            className="flex w-full items-center gap-2 px-3 py-2 text-sm text-[var(--nomu-text)] hover:bg-[var(--nomu-surface)]"
+                          >
+                            <FileEdit size={14} />
+                            Rename
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              handleDuplicate(workflow.id)
+                            }}
+                            className="flex w-full items-center gap-2 px-3 py-2 text-sm text-[var(--nomu-text)] hover:bg-[var(--nomu-surface)]"
+                          >
+                            <Copy size={14} />
+                            Duplicate
+                          </button>
+                          <hr className="my-1 border-[var(--nomu-border)]" />
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              handleDelete(workflow.id)
+                            }}
+                            className="flex w-full items-center gap-2 px-3 py-2 text-sm text-red-400 hover:bg-[var(--nomu-surface)]"
+                          >
+                            <Trash2 size={14} />
+                            Delete
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </>
+        ) : (
+          <div className="grid grid-cols-1 gap-3">
+            {demoWorkflows.map((demo) => {
+              const Icon = getCategoryIcon(demo.category)
+              return (
+                <button
+                  key={demo.id}
+                  onClick={() => handleLoadDemo(demo.id)}
+                  className="flex items-start gap-3 p-3 rounded-lg bg-[var(--nomu-surface)]/50 hover:bg-[var(--nomu-surface-hover)] border border-[var(--nomu-border)] hover:border-[#4004DA]/50 transition-all text-left group"
+                >
+                  <div className="p-2 rounded-lg bg-[#4004DA]/10 text-[#4004DA] group-hover:bg-[#4004DA]/20">
+                    <Icon size={20} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h4 className="text-sm font-medium text-[var(--nomu-text)]">{demo.name}</h4>
+                    <p className="text-xs text-[var(--nomu-text-muted)] mt-0.5 line-clamp-2">{demo.description}</p>
+                    <div className="flex items-center gap-2 mt-1.5">
+                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-[var(--nomu-surface-hover)] text-[var(--nomu-text-muted)]">
+                        {demo.nodes.length} nodes
+                      </span>
+                    </div>
+                  </div>
+                </button>
+              )
+            })}
+          </div>
+        )}
       </div>
 
       <ConfirmModal

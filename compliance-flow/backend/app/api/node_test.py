@@ -283,6 +283,7 @@ async def _dispatch_node(
         NodeType.CLOUD_DOCUMENT: engine._execute_cloud_document_node,
         NodeType.JIRA_COMPLIANCE: engine._execute_jira_compliance_node,
         NodeType.SAP_ERP: engine._execute_sap_erp_node,
+        NodeType.VOICE_ASSISTANT: engine._execute_voice_assistant_node,
     }
 
     handler = dispatch.get(NodeType(node.type))
