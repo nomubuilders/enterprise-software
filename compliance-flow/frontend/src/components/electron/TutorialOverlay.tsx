@@ -112,7 +112,7 @@ export function TutorialOverlay() {
   }
 
   return (
-    <div className="fixed inset-0 z-[90]">
+    <div className="fixed inset-0 z-[90]" style={{ pointerEvents: 'none' }}>
       {/* Backdrop with spotlight hole */}
       <svg className="absolute inset-0 h-full w-full" style={{ pointerEvents: 'none' }}>
         <defs>

@@ -52895,7 +52895,7 @@ function TutorialOverlay() {
         };
     }
   };
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "fixed inset-0 z-[90]", children: [
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "fixed inset-0 z-[90]", style: { pointerEvents: "none" }, children: [
     /* @__PURE__ */ jsxRuntimeExports.jsxs("svg", { className: "absolute inset-0 h-full w-full", style: { pointerEvents: "none" }, children: [
       /* @__PURE__ */ jsxRuntimeExports.jsx("defs", { children: /* @__PURE__ */ jsxRuntimeExports.jsxs("mask", { id: "tutorial-mask", children: [
         /* @__PURE__ */ jsxRuntimeExports.jsx("rect", { x: "0", y: "0", width: "100%", height: "100%", fill: "white" }),

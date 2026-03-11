@@ -8,7 +8,6 @@ directories:
 
 files:
   - out/**/*
-  - "!out/renderer/**/*"
 
 extraResources:
   - from: electron/resources/docker-compose.prod.yml
