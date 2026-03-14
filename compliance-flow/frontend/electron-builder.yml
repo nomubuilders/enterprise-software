@@ -24,6 +24,7 @@ extraResources:
 mac:
   category: public.app-category.developer-tools
   icon: electron/resources/icon.icns
+  identity: null
   target:
     - target: dmg
       arch: universal
@@ -34,6 +35,9 @@ mac:
   gatekeeperAssess: false
   entitlements: electron/resources/entitlements.mac.plist
   entitlementsInherit: electron/resources/entitlements.mac.plist
+  extraFiles:
+    - from: electron/resources/install-mac.command
+      to: install-mac.command
   # Code signing — set these env vars in CI or locally:
   #   CSC_LINK: path to .p12 certificate
   #   CSC_KEY_PASSWORD: certificate password
@@ -52,8 +56,8 @@ dmg:
       y: 220
     - x: 410
       y: 220
-      type: link
-      path: /Applications
+      type: file
+      path: install-mac.command
 
 pkg:
   installLocation: /Applications
