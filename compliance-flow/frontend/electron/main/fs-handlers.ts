@@ -1,6 +1,18 @@
 import { ipcMain, dialog, BrowserWindow } from 'electron'
 import { readdir, readFile, writeFile, stat } from 'fs/promises'
-import { join, extname } from 'path'
+import { join, extname, normalize, resolve, dirname } from 'path'
+
+/** Directories the user has explicitly selected via native dialogs. */
+const allowedBasePaths = new Set<string>()
+
+/** Validate a path is within a user-selected directory. */
+function assertPathAllowed(targetPath: string): string {
+  const resolved = resolve(normalize(targetPath))
+  for (const base of allowedBasePaths) {
+    if (resolved.startsWith(base + '/') || resolved === base) return resolved
+  }
+  throw new Error('Access denied: path not within an allowed directory. Select a folder first.')
+}
 
 /**
  * Register filesystem IPC handlers for Database Creator and Local Folder Storage nodes.
@@ -14,7 +26,11 @@ export function registerFsHandlers(): void {
     const result = await dialog.showOpenDialog(win, {
       properties: ['openDirectory'],
     })
-    return { canceled: result.canceled, path: result.filePaths[0] || '' }
+    const selected = result.filePaths[0] || ''
+    if (!result.canceled && selected) {
+      allowedBasePaths.add(resolve(normalize(selected)))
+    }
+    return { canceled: result.canceled, path: selected }
   })
 
   // Select a database file path via native save dialog
@@ -28,11 +44,16 @@ export function registerFsHandlers(): void {
         { name: 'All Files', extensions: ['*'] },
       ],
     })
-    return { canceled: result.canceled, path: result.filePath || '' }
+    const selected = result.filePath || ''
+    if (!result.canceled && selected) {
+      allowedBasePaths.add(resolve(normalize(dirname(selected))))
+    }
+    return { canceled: result.canceled, path: selected }
   })
 
   // List files in a folder with optional pattern filtering
   ipcMain.handle('fs:list-files', async (_e, folderPath: string, pattern: string, recursive: boolean) => {
+    assertPathAllowed(folderPath)
     const files: { name: string; path: string; size: number; modified: string }[] = []
     const extensions = pattern
       ? pattern.split(',').map((p) => p.trim().replace('*', '').toLowerCase())
@@ -65,17 +86,20 @@ export function registerFsHandlers(): void {
 
   // Read a file's content
   ipcMain.handle('fs:read-file', async (_e, filePath: string) => {
+    assertPathAllowed(filePath)
     return readFile(filePath, 'utf-8')
   })
 
   // Write content to a file
   ipcMain.handle('fs:write-file', async (_e, filePath: string, content: string) => {
+    assertPathAllowed(filePath)
     await writeFile(filePath, content, 'utf-8')
     return { success: true, path: filePath }
   })
 
   // Check if a file/database exists
   ipcMain.handle('fs:check-exists', async (_e, filePath: string) => {
+    assertPathAllowed(filePath)
     try {
       await stat(filePath)
       return true

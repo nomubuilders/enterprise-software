@@ -18,7 +18,7 @@ class Settings(BaseSettings):
     API_PREFIX: str = "/api/v1"
 
     # CORS
-    CORS_ORIGINS: list[str] = ["http://localhost:5173", "http://localhost:3000", "file://"]
+    CORS_ORIGINS: list[str] = ["http://localhost:5173", "http://localhost:3000"]
 
     # Ollama
     OLLAMA_BASE_URL: str = "http://localhost:11434"
@@ -29,14 +29,14 @@ class Settings(BaseSettings):
     POSTGRES_PORT: int = 5432
     POSTGRES_DB: str = "compliance_flow"
     POSTGRES_USER: str = "postgres"
-    POSTGRES_PASSWORD: str = "postgres"
+    POSTGRES_PASSWORD: str = ""
 
     # MySQL
     MYSQL_HOST: str = "localhost"
     MYSQL_PORT: int = 3306
     MYSQL_DB: str = "compliance_flow"
     MYSQL_USER: str = "root"
-    MYSQL_PASSWORD: str = "mysql"
+    MYSQL_PASSWORD: str = ""
 
     # MongoDB
     MONGODB_URL: str = "mongodb://localhost:27017"
@@ -52,7 +52,7 @@ class Settings(BaseSettings):
     AUDIT_LOG_PATH: str = "../data/audit/container-executions.jsonl"
 
     # Security
-    SECRET_KEY: str = "your-secret-key-change-in-production"
+    SECRET_KEY: str = ""
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
 
     @property

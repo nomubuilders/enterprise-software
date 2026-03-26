@@ -38,7 +38,7 @@ const fraudNodes: Node[] = [
         port: 5433,
         database: 'compliance_db',
         username: 'compliance',
-        password: 'compliance123',
+        password: '',
         query:
           'SELECT t.id, t.amount, t.currency, t.sender, t.receiver, t.timestamp, t.country_origin, t.country_destination FROM transactions t WHERE t.amount > 10000 ORDER BY t.timestamp DESC LIMIT 50',
       },
@@ -193,7 +193,7 @@ const shadowNodes: Node[] = [
         port: 5433,
         database: 'compliance_db',
         username: 'compliance',
-        password: 'compliance123',
+        password: '',
         query:
           "SELECT s.name, s.vendor, s.category, s.deployment_type, s.data_access_level, s.approved_status, s.last_audit_date, s.user_count FROM software_inventory s WHERE s.category LIKE '%AI%' OR s.category LIKE '%ML%' OR s.vendor IN ('OpenAI', 'Anthropic', 'Google AI', 'Hugging Face', 'Stability AI') ORDER BY s.approved_status, s.user_count DESC",
       },

@@ -1,8 +1,32 @@
 """Web search endpoints for ComplianceFlow."""
 
-from fastapi import APIRouter
+import ipaddress
+import socket
+from urllib.parse import urlparse
+
+from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import Optional, Any
+
+
+def _validate_url_not_ssrf(url: str) -> None:
+    """Reject URLs that target internal/private networks."""
+    parsed = urlparse(url)
+    if parsed.scheme not in ('http', 'https'):
+        raise ValueError(f"URL scheme must be http or https, got: {parsed.scheme}")
+    hostname = parsed.hostname
+    if not hostname:
+        raise ValueError("URL must have a hostname")
+    blocked = {'localhost', '127.0.0.1', '0.0.0.0', '169.254.169.254', 'metadata.google.internal'}
+    if hostname in blocked or hostname.endswith('.internal') or hostname.endswith('.local'):
+        raise ValueError(f"URL targets blocked host: {hostname}")
+    try:
+        for info in socket.getaddrinfo(hostname, None):
+            ip = ipaddress.ip_address(info[4][0])
+            if ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_reserved:
+                raise ValueError(f"URL resolves to private/reserved IP: {ip}")
+    except socket.gaierror:
+        pass
 
 router = APIRouter(prefix="/websearch")
 
@@ -56,6 +80,8 @@ class EngineInfo(BaseModel):
 async def search(request: SearchRequest):
     """Execute a web search query and return results."""
     try:
+        _validate_url_not_ssrf(request.engine_url)
+
         from app.services.websearch_service import WebSearchService
 
         service = WebSearchService()
@@ -95,6 +121,8 @@ async def search(request: SearchRequest):
 async def test_connection(request: TestConnectionRequest):
     """Test connection to a search engine instance."""
     try:
+        _validate_url_not_ssrf(request.engine_url)
+
         from app.services.websearch_service import WebSearchService
 
         service = WebSearchService()

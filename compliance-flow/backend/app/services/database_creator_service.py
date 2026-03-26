@@ -6,10 +6,25 @@ for local/on-premises use, or Docker-managed PostgreSQL/MySQL/MongoDB.
 """
 
 import logging
+import re
 import sqlite3
 from typing import Any, Dict
 
 logger = logging.getLogger(__name__)
+
+_ALLOWED_SCHEMA_SQL = re.compile(
+    r'^\s*(CREATE\s+(TABLE|INDEX|VIEW)|INSERT\s+INTO|ALTER\s+TABLE)\s',
+    re.IGNORECASE,
+)
+
+
+def _validate_schema_sql(sql: str) -> str:
+    """Only allow safe DDL/DML statements in schema initialization."""
+    statements = [s.strip() for s in sql.split(';') if s.strip()]
+    for stmt in statements:
+        if not _ALLOWED_SCHEMA_SQL.match(stmt):
+            raise ValueError(f"Disallowed SQL statement in schema: {stmt[:80]}...")
+    return sql
 
 
 class DatabaseCreatorService:
@@ -51,7 +66,10 @@ class DatabaseCreatorService:
             try:
                 import sqlcipher3
                 conn = sqlcipher3.connect(file_path)
-                conn.execute("PRAGMA key='changeme'")  # Would use user-provided key
+                encryption_key = config.get("encryptionKey", "")
+                if not encryption_key:
+                    raise ValueError("Encryption key is required for encrypted databases")
+                conn.execute("PRAGMA key=?", (encryption_key,))
             except ImportError:
                 logger.warning("sqlcipher3 not installed, creating unencrypted database")
                 conn = sqlite3.connect(file_path)
@@ -61,6 +79,7 @@ class DatabaseCreatorService:
 
         try:
             if init_schema:
+                _validate_schema_sql(init_schema)
                 conn.executescript(init_schema)
             conn.commit()
         finally:

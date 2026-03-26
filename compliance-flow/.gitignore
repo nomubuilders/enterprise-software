@@ -25,5 +25,25 @@ dist/
 .claude/settings.local.json
 .claude/worktrees/
 
+# Ruflo / claude-flow runtime (all generated files)
+.claude-flow/
+.claude/settings.json
+.claude/skills/hooks-automation/
+.claude/skills/pair-programming/
+.claude/skills/skill-builder/
+.claude/skills/sparc-methodology/
+.claude/skills/stream-chain/
+.claude/skills/swarm-advanced/
+.claude/skills/swarm-orchestration/
+.claude/skills/verification-quality/
+.claude/helpers/
+.mcp.json
+ruflo.config.*
+AGENTS.md
+backend/CLAUDE.md
+backend/app/CLAUDE.md
+backend/app/core/CLAUDE.md
+frontend/CLAUDE.md
+
 # JetBrains IDEs
 .idea/

@@ -1,9 +1,12 @@
 """Database connector services for ComplianceFlow."""
 
 import asyncio
+import re
 import time
 from contextlib import asynccontextmanager
 from typing import Any, Dict, List, Optional, AsyncGenerator, Union
+
+_VALID_IDENTIFIER = re.compile(r'^[a-zA-Z_][a-zA-Z0-9_]*$')
 
 from sqlalchemy import text, inspect, MetaData, Table
 from sqlalchemy.ext.asyncio import (
@@ -164,18 +167,27 @@ class PostgreSQLConnector:
                 error=str(e),
             )
 
+    @staticmethod
+    def _validate_identifier(name: str) -> str:
+        """Validate a SQL identifier to prevent injection."""
+        if not _VALID_IDENTIFIER.match(name):
+            raise ValueError(f"Invalid SQL identifier: {name}")
+        return name
+
     async def _get_table_info(self, session: AsyncSession, table_name: str) -> Optional[TableInfo]:
         """Get detailed information about a specific table."""
         try:
+            self._validate_identifier(table_name)
+
             # Get column information
             columns_result = await session.execute(
-                text(f"""
+                text("""
                     SELECT
                         column_name, data_type, is_nullable, column_default
                     FROM information_schema.columns
-                    WHERE table_schema = 'public' AND table_name = '{table_name}'
+                    WHERE table_schema = 'public' AND table_name = :table_name
                     ORDER BY ordinal_position
-                """)
+                """).bindparams(table_name=table_name)
             )
 
             columns = []
@@ -192,14 +204,14 @@ class PostgreSQLConnector:
 
             # Get primary keys
             pk_result = await session.execute(
-                text(f"""
+                text("""
                     SELECT a.attname
                     FROM pg_index i
                     JOIN pg_attribute a ON a.attrelid = i.indrelid
                     AND a.attnum = ANY(i.indkey)
                     JOIN pg_class t ON t.oid = i.indrelid
-                    WHERE t.relname = '{table_name}' AND i.indisprimary
-                """)
+                    WHERE t.relname = :table_name AND i.indisprimary
+                """).bindparams(table_name=table_name)
             )
             pk_columns = {row[0] for row in pk_result.fetchall()}
 
@@ -207,16 +219,16 @@ class PostgreSQLConnector:
                 if col.name in pk_columns:
                     col.primary_key = True
 
-            # Get row count
-            count_result = await session.execute(text(f"SELECT COUNT(*) FROM public.\"{table_name}\""))
+            # Get row count (identifier validated above, safe for quoting)
+            count_result = await session.execute(text(f'SELECT COUNT(*) FROM public."{table_name}"'))
             row_count = count_result.scalar()
 
             # Get indexes
             indexes_result = await session.execute(
-                text(f"""
+                text("""
                     SELECT indexname FROM pg_indexes
-                    WHERE tablename = '{table_name}'
-                """)
+                    WHERE tablename = :table_name
+                """).bindparams(table_name=table_name)
             )
             indexes = [row[0] for row in indexes_result.fetchall()]
 
@@ -232,13 +244,26 @@ class PostgreSQLConnector:
 
     async def execute_query(self, query: str, limit: int = 1000) -> QueryResult:
         """Execute a SELECT query safely."""
-        # Safety check: only allow SELECT queries
-        query_upper = query.strip().upper()
-        if not query_upper.startswith("SELECT"):
+        # Strip trailing semicolon (LLMs always add one) then strip comments
+        query = query.strip().rstrip(';').strip()
+        cleaned = re.sub(r'/\*.*?\*/', '', query, flags=re.DOTALL)
+        cleaned = re.sub(r'--.*$', '', cleaned, flags=re.MULTILINE)
+        cleaned_upper = cleaned.strip().upper()
+
+        # Reject non-SELECT queries
+        if not cleaned_upper.startswith("SELECT"):
             return QueryResult(
                 success=False,
                 message="Only SELECT queries are allowed",
                 error="Query must start with SELECT",
+            )
+
+        # Reject statement stacking (semicolons after stripping trailing one)
+        if ';' in cleaned:
+            return QueryResult(
+                success=False,
+                message="Multiple statements are not allowed",
+                error="Query must not contain semicolons",
             )
 
         start_time = time.time()
@@ -247,7 +272,7 @@ class PostgreSQLConnector:
                 await self.initialize()
 
             # Add LIMIT if not present
-            if "LIMIT" not in query_upper:
+            if "LIMIT" not in cleaned_upper:
                 query += f" LIMIT {limit}"
 
             async with self.session_maker() as session:
@@ -282,17 +307,20 @@ class PostgreSQLConnector:
     ) -> SampleDataResult:
         """Get sample data from a table."""
         try:
+            self._validate_identifier(table_name)
+            sample_size = min(max(int(sample_size), 1), 10000)
+
             if not self.session_maker:
                 await self.initialize()
 
             async with self.session_maker() as session:
-                # Get total count
+                # Get total count (identifier validated above)
                 count_result = await session.execute(
-                    text(f"SELECT COUNT(*) FROM public.\"{table_name}\"")
+                    text(f'SELECT COUNT(*) FROM public."{table_name}"')
                 )
                 total_count = count_result.scalar()
 
-                # Get sample data
+                # Get sample data (identifier validated, sample_size is int)
                 query = f'SELECT * FROM public."{table_name}" LIMIT {sample_size}'
                 result = await session.execute(text(query))
                 rows = result.fetchall()
@@ -448,8 +476,9 @@ class MySQLConnector:
 
             async with self.session_maker() as session:
                 # Get table list
+                db_name = PostgreSQLConnector._validate_identifier(self.config.database)
                 result = await session.execute(
-                    text(f"SHOW TABLES FROM `{self.config.database}`")
+                    text(f"SHOW TABLES FROM `{db_name}`")
                 )
                 table_names = [row[0] for row in result.fetchall()]
 
@@ -475,9 +504,12 @@ class MySQLConnector:
     async def _get_table_info(self, session: AsyncSession, table_name: str) -> Optional[TableInfo]:
         """Get detailed information about a specific table."""
         try:
+            PostgreSQLConnector._validate_identifier(table_name)
+            db_name = PostgreSQLConnector._validate_identifier(self.config.database)
+
             # Get column information
             columns_result = await session.execute(
-                text(f"DESCRIBE `{self.config.database}`.`{table_name}`")
+                text(f"DESCRIBE `{db_name}`.`{table_name}`")
             )
 
             columns = []
@@ -495,13 +527,13 @@ class MySQLConnector:
 
             # Get row count and table size
             count_result = await session.execute(
-                text(f"SELECT COUNT(*) FROM `{self.config.database}`.`{table_name}`")
+                text(f"SELECT COUNT(*) FROM `{db_name}`.`{table_name}`")
             )
             row_count = count_result.scalar()
 
             # Get indexes
             indexes_result = await session.execute(
-                text(f"SHOW INDEXES FROM `{self.config.database}`.`{table_name}`")
+                text(f"SHOW INDEXES FROM `{db_name}`.`{table_name}`")
             )
             indexes = list(set(row[2] for row in indexes_result.fetchall()))
 
@@ -517,12 +549,25 @@ class MySQLConnector:
 
     async def execute_query(self, query: str, limit: int = 1000) -> QueryResult:
         """Execute a SELECT query safely."""
-        query_upper = query.strip().upper()
-        if not query_upper.startswith("SELECT"):
+        # Strip trailing semicolon (LLMs always add one) then strip comments
+        query = query.strip().rstrip(';').strip()
+        cleaned = re.sub(r'/\*.*?\*/', '', query, flags=re.DOTALL)
+        cleaned = re.sub(r'--.*$', '', cleaned, flags=re.MULTILINE)
+        cleaned_upper = cleaned.strip().upper()
+
+        if not cleaned_upper.startswith("SELECT"):
             return QueryResult(
                 success=False,
                 message="Only SELECT queries are allowed",
                 error="Query must start with SELECT",
+            )
+
+        # Reject statement stacking (semicolons after stripping trailing one)
+        if ';' in cleaned:
+            return QueryResult(
+                success=False,
+                message="Multiple statements are not allowed",
+                error="Query must not contain semicolons",
             )
 
         start_time = time.time()
@@ -531,7 +576,7 @@ class MySQLConnector:
                 await self.initialize()
 
             # Add LIMIT if not present
-            if "LIMIT" not in query_upper:
+            if "LIMIT" not in cleaned_upper:
                 query += f" LIMIT {limit}"
 
             async with self.session_maker() as session:
@@ -565,18 +610,22 @@ class MySQLConnector:
     ) -> SampleDataResult:
         """Get sample data from a table."""
         try:
+            PostgreSQLConnector._validate_identifier(table_name)
+            db_name = PostgreSQLConnector._validate_identifier(self.config.database)
+            sample_size = min(max(int(sample_size), 1), 10000)
+
             if not self.session_maker:
                 await self.initialize()
 
             async with self.session_maker() as session:
                 # Get total count
                 count_result = await session.execute(
-                    text(f"SELECT COUNT(*) FROM `{self.config.database}`.`{table_name}`")
+                    text(f"SELECT COUNT(*) FROM `{db_name}`.`{table_name}`")
                 )
                 total_count = count_result.scalar()
 
                 # Get sample data
-                query = f"SELECT * FROM `{self.config.database}`.`{table_name}` LIMIT {sample_size}"
+                query = f"SELECT * FROM `{db_name}`.`{table_name}` LIMIT {sample_size}"
                 result = await session.execute(text(query))
                 rows = result.fetchall()
                 columns = list(result.keys())

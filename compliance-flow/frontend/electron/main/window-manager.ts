@@ -14,10 +14,10 @@ export function createMainWindow(): BrowserWindow {
     show: false,
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
-      sandbox: false,
+      sandbox: true,
       contextIsolation: true,
       nodeIntegration: false,
-      webSecurity: false,
+      webSecurity: true,
     },
   })
 
@@ -25,9 +25,16 @@ export function createMainWindow(): BrowserWindow {
     win.show()
   })
 
-  // Open external links in browser
+  // Open external links in browser (only http/https)
   win.webContents.setWindowOpenHandler(({ url }) => {
-    shell.openExternal(url)
+    try {
+      const parsed = new URL(url)
+      if (parsed.protocol === 'https:' || parsed.protocol === 'http:') {
+        shell.openExternal(url)
+      }
+    } catch {
+      /* invalid URL, ignore */
+    }
     return { action: 'deny' }
   })
 

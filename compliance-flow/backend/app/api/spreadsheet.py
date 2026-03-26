@@ -1,5 +1,7 @@
 """Spreadsheet parsing, export, and transformation endpoints."""
 
+import os
+
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import Optional, Any
@@ -9,6 +11,17 @@ from app.services.spreadsheet_service import SpreadsheetService
 router = APIRouter(prefix="/spreadsheet")
 
 spreadsheet_service = SpreadsheetService()
+
+_ALLOWED_WORKSPACE = os.environ.get('COMPLIANCE_WORKSPACE_DIR', '/tmp/compliance-data')
+
+
+def _validate_file_path(path: str) -> str:
+    """Ensure path is within the allowed workspace directory."""
+    resolved = os.path.realpath(path)
+    allowed = os.path.realpath(_ALLOWED_WORKSPACE)
+    if not resolved.startswith(allowed + os.sep) and resolved != allowed:
+        raise ValueError(f"File path must be within {_ALLOWED_WORKSPACE}")
+    return resolved
 
 
 class ParseRequest(BaseModel):
@@ -60,6 +73,7 @@ class TransformResponse(BaseModel):
 async def parse_spreadsheet(request: ParseRequest):
     """Parse a spreadsheet file and return columns with preview rows."""
     try:
+        _validate_file_path(request.file_path)
         result = await spreadsheet_service.parse_file(
             file_path=request.file_path,
             sheet_name=request.sheet_name,
@@ -87,6 +101,7 @@ async def parse_spreadsheet(request: ParseRequest):
 async def export_spreadsheet(request: ExportRequest):
     """Export data to a spreadsheet format."""
     try:
+        _validate_file_path(request.output_path)
         output_path = await spreadsheet_service.export_data(
             data=request.data,
             format=request.format,

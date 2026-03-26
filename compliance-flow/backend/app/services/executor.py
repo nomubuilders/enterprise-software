@@ -1538,14 +1538,17 @@ class WorkflowExecutionEngine:
         Simple template string substitution.
 
         Replaces {key} with context values.
-        When sanitize=True, escapes single quotes to prevent SQL injection.
+        When sanitize=True, applies strict allowlist filtering to prevent SQL injection.
+        NOTE: For database queries, prefer parameterized queries over this method.
         """
+        import re as _re
         result = template
         for key, value in context.items():
             placeholder = "{" + str(key) + "}"
             str_value = str(value)
             if sanitize:
-                str_value = str_value.replace("'", "''").replace("\\", "\\\\").replace(";", "").replace("--", "")
+                # Strict allowlist: only keep alphanumeric, spaces, and basic punctuation
+                str_value = _re.sub(r"[^\w\s.,@:/-]", "", str_value)
             result = result.replace(placeholder, str_value)
         return result
 

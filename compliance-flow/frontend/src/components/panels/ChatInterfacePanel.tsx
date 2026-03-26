@@ -6,6 +6,7 @@ import { useFlowStore } from '../../store/flowStore'
 import { useWorkflowStore } from '../../store/workflowStore'
 import { useDocumentStore } from '../../store/documentStore'
 import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 import type { Node } from '@xyflow/react'
 
 interface ChatInterfacePanelProps {
@@ -302,31 +303,33 @@ export function ChatInterfacePanel({ node, onClose }: ChatInterfacePanelProps) {
   }
 
   const buildSystemPrompt = () => {
-    let systemPrompt = `You are a compliance data analyst with direct access to a PostgreSQL database and uploaded documents.
+    let systemPrompt = `You are a compliance data analyst. You have DIRECT access to a PostgreSQL database. The system AUTOMATICALLY executes any SQL you write.
 
-IMPORTANT: When you need data from the database to answer a question, write a SQL query inside a \`\`\`sql code block. The system will execute it automatically and show you the results. Then you will answer the user's question based on the actual data.
-
-Rules:
-- ALWAYS query the database when the user asks about data counts, listings, or specifics — do NOT guess
-- Only write SELECT queries (no INSERT, UPDATE, DELETE)
-- Write exactly ONE query per response
-- After seeing query results, answer concisely using the real data
-- Cross-reference database tables with document content when relevant`
+CRITICAL INSTRUCTIONS:
+1. When the user asks about data, IMMEDIATELY write a SQL query in a \`\`\`sql code block. Do NOT ask clarifying questions first. Do NOT suggest queries — just write them.
+2. The system executes your SQL automatically and returns results. Then provide a clear, concise answer based on the actual data.
+3. Use the table schemas below to write CORRECT SQL on the first try. Match column names exactly.
+4. Only write SELECT queries. Write exactly ONE query per response.
+5. NEVER say "let me try a simpler query" or "here's a query to get us started". Just write the query that directly answers the question.
+6. If the user asks to "show" or "list" something, write a SELECT that returns those rows.
+7. After receiving results, present the data in a clean markdown table, then summarize key findings below it.
+8. Format currency values with symbols (€, $, £). Format dates as YYYY-MM-DD.
+9. NEVER fabricate or invent data rows. If query execution fails, say "I could not retrieve the data" — do NOT make up results.`
 
     // ── 1. Database schema (AI uses this to write correct SQL) ──
     if (dbSchema.length > 0 && dataSource) {
       const dbConfig = getNodeConfig(dataSource)
       systemPrompt += `\n\n# DATABASE: ${dbConfig?.database ?? 'unknown'}`
-      systemPrompt += `\n\nYou have access to ${dbSchema.length} tables. Use these to write SQL queries:\n`
+      systemPrompt += `\n\nThe database contains ${dbSchema.length} tables with MANY more rows than shown below. The previews are ONLY to show column format — you MUST write SQL to get actual data.\n`
 
       for (const table of dbSchema) {
         const cols = table.columns?.map((c: any) => `${c.name} (${c.type})`).join(', ') || 'unknown'
-        systemPrompt += `\n## Table: ${table.name}\nColumns: ${cols}`
+        systemPrompt += `\n## Table: ${table.name} (row_count: ${table.row_count ?? 'unknown'})\nColumns: ${cols}`
 
         // Show a few sample rows so the AI understands data format
         const rows = allTableData[table.name]
         if (rows && rows.length > 0) {
-          systemPrompt += `\nSample (${rows.length} rows shown):\n${rowsToMarkdownTable(rows)}\n`
+          systemPrompt += `\nFormat preview (NOT the full data — query for real results):\n${rowsToMarkdownTable(rows.slice(0, 3))}\n`
         }
       }
     }
@@ -447,8 +450,8 @@ Rules:
       const agentConfig = getNodeConfig(aiAgent)
       const model = (agentConfig?.model as string) || 'llama3.2:3b'
       console.log('[ChatInterface] Using model:', model)
-      const temperature = (agentConfig?.temperature as number) || 0.7
-      const maxTokens = (agentConfig?.maxTokens as number) || 4096
+      const temperature = (agentConfig?.temperature as number) ?? 0.7
+      const maxTokens = (agentConfig?.maxTokens as number) ?? 4096
 
       const systemPrompt = buildSystemPrompt()
       const chatHistory = messages.map((m) => ({ role: m.role, content: m.content }))
@@ -468,8 +471,11 @@ Rules:
       let aiResponse = step1Result.message?.content || 'No response received'
 
       // ── Step 2: Check if the AI generated a SQL query to execute ──
-      if (dbConnectionConfig && aiResponse.includes('```sql')) {
-        const sqlMatch = aiResponse.match(/```sql\n([\s\S]*?)\n```/)
+      const hasSqlBlock = /```sql/i.test(aiResponse) || /\bSELECT\b/i.test(aiResponse)
+      if (dbConnectionConfig && hasSqlBlock) {
+        // Try fenced code block first, then fall back to bare SELECT
+        const sqlMatch = aiResponse.match(/```sql\s*\n?([\s\S]*?)\n?\s*```/) ||
+                         aiResponse.match(/\b(SELECT\s[\s\S]*?)(?:\n\n|$)/i)
         if (sqlMatch) {
           let sql = sqlMatch[1].trim()
           console.log('[ChatInterface] AI generated SQL:', sql)
@@ -490,7 +496,7 @@ Rules:
                     ...chatHistory,
                     { role: 'user', content: userMessage },
                     { role: 'assistant', content: aiResponse },
-                    { role: 'user', content: `Here are the query results (${queryResult.rows.length} rows):\n\n${resultsTable}\n\nNow answer my original question using this data. Be specific and cite the actual values. Do NOT include the SQL query again.` },
+                    { role: 'user', content: `QUERY RESULTS (${queryResult.rows.length} rows):\n\n${resultsTable}\n\nINSTRUCTIONS: Present this data as a clean markdown table using | column | column | format with a | --- | --- | separator row. Then add a brief summary below. Use ONLY the data above — do NOT invent or modify any values. Do NOT include SQL.` },
                   ],
                   temperature: 0.3, // Lower temp for factual answers
                   max_tokens: maxTokens,
@@ -529,7 +535,8 @@ Rules:
                 })
                 const retryResponse = retryResult.message?.content || ''
                 // Check if the retry also has SQL
-                const retrySqlMatch = retryResponse.match(/```sql\n([\s\S]*?)\n```/)
+                const retrySqlMatch = retryResponse.match(/```sql\s*\n?([\s\S]*?)\n?\s*```/) ||
+                                     retryResponse.match(/\b(SELECT\s[\s\S]*?)(?:\n\n|$)/i)
                 if (retrySqlMatch && retrySqlMatch[1].trim().toUpperCase().startsWith('SELECT')) {
                   try {
                     const retryQueryResult = await api.executeQuery(dbConnectionConfig, retrySqlMatch[1].trim(), 200)
@@ -541,7 +548,7 @@ Rules:
                           { role: 'system', content: systemPrompt },
                           ...chatHistory,
                           { role: 'user', content: userMessage },
-                          { role: 'user', content: `Here are the query results (${retryQueryResult.rows.length} rows):\n\n${retryTable}\n\nNow answer my original question using this data. Be specific. Do NOT include SQL.` },
+                          { role: 'user', content: `QUERY RESULTS (${retryQueryResult.rows.length} rows):\n\n${retryTable}\n\nINSTRUCTIONS: Present this data as a clean markdown table using | column | column | format with a | --- | --- | separator row. Then add a brief summary below. Use ONLY the data above — do NOT invent or modify any values. Do NOT include SQL.` },
                         ],
                         temperature: 0.3,
                         max_tokens: maxTokens,
@@ -558,6 +565,46 @@ Rules:
             } catch (sqlError) {
               console.error('[ChatInterface] SQL execution error:', sqlError)
               aiResponse += `\n\n*Could not execute query: ${sqlError instanceof Error ? sqlError.message : 'unknown error'}*`
+            }
+          }
+        } else {
+          // SQL detected but regex couldn't extract it — ask LLM to reformat
+          console.warn('[ChatInterface] SQL detected but not extractable, retrying with fencing request')
+          const refenceResult = await api.chat({
+            model,
+            messages: [
+              { role: 'system', content: systemPrompt },
+              ...chatHistory,
+              { role: 'user', content: userMessage },
+              { role: 'assistant', content: aiResponse },
+              { role: 'user', content: 'Your SQL query could not be executed because it was not properly formatted. Please rewrite ONLY the SQL query inside a ```sql code block. Nothing else.' },
+            ],
+            temperature: 0.3,
+            max_tokens: maxTokens,
+          })
+          const refencedResponse = refenceResult.message?.content || ''
+          const refencedMatch = refencedResponse.match(/```sql\s*\n?([\s\S]*?)\n?\s*```/)
+          if (refencedMatch) {
+            const sql = refencedMatch[1].trim()
+            if (sql.toUpperCase().startsWith('SELECT')) {
+              try {
+                const queryResult = await api.executeQuery(dbConnectionConfig, sql, 200)
+                if (queryResult.success && queryResult.rows && queryResult.rows.length > 0) {
+                  const resultsTable = rowsToMarkdownTable(queryResult.rows)
+                  const finalResult = await api.chat({
+                    model,
+                    messages: [
+                      { role: 'system', content: systemPrompt },
+                      ...chatHistory,
+                      { role: 'user', content: userMessage },
+                      { role: 'user', content: `QUERY RESULTS (${queryResult.rows.length} rows):\n\n${resultsTable}\n\nINSTRUCTIONS: Present this data as a clean markdown table. Use ONLY the data above — do NOT invent values. Do NOT include SQL.` },
+                    ],
+                    temperature: 0.3,
+                    max_tokens: maxTokens,
+                  })
+                  aiResponse = finalResult.message?.content || aiResponse
+                }
+              } catch { /* fall through to original response */ }
             }
           }
         }
@@ -774,7 +821,28 @@ Rules:
                   <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
                 ) : (
                   <div className="text-sm prose prose-sm max-w-none text-[var(--nomu-text)] prose-p:my-1 prose-headings:my-2 prose-headings:text-[var(--nomu-text)] prose-strong:text-[var(--nomu-text)] prose-ul:my-1 prose-code:bg-[var(--nomu-bg)] prose-code:text-orange-300 prose-code:px-1 prose-code:rounded prose-pre:bg-[var(--nomu-bg)] prose-pre:text-[var(--nomu-text)] prose-p:text-[var(--nomu-text)] prose-li:text-[var(--nomu-text)] prose-a:text-[var(--nomu-accent)]">
-                    <ReactMarkdown>{msg.content.replace(/^(\s*)\*\*\s+/gm, '$1**')}</ReactMarkdown>
+                    <ReactMarkdown
+                      remarkPlugins={[remarkGfm]}
+                      components={{
+                        table: ({ children }) => (
+                          <div className="overflow-x-auto my-2 rounded border border-[var(--nomu-border)]">
+                            <table className="min-w-full text-xs border-collapse">{children}</table>
+                          </div>
+                        ),
+                        thead: ({ children }) => (
+                          <thead className="bg-[var(--nomu-primary)]/20 text-[var(--nomu-text)]">{children}</thead>
+                        ),
+                        th: ({ children }) => (
+                          <th className="px-2 py-1.5 text-left font-semibold border-b border-[var(--nomu-border)] whitespace-nowrap">{children}</th>
+                        ),
+                        td: ({ children }) => (
+                          <td className="px-2 py-1 border-b border-[var(--nomu-border)]/30 whitespace-nowrap">{children}</td>
+                        ),
+                        tr: ({ children }) => (
+                          <tr className="hover:bg-[var(--nomu-primary)]/5">{children}</tr>
+                        ),
+                      }}
+                    >{msg.content.replace(/^(\s*)\*\*\s+/gm, '$1**')}</ReactMarkdown>
                   </div>
                 )}
               </div>

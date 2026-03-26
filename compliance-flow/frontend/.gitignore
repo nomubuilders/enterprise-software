@@ -24,3 +24,6 @@ dist-ssr
 
 # Electron packaged builds
 dist-electron/
+
+# Electron build output (may contain embedded secrets)
+out/
