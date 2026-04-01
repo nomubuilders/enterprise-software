@@ -303,7 +303,12 @@ export function ChatInterfacePanel({ node, onClose }: ChatInterfacePanelProps) {
   }
 
   const buildSystemPrompt = () => {
-    let systemPrompt = `You are a compliance data analyst. You have DIRECT access to a PostgreSQL database. The system AUTOMATICALLY executes any SQL you write.
+    const hasDatabase = dbSchema.length > 0 && dataSource
+
+    let systemPrompt: string
+
+    if (hasDatabase) {
+      systemPrompt = `You are a compliance data analyst. You have DIRECT access to a PostgreSQL database. The system AUTOMATICALLY executes any SQL you write.
 
 CRITICAL INSTRUCTIONS:
 1. When the user asks about data, IMMEDIATELY write a SQL query in a \`\`\`sql code block. Do NOT ask clarifying questions first. Do NOT suggest queries — just write them.
@@ -315,6 +320,18 @@ CRITICAL INSTRUCTIONS:
 7. After receiving results, present the data in a clean markdown table, then summarize key findings below it.
 8. Format currency values with symbols (€, $, £). Format dates as YYYY-MM-DD.
 9. NEVER fabricate or invent data rows. If query execution fails, say "I could not retrieve the data" — do NOT make up results.`
+    } else {
+      systemPrompt = `You are a compliance document analyst. Answer questions about the documents and data provided below.
+
+CRITICAL INSTRUCTIONS:
+1. Present your answers in clear, well-formatted markdown. Use headings, bullet points, and tables where appropriate.
+2. Be concise but thorough. Summarize key findings and highlight important details.
+3. NEVER fabricate or invent information. Only use what is provided in the context below.
+4. If the user asks about something not covered in the documents, say so clearly.
+5. Format currency values with symbols (€, $, £). Format dates as readable text.
+6. When listing items, use bullet points or numbered lists — never raw data dumps.
+7. When comparing or summarizing structured data, use markdown tables with | column | format.`
+    }
 
     // ── 1. Database schema (AI uses this to write correct SQL) ──
     if (dbSchema.length > 0 && dataSource) {
