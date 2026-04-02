@@ -34,6 +34,7 @@ mac:
   #   APPLE_APP_SPECIFIC_PASSWORD: app-specific password from appleid.apple.com
   #   APPLE_TEAM_ID: your 10-char team ID
   notarize: false # Set to true once Apple Developer certs are configured
+  type: distribution # Ensures consistent signing across all binaries
 
 dmg:
   contents:
