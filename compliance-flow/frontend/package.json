@@ -2,6 +2,7 @@
   "name": "compliance-flow",
   "description": "Compliance Ready AI - Visual compliance workflow builder",
   "author": "Nomu <hello@nomu.com>",
+  "homepage": "https://www.nomu.build",
   "private": true,
   "version": "1.0.0",
   "type": "module",
