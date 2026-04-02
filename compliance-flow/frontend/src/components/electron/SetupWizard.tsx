@@ -101,6 +101,10 @@ export function SetupWizard({ onComplete }: { onComplete: () => void }) {
 
   const [platform, setPlatform] = useState<Platform>('mac')
   const [checkedPrereqs, setCheckedPrereqs] = useState({ docker: false })
+  const [dockerInstalling, setDockerInstalling] = useState(false)
+  const [dockerInstallProgress, setDockerInstallProgress] = useState(0)
+  const [dockerInstallMessage, setDockerInstallMessage] = useState('')
+  const [dockerInstallError, setDockerInstallError] = useState('')
 
   // Detect platform
   useEffect(() => {
@@ -124,10 +128,15 @@ export function SetupWizard({ onComplete }: { onComplete: () => void }) {
     const unsub3 = bridge.ollama.onPullProgress((data) => {
       setModelPullProgress(data.progress, data.message)
     })
+    const unsub4 = bridge.docker.onInstallProgress?.((data) => {
+      setDockerInstallProgress(data.progress)
+      setDockerInstallMessage(data.message)
+    })
     return () => {
       unsub1()
       unsub2()
       unsub3()
+      unsub4?.()
     }
   }, [bridge, setPullProgress, updateHealth, setModelPullProgress])
 
@@ -137,6 +146,27 @@ export function SetupWizard({ onComplete }: { onComplete: () => void }) {
     setDockerInstalled(result.installed, result.version)
     if (result.installed) setCheckedPrereqs((p) => ({ ...p, docker: true }))
   }, [bridge, setDockerInstalled])
+
+  const handleInstallDocker = useCallback(async () => {
+    if (!bridge) return
+    setDockerInstalling(true)
+    setDockerInstallError('')
+    try {
+      const { installerPath } = await bridge.docker.downloadInstaller()
+      await bridge.docker.launchInstaller(installerPath)
+      setDockerInstallMessage('Installer launched. Please follow the installer prompts, then wait...')
+      const ready = await bridge.docker.waitForDocker()
+      if (ready) {
+        await checkDocker()
+      } else {
+        setDockerInstallError('Docker did not start in time. Please open Docker Desktop manually, then click "Check again".')
+      }
+    } catch (e) {
+      setDockerInstallError(`Installation failed: ${e instanceof Error ? e.message : 'Unknown error'}`)
+    } finally {
+      setDockerInstalling(false)
+    }
+  }, [bridge, checkDocker])
 
   // Auto-check Docker on prerequisites step
   useEffect(() => {
@@ -321,19 +351,78 @@ export function SetupWizard({ onComplete }: { onComplete: () => void }) {
                 </div>
               ) : (
                 <>
-                  {/* Download link */}
+                  {/* Auto-install button */}
+                  {!dockerInstalling && dockerInstallProgress === 0 && !dockerInstallError && (
+                    <button
+                      onClick={handleInstallDocker}
+                      className="mb-4 flex w-full items-center gap-3 rounded-lg bg-[var(--nomu-primary)] p-4 text-left text-white transition hover:bg-[var(--nomu-primary-hover)]"
+                    >
+                      <Download size={20} />
+                      <div className="flex-1">
+                        <p className="text-sm font-medium">Install Docker Automatically</p>
+                        <p className="text-xs opacity-80">We'll download and set up Docker for you · {dockerInfo.size}</p>
+                      </div>
+                    </button>
+                  )}
+
+                  {/* Install progress */}
+                  {(dockerInstalling || dockerInstallProgress > 0) && !dockerInstallError && (
+                    <div className="mb-4 rounded-lg bg-[var(--nomu-bg)] p-4">
+                      <div className="mb-2 flex justify-between text-xs text-[var(--nomu-text-muted)]">
+                        <span>{dockerInstallMessage || 'Preparing...'}</span>
+                        {dockerInstallProgress > 0 && dockerInstallProgress < 100 && (
+                          <span>{dockerInstallProgress}%</span>
+                        )}
+                      </div>
+                      {dockerInstallProgress > 0 && dockerInstallProgress < 100 && (
+                        <div className="h-2 overflow-hidden rounded-full bg-[var(--nomu-surface)]">
+                          <div
+                            className="h-full rounded-full bg-[var(--nomu-primary)] transition-all duration-300"
+                            style={{ width: `${dockerInstallProgress}%` }}
+                          />
+                        </div>
+                      )}
+                      {dockerInstallProgress >= 100 && (
+                        <div className="flex items-center gap-2 text-green-400">
+                          <Loader2 size={14} className="animate-spin" />
+                          <span className="text-xs">Waiting for Docker to start...</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Install error */}
+                  {dockerInstallError && (
+                    <div className="mb-4 rounded-lg bg-red-500/10 p-3">
+                      <p className="text-xs text-red-400">{dockerInstallError}</p>
+                      <button
+                        onClick={handleInstallDocker}
+                        className="mt-2 w-full rounded-lg bg-[var(--nomu-surface-hover)] py-2 text-xs text-[var(--nomu-text)] transition hover:bg-[var(--nomu-border)]"
+                      >
+                        Retry
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Separator */}
+                  <div className="mb-4 flex items-center gap-3">
+                    <div className="h-px flex-1 bg-[var(--nomu-border)]" />
+                    <span className="text-xs text-[var(--nomu-text-muted)]">or install manually</span>
+                    <div className="h-px flex-1 bg-[var(--nomu-border)]" />
+                  </div>
+
+                  {/* Manual download link */}
                   <a
                     href={dockerInfo.url}
                     target="_blank"
                     rel="noreferrer"
-                    className="mb-4 flex items-center gap-3 rounded-lg border border-[var(--nomu-primary)]/30 bg-[var(--nomu-primary)]/5 p-4 transition hover:border-[var(--nomu-primary)]/60 hover:bg-[var(--nomu-primary)]/10"
+                    className="mb-4 flex items-center gap-3 rounded-lg border border-[var(--nomu-border)] bg-[var(--nomu-bg)] p-4 transition hover:border-[var(--nomu-primary)]/60 hover:bg-[var(--nomu-primary)]/5"
                   >
-                    <Download size={20} className="text-[var(--nomu-primary)]" />
+                    <ExternalLink size={16} className="text-[var(--nomu-text-muted)]" />
                     <div className="flex-1">
-                      <p className="text-sm font-medium text-[var(--nomu-text)]">{dockerInfo.label}</p>
-                      <p className="text-xs text-[var(--nomu-text-muted)]">Free download · {dockerInfo.size}</p>
+                      <p className="text-sm text-[var(--nomu-text)]">{dockerInfo.label}</p>
+                      <p className="text-xs text-[var(--nomu-text-muted)]">Download from official website</p>
                     </div>
-                    <ExternalLink size={16} className="text-[var(--nomu-primary)]" />
                   </a>
 
                   {/* Platform-specific tips */}

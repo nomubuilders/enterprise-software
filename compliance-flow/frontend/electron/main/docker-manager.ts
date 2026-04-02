@@ -2,9 +2,13 @@ import { execFile, spawn } from 'child_process'
 import type { ChildProcess } from 'child_process'
 import { promisify } from 'util'
 import { join } from 'path'
-import { BrowserWindow } from 'electron'
+import { createWriteStream } from 'fs'
+import { unlink } from 'fs/promises'
+import { tmpdir } from 'os'
+import { BrowserWindow, shell } from 'electron'
 import { is } from '@electron-toolkit/utils'
 import { createServer } from 'net'
+import { get as httpsGet } from 'https'
 
 const execFileAsync = promisify(execFile)
 
@@ -72,6 +76,180 @@ export class DockerManager {
       }
     }
     return conflicts
+  }
+
+  /**
+   * Get the Docker Desktop download URL for the current platform.
+   */
+  getDockerDownloadUrl(): { url: string; filename: string; platform: string } {
+    const platform = process.platform
+    const arch = process.arch
+
+    if (platform === 'darwin') {
+      // macOS — universal DMG works for both Intel and Apple Silicon
+      const chipParam = arch === 'arm64' ? 'arm64' : 'amd64'
+      return {
+        url: `https://desktop.docker.com/mac/main/${chipParam}/Docker.dmg`,
+        filename: 'Docker.dmg',
+        platform: 'macOS',
+      }
+    } else if (platform === 'win32') {
+      return {
+        url: 'https://desktop.docker.com/win/main/amd64/Docker%20Desktop%20Installer.exe',
+        filename: 'Docker Desktop Installer.exe',
+        platform: 'Windows',
+      }
+    } else {
+      // Linux — direct users to install Docker Engine via convenience script
+      return {
+        url: 'https://get.docker.com',
+        filename: 'get-docker.sh',
+        platform: 'Linux',
+      }
+    }
+  }
+
+  /**
+   * Download a file from a URL with progress reporting.
+   */
+  private async downloadFile(url: string, destPath: string): Promise<void> {
+    const win = BrowserWindow.getAllWindows()[0]
+
+    return new Promise((resolve, reject) => {
+      const followRedirects = (targetUrl: string): void => {
+        httpsGet(targetUrl, (res) => {
+          // Handle redirects
+          if (res.statusCode && res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
+            followRedirects(res.headers.location)
+            return
+          }
+
+          if (res.statusCode !== 200) {
+            reject(new Error(`Download failed with status ${res.statusCode}`))
+            return
+          }
+
+          const totalBytes = parseInt(res.headers['content-length'] || '0', 10)
+          let downloadedBytes = 0
+
+          const file = createWriteStream(destPath)
+          res.pipe(file)
+
+          res.on('data', (chunk: Buffer) => {
+            downloadedBytes += chunk.length
+            if (win && totalBytes > 0) {
+              const progress = Math.round((downloadedBytes / totalBytes) * 100)
+              win.webContents.send('docker:install-progress', {
+                progress,
+                message: `Downloading... ${Math.round(downloadedBytes / 1024 / 1024)}MB / ${Math.round(totalBytes / 1024 / 1024)}MB`,
+              })
+            }
+          })
+
+          file.on('finish', () => {
+            file.close()
+            resolve()
+          })
+
+          file.on('error', (err) => {
+            unlink(destPath).catch(() => {})
+            reject(err)
+          })
+        }).on('error', reject)
+      }
+
+      followRedirects(url)
+    })
+  }
+
+  /**
+   * Download and launch the Docker Desktop installer for the current platform.
+   * Returns the path to the downloaded installer so the UI can track status.
+   */
+  async downloadDockerInstaller(): Promise<{ installerPath: string; platform: string }> {
+    const { url, filename, platform } = this.getDockerDownloadUrl()
+    const installerPath = join(tmpdir(), filename)
+    const win = BrowserWindow.getAllWindows()[0]
+
+    if (win) {
+      win.webContents.send('docker:install-progress', {
+        progress: 0,
+        message: `Downloading Docker Desktop for ${platform}...`,
+      })
+    }
+
+    await this.downloadFile(url, installerPath)
+
+    if (win) {
+      win.webContents.send('docker:install-progress', {
+        progress: 100,
+        message: 'Download complete. Launching installer...',
+      })
+    }
+
+    return { installerPath, platform }
+  }
+
+  /**
+   * Launch the Docker Desktop installer.
+   * On macOS: opens the DMG. On Windows: runs the EXE. On Linux: runs the shell script.
+   */
+  async launchDockerInstaller(installerPath: string): Promise<void> {
+    const platform = process.platform
+
+    if (platform === 'darwin') {
+      // Open the DMG — user drags Docker to Applications
+      await shell.openPath(installerPath)
+    } else if (platform === 'win32') {
+      // Run the Windows installer with install flag
+      const proc = spawn(installerPath, ['install', '--quiet'], {
+        detached: true,
+        stdio: 'ignore',
+      })
+      proc.unref()
+    } else {
+      // Linux: run the convenience script
+      const proc = spawn('sh', [installerPath], {
+        detached: true,
+        stdio: 'ignore',
+      })
+      proc.unref()
+    }
+  }
+
+  /**
+   * Wait for Docker to become available after installation.
+   * Polls every 5 seconds for up to 3 minutes.
+   */
+  async waitForDocker(maxWaitMs = 180_000): Promise<boolean> {
+    const win = BrowserWindow.getAllWindows()[0]
+    const startTime = Date.now()
+    let attempt = 0
+
+    while (Date.now() - startTime < maxWaitMs) {
+      attempt++
+      if (win) {
+        win.webContents.send('docker:install-progress', {
+          progress: Math.min(95, Math.round((attempt * 5) / (maxWaitMs / 5000) * 100)),
+          message: 'Waiting for Docker to start...',
+        })
+      }
+
+      const result = await this.checkDockerInstalled()
+      if (result.installed) {
+        if (win) {
+          win.webContents.send('docker:install-progress', {
+            progress: 100,
+            message: 'Docker is ready!',
+          })
+        }
+        return true
+      }
+
+      await new Promise((resolve) => setTimeout(resolve, 5_000))
+    }
+
+    return false
   }
 
   async pullImages(): Promise<void> {

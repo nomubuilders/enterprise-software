@@ -14,8 +14,13 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "package:mac": "electron-vite build && electron-builder --mac",
+    "package:mac:dmg": "electron-vite build && electron-builder --mac dmg",
+    "package:mac:pkg": "electron-vite build && electron-builder --mac pkg",
     "package:win": "electron-vite build && electron-builder --win",
+    "package:win:nsis": "electron-vite build && electron-builder --win nsis",
+    "package:win:msi": "electron-vite build && electron-builder --win msi",
     "package:linux": "electron-vite build && electron-builder --linux",
+    "package:all": "electron-vite build && electron-builder --mac --win --linux",
     "overview": "node ../scripts/generate-overview.js"
   },
   "dependencies": {

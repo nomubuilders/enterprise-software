@@ -13,18 +13,27 @@ extraResources:
   - from: electron/resources/docker-compose.prod.yml
     to: docker-compose.prod.yml
 
+# ── macOS ──
 mac:
   category: public.app-category.developer-tools
   icon: electron/resources/icon.icns
   target:
     - target: dmg
-      arch:
-        - arm64
-        - x64
+      arch: universal
+    - target: pkg
+      arch: universal
   hardenedRuntime: true
   gatekeeperAssess: false
   entitlements: electron/resources/entitlements.mac.plist
   entitlementsInherit: electron/resources/entitlements.mac.plist
+  # Code signing — set these env vars in CI or locally:
+  #   CSC_LINK: path to .p12 certificate
+  #   CSC_KEY_PASSWORD: certificate password
+  # Notarization — requires Apple Developer Program enrollment:
+  #   APPLE_ID: your Apple ID email
+  #   APPLE_APP_SPECIFIC_PASSWORD: app-specific password from appleid.apple.com
+  #   APPLE_TEAM_ID: your 10-char team ID
+  notarize: false # Set to true once Apple Developer certs are configured
 
 dmg:
   contents:
@@ -35,13 +44,25 @@ dmg:
       type: link
       path: /Applications
 
+pkg:
+  installLocation: /Applications
+  allowCurrentUserHome: false
+  allowRootDirectory: false
+
+# ── Windows ──
 win:
   icon: electron/resources/icon.ico
   target:
     - target: nsis
       arch:
         - x64
+    - target: msi
+      arch:
+        - x64
   legalTrademarks: Copyright (c) 2026 Nomu
+  # Code signing — set these env vars in CI or locally:
+  #   WIN_CSC_LINK: path to .pfx certificate
+  #   WIN_CSC_KEY_PASSWORD: certificate password
 
 nsis:
   oneClick: false
@@ -50,6 +71,10 @@ nsis:
   uninstallerIcon: electron/resources/icon.ico
   installerHeaderIcon: electron/resources/icon.ico
 
+msi:
+  oneClick: false
+
+# ── Linux ──
 linux:
   icon: electron/resources/icon.png
   category: Development
@@ -60,7 +85,11 @@ linux:
     - target: deb
       arch:
         - x64
+    - target: rpm
+      arch:
+        - x64
 
+# ── Auto-updates ──
 publish:
   provider: github
   owner: nomubuilders

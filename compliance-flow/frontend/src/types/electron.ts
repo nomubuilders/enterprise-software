@@ -66,6 +66,12 @@ export interface ElectronAPI {
     onHealthUpdate: (callback: (health: HealthReport) => void) => () => void
     onLogOutput: (callback: (data: LogOutput) => void) => () => void
     onPullProgress: (callback: (data: PullProgress) => void) => () => void
+    // Docker auto-install
+    getDownloadUrl: () => Promise<{ url: string; filename: string; platform: string }>
+    downloadInstaller: () => Promise<{ installerPath: string; platform: string }>
+    launchInstaller: (installerPath: string) => Promise<void>
+    waitForDocker: () => Promise<boolean>
+    onInstallProgress: (callback: (data: PullProgress) => void) => () => void
   }
   app: {
     getVersion: () => Promise<string>

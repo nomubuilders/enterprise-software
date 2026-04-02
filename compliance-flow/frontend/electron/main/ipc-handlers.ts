@@ -16,6 +16,14 @@ export function registerIpcHandlers(dockerManager: DockerManager): void {
   ipcMain.handle('docker:pull-images', () => dockerManager.pullImages())
   ipcMain.handle('docker:get-logs', (_e, service: string) => dockerManager.getServiceLogs(service))
 
+  // Docker install handlers
+  ipcMain.handle('docker:get-download-url', () => dockerManager.getDockerDownloadUrl())
+  ipcMain.handle('docker:download-installer', () => dockerManager.downloadDockerInstaller())
+  ipcMain.handle('docker:launch-installer', (_e, installerPath: string) =>
+    dockerManager.launchDockerInstaller(installerPath)
+  )
+  ipcMain.handle('docker:wait-for-docker', () => dockerManager.waitForDocker())
+
   // Ollama model handlers
   ipcMain.handle('ollama:list-models', () => {
     return new Promise((resolve) => {
