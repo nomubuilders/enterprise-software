@@ -27,8 +27,9 @@ mac:
   target:
     - target: dmg
       arch: universal
-    - target: pkg
-      arch: universal
+    # PKG requires code signing — uncomment when CSC_LINK is configured
+    # - target: pkg
+    #   arch: universal
   hardenedRuntime: true
   gatekeeperAssess: false
   entitlements: electron/resources/entitlements.mac.plist
@@ -66,9 +67,10 @@ win:
     - target: nsis
       arch:
         - x64
-    - target: msi
-      arch:
-        - x64
+    # MSI requires code signing — uncomment when WIN_CSC_LINK is configured
+    # - target: msi
+    #   arch:
+    #     - x64
   legalTrademarks: Copyright (c) 2026 Nomu
   # Code signing — set these env vars in CI or locally:
   #   WIN_CSC_LINK: path to .pfx certificate
