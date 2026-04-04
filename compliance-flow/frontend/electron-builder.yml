@@ -8,8 +8,13 @@ directories:
 
 files:
   - out/**/*
+  # Exclude build-time CSS tools with native binaries (break universal builds)
   - "!node_modules/@tailwindcss/**"
   - "!node_modules/tailwindcss/**"
+  - "!node_modules/lightningcss*/**"
+  - "!node_modules/@parcel/**"
+  - "!node_modules/postcss/**"
+  - "!node_modules/autoprefixer/**"
 
 extraResources:
   - from: electron/resources/docker-compose.prod.yml
