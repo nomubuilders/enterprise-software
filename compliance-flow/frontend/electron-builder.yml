@@ -25,6 +25,9 @@ mac:
   gatekeeperAssess: false
   entitlements: electron/resources/entitlements.mac.plist
   entitlementsInherit: electron/resources/entitlements.mac.plist
+  # Set identity to null for unsigned builds. For signed distribution,
+  # set CSC_LINK and CSC_KEY_PASSWORD env vars and remove this line.
+  identity: null
 
 dmg:
   contents:
