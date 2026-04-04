@@ -8,6 +8,8 @@ directories:
 
 files:
   - out/**/*
+  - "!node_modules/@tailwindcss/**"
+  - "!node_modules/tailwindcss/**"
 
 extraResources:
   - from: electron/resources/docker-compose.prod.yml
