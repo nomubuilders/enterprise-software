@@ -53,8 +53,8 @@ dmg:
       y: 220
     - x: 410
       y: 220
-      type: file
-      path: electron/resources/install-mac.command
+      type: link
+      path: /Applications
 
 pkg:
   installLocation: /Applications
