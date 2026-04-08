@@ -2,7 +2,7 @@ import type { FieldDef } from './types'
 
 export const genericNodeFields: Record<string, FieldDef[]> = {
   llmNode: [
-    { key: 'model', label: 'Model', type: 'select', options: [{ value: 'llama3.2:3b', label: 'Llama 3.2 (3B)' }, { value: 'llama3.2:1b', label: 'Llama 3.2 (1B)' }, { value: 'mistral', label: 'Mistral' }, { value: 'codellama', label: 'CodeLlama' }] },
+    { key: 'model', label: 'Model', type: 'select', options: [{ value: 'gemma4', label: 'Gemma 4 (E4B)' }, { value: 'gemma4:26b', label: 'Gemma 4 (26B MoE)' }, { value: 'llama3.2:3b', label: 'Llama 3.2 (3B)' }, { value: 'llama3.2:1b', label: 'Llama 3.2 (1B)' }, { value: 'mistral', label: 'Mistral' }, { value: 'codellama', label: 'CodeLlama' }] },
     { key: 'systemPrompt', label: 'System Prompt', type: 'textarea', placeholder: 'You are a helpful compliance analyst...' },
     { key: 'prompt', label: 'Prompt', type: 'textarea', placeholder: 'Analyze the upstream data for SOC2 compliance gaps and summarize findings...' },
     { key: 'temperature', label: 'Temperature', type: 'number', placeholder: '0.7' },
@@ -89,7 +89,7 @@ export const genericNodeFields: Record<string, FieldDef[]> = {
   ],
   explainabilityNode: [
     { key: 'method', label: 'Method', type: 'select', options: [{ value: 'feature_importance', label: 'Feature Importance' }, { value: 'counterfactual', label: 'Counterfactual' }, { value: 'decision_trail', label: 'Decision Trail' }, { value: 'shap_proxy', label: 'SHAP Proxy (LLM)' }] },
-    { key: 'model', label: 'Explanation Model', type: 'select', options: [{ value: 'llama3.2:3b', label: 'Llama 3.2' }, { value: 'mistral', label: 'Mistral' }, { value: 'codellama', label: 'CodeLlama' }] },
+    { key: 'model', label: 'Explanation Model', type: 'select', options: [{ value: 'gemma4', label: 'Gemma 4 (E4B)' }, { value: 'gemma4:26b', label: 'Gemma 4 (26B MoE)' }, { value: 'llama3.2:3b', label: 'Llama 3.2' }, { value: 'mistral', label: 'Mistral' }, { value: 'codellama', label: 'CodeLlama' }] },
     { key: 'detailLevel', label: 'Detail Level', type: 'select', options: [{ value: 'summary', label: 'Summary' }, { value: 'detailed', label: 'Detailed' }, { value: 'technical', label: 'Technical' }] },
   ],
   redTeamingNode: [
@@ -142,7 +142,7 @@ export const genericNodeFields: Record<string, FieldDef[]> = {
     { key: 'auditType', label: 'Audit Type', type: 'select', options: [{ value: 'full', label: 'Full Audit' }, { value: 'denial_review', label: 'Denial Review' }, { value: 'sample', label: 'Random Sample' }] },
     { key: 'flagAutoDenials', label: 'Flag Auto-Denials', type: 'checkbox' },
     { key: 'generateExplanation', label: 'Generate Policyholder Explanation', type: 'checkbox' },
-    { key: 'model', label: 'Explanation Model', type: 'select', options: [{ value: 'llama3.2:3b', label: 'Llama 3.2' }, { value: 'mistral', label: 'Mistral' }] },
+    { key: 'model', label: 'Explanation Model', type: 'select', options: [{ value: 'gemma4', label: 'Gemma 4 (E4B)' }, { value: 'llama3.2:3b', label: 'Llama 3.2' }, { value: 'mistral', label: 'Mistral' }] },
   ],
   consentManagementNode: [
     { key: 'regulation', label: 'Regulation', type: 'select', options: [{ value: 'gdpr', label: 'GDPR Article 7' }, { value: 'hipaa', label: 'HIPAA Authorization' }, { value: 'ccpa', label: 'CCPA' }, { value: 'lgpd', label: 'LGPD' }] },

@@ -77,7 +77,7 @@ export function DocumentNodeConfig({
       const result = await api.listModels()
       setAvailableModels(result.models.map((m) => m.name))
     } catch {
-      setAvailableModels(['llama3.2:3b', 'mistral', 'codellama'])
+      setAvailableModels(['gemma4', 'llama3.2:3b', 'mistral', 'codellama'])
     }
     setIsLoadingModels(false)
   }

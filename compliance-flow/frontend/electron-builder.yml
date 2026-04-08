@@ -46,9 +46,6 @@ mac:
   #   APPLE_APP_SPECIFIC_PASSWORD: app-specific password from appleid.apple.com
   #   APPLE_TEAM_ID: your 10-char team ID
   notarize: false # Set to true once Apple Developer certs are configured
-  # Set identity to null for unsigned builds. Remove this line once
-  # CSC_LINK and CSC_KEY_PASSWORD are configured for signed distribution.
-  identity: null
 
 dmg:
   contents:
@@ -57,7 +54,7 @@ dmg:
     - x: 410
       y: 220
       type: file
-      path: install-mac.command
+      path: electron/resources/install-mac.command
 
 pkg:
   installLocation: /Applications

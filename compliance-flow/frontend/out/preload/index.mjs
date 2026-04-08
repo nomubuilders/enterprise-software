@@ -22,6 +22,16 @@ const electronAPI = {
       const handler = (_event, data) => callback(data);
       ipcRenderer.on("docker:pull-progress", handler);
       return () => ipcRenderer.removeListener("docker:pull-progress", handler);
+    },
+    // Docker installation
+    getDownloadUrl: () => ipcRenderer.invoke("docker:get-download-url"),
+    downloadInstaller: () => ipcRenderer.invoke("docker:download-installer"),
+    launchInstaller: (installerPath) => ipcRenderer.invoke("docker:launch-installer", installerPath),
+    waitForDocker: () => ipcRenderer.invoke("docker:wait-for-docker"),
+    onInstallProgress: (callback) => {
+      const handler = (_event, data) => callback(data);
+      ipcRenderer.on("docker:install-progress", handler);
+      return () => ipcRenderer.removeListener("docker:install-progress", handler);
     }
   },
   // App info
