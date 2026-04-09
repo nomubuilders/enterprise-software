@@ -346,8 +346,21 @@ function App() {
                 </>
               )}
               <div className="flex items-center gap-2 text-xs">
-                <div className={`h-2 w-2 rounded-full ${ollamaConnected ? 'bg-green-500' : 'bg-red-500'}`} />
+                <div className={`h-2 w-2 rounded-full ${ollamaConnected ? 'bg-green-500' : 'bg-red-500 animate-pulse'}`} />
                 <span className="text-[var(--nomu-text-muted)]">{ollamaConnected ? 'Ollama Connected' : 'Ollama Disconnected'}</span>
+                {!ollamaConnected && (
+                  <button
+                    onClick={() => {
+                      api.getOllamaHealth()
+                        .then((r) => setOllamaConnected(r.status === 'healthy'))
+                        .catch(() => setOllamaConnected(false))
+                    }}
+                    className="ml-1 rounded px-1.5 py-0.5 text-[10px] font-medium text-[var(--nomu-primary)] hover:bg-[var(--nomu-primary)]/10 transition"
+                    title="Retry Ollama connection"
+                  >
+                    ↻ Retry
+                  </button>
+                )}
               </div>
               <div className="h-4 w-px bg-[var(--nomu-border)]" />
               <div className="flex items-center gap-2 text-xs">

@@ -1,4 +1,6 @@
 import { memo } from 'react'
+import nomuLogo from '../../assets/nomu-logo.png'
+import nomuSymbol from '../../assets/nomu-symbol.png'
 
 interface NomuLogoProps {
   className?: string
@@ -10,14 +12,14 @@ export const NomuLogo = memo(({ className = '', showWordmark = true }: NomuLogoP
     <div className={`inline-flex items-center ${className}`}>
       {showWordmark ? (
         <img
-          src="/nomu-logo.png"
+          src={nomuLogo}
           alt="NOMU"
           className="h-full w-auto object-contain"
           draggable={false}
         />
       ) : (
         <img
-          src="/nomu-symbol.png"
+          src={nomuSymbol}
           alt="NOMU"
           className="h-full w-auto object-contain"
           draggable={false}
