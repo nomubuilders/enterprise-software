@@ -47,3 +47,11 @@ frontend/CLAUDE.md
 
 # JetBrains IDEs
 .idea/
+
+# Remotion (subproject — ignore artifacts, keep source)
+remotion/node_modules/
+remotion/out/
+remotion/.remotion/
+remotion/public/nomu-logo.png
+remotion/public/nomu-logo-word.png
+remotion/public/nomu-symbol.png

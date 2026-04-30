@@ -4,7 +4,7 @@ export interface DemoWorkflow {
   id: string
   name: string
   description: string
-  category: 'fraud' | 'writing' | 'governance' | 'tools' | 'analysis'
+  category: 'fraud' | 'writing' | 'governance' | 'tools' | 'analysis' | 'compliance'
   icon: string
   nodes: Node[]
   edges: Edge[]
@@ -389,6 +389,241 @@ const docAnalysisEdges: Edge[] = [
 ]
 
 // ---------------------------------------------------------------------------
+// 6. GDPR Data Processing Audit (15-node full system test)
+// ---------------------------------------------------------------------------
+
+const gdprAuditNodes: Node[] = [
+  // Row 1: Trigger + Data Ingestion
+  {
+    id: 'gdpr-trigger',
+    type: 'triggerNode',
+    position: { x: 80, y: 100 },
+    data: {
+      label: '1. Start Audit',
+      type: 'triggerNode',
+      config: { triggerType: 'manual' },
+    },
+  },
+  {
+    id: 'gdpr-database',
+    type: 'databaseNode',
+    position: { x: 360, y: 100 },
+    data: {
+      label: '2. Customer Records',
+      type: 'databaseNode',
+      config: {
+        dbType: 'postgresql',
+        host: 'postgres',
+        port: 5432,
+        database: 'compliance_flow',
+        username: 'postgres',
+        password: 'postgres',
+        query: 'SELECT * FROM information_schema.tables WHERE table_schema = \'public\' LIMIT 20',
+      },
+    },
+  },
+  {
+    id: 'gdpr-document',
+    type: 'documentNode',
+    position: { x: 640, y: 100 },
+    data: {
+      label: '3. Privacy Policy',
+      type: 'documentNode',
+      config: { mode: 'summarize', templateId: null, chunkSize: 20000, documents: [] },
+    },
+  },
+  // Row 2: PII + AI Analysis
+  {
+    id: 'gdpr-pii-detect',
+    type: 'piiFilterNode',
+    position: { x: 920, y: 100 },
+    data: {
+      label: '4. Detect PII',
+      type: 'piiFilterNode',
+      config: {
+        mode: 'redact',
+        entities: ['EMAIL', 'PHONE', 'NAME', 'ADDRESS', 'SSN'],
+      },
+    },
+  },
+  {
+    id: 'gdpr-personality',
+    type: 'personalityNode',
+    position: { x: 80, y: 300 },
+    data: {
+      label: '5. DPO Persona',
+      type: 'personalityNode',
+      config: {
+        persona: 'Data Protection Officer',
+        tone: 'formal',
+        language: 'en',
+        customPrompt: 'You are a certified EU Data Protection Officer (DPO) with expertise in GDPR Articles 5, 6, 13-22, and 30. You cite specific GDPR articles in your analysis. You are thorough but concise.',
+      },
+    },
+  },
+  {
+    id: 'gdpr-llm-analysis',
+    type: 'llmNode',
+    position: { x: 360, y: 300 },
+    data: {
+      label: '6. GDPR Gap Analysis',
+      type: 'llmNode',
+      config: {
+        model: 'gemma4:latest',
+        prompt: 'Analyze the data processing activities and documents provided. For each data category found, assess:\n\n1. **Legal Basis** (Art. 6) — Is there a valid legal basis for processing?\n2. **Data Minimization** (Art. 5(1)(c)) — Is only necessary data collected?\n3. **Storage Limitation** (Art. 5(1)(e)) — Are retention periods defined?\n4. **Subject Rights** (Art. 13-22) — Are data subject rights facilitated?\n5. **Breach Readiness** (Art. 33-34) — Is there a 72-hour notification process?\n\nProvide a compliance score (0-100) and list specific gaps with remediation actions.',
+        temperature: 0.3,
+        maxTokens: 4096,
+      },
+    },
+  },
+  // Row 3: Risk Assessment Branch
+  {
+    id: 'gdpr-conditional',
+    type: 'conditionalNode',
+    position: { x: 640, y: 300 },
+    data: {
+      label: '7. Risk Threshold',
+      type: 'conditionalNode',
+      config: { field: 'compliance_score', operator: 'less_than', value: '70' },
+    },
+  },
+  {
+    id: 'gdpr-bias-test',
+    type: 'biasTestingNode',
+    position: { x: 920, y: 300 },
+    data: {
+      label: '8. Bias Check',
+      type: 'biasTestingNode',
+      config: {
+        testType: 'disparate_impact',
+        protectedAttributes: ['nationality', 'gender', 'age'],
+        threshold: 0.8,
+      },
+    },
+  },
+  // Row 4: Compliance + Explainability
+  {
+    id: 'gdpr-explainability',
+    type: 'explainabilityNode',
+    position: { x: 80, y: 500 },
+    data: {
+      label: '9. AI Explainability',
+      type: 'explainabilityNode',
+      config: {
+        method: 'feature_importance',
+        model: 'gemma4:latest',
+        detailLevel: 'detailed',
+      },
+    },
+  },
+  {
+    id: 'gdpr-model-registry',
+    type: 'modelRegistryNode',
+    position: { x: 360, y: 500 },
+    data: {
+      label: '10. Register AI Model',
+      type: 'modelRegistryNode',
+      config: {
+        modelName: 'gemma4-gdpr-auditor',
+        riskLevel: 'high',
+        modelVersion: '1.0',
+      },
+    },
+  },
+  {
+    id: 'gdpr-compliance-report',
+    type: 'complianceDashboardNode',
+    position: { x: 640, y: 500 },
+    data: {
+      label: '11. Compliance Report',
+      type: 'complianceDashboardNode',
+      config: {
+        frameworks: ['GDPR', 'EU_AI_ACT'],
+        reportFormat: 'pdf',
+        autoGenerate: true,
+      },
+    },
+  },
+  // Row 5: Evidence + Approval + Delivery
+  {
+    id: 'gdpr-evidence',
+    type: 'evidenceCollectionNode',
+    position: { x: 920, y: 500 },
+    data: {
+      label: '12. Evidence Package',
+      type: 'evidenceCollectionNode',
+      config: {
+        artifactTypes: ['logs', 'configs', 'reports'],
+        targetFramework: 'gdpr',
+        autoPackage: true,
+      },
+    },
+  },
+  {
+    id: 'gdpr-approval',
+    type: 'approvalGateNode',
+    position: { x: 80, y: 700 },
+    data: {
+      label: '13. DPO Approval',
+      type: 'approvalGateNode',
+      config: {
+        approvalType: 'single',
+        approvers: ['dpo@company.eu'],
+        requireAll: true,
+        approvalStatus: 'pending',
+      },
+    },
+  },
+  {
+    id: 'gdpr-audit-trail',
+    type: 'auditNode',
+    position: { x: 360, y: 700 },
+    data: {
+      label: '14. Audit Trail',
+      type: 'auditNode',
+      config: {
+        auditLevel: 'full',
+        retentionDays: 365,
+        logFormat: 'json',
+        enabled: true,
+      },
+    },
+  },
+  {
+    id: 'gdpr-output',
+    type: 'outputNode',
+    position: { x: 640, y: 700 },
+    data: {
+      label: '15. Final Report',
+      type: 'outputNode',
+      config: { outputType: 'chat' },
+    },
+  },
+]
+
+const gdprAuditEdges: Edge[] = [
+  // Row 1: Linear data ingestion
+  { id: 'e-gdpr-1-2', source: 'gdpr-trigger', target: 'gdpr-database', animated: true },
+  { id: 'e-gdpr-2-3', source: 'gdpr-database', target: 'gdpr-document', animated: true },
+  { id: 'e-gdpr-3-4', source: 'gdpr-document', target: 'gdpr-pii-detect', animated: true },
+  // Row 1 → Row 2: PII feeds into personality + analysis
+  { id: 'e-gdpr-4-5', source: 'gdpr-pii-detect', target: 'gdpr-personality', animated: true },
+  { id: 'e-gdpr-5-6', source: 'gdpr-personality', target: 'gdpr-llm-analysis', animated: true },
+  // Row 2: Analysis → Risk check → Bias
+  { id: 'e-gdpr-6-7', source: 'gdpr-llm-analysis', target: 'gdpr-conditional', animated: true },
+  { id: 'e-gdpr-7-8', source: 'gdpr-conditional', target: 'gdpr-bias-test', animated: true },
+  // Row 2 → Row 3: Explainability + Model Registry + Report
+  { id: 'e-gdpr-8-9', source: 'gdpr-bias-test', target: 'gdpr-explainability', animated: true },
+  { id: 'e-gdpr-9-10', source: 'gdpr-explainability', target: 'gdpr-model-registry', animated: true },
+  { id: 'e-gdpr-10-11', source: 'gdpr-model-registry', target: 'gdpr-compliance-report', animated: true },
+  // Row 3 → Row 4: Evidence → Approval → Audit → Output
+  { id: 'e-gdpr-11-12', source: 'gdpr-compliance-report', target: 'gdpr-evidence', animated: true },
+  { id: 'e-gdpr-12-13', source: 'gdpr-evidence', target: 'gdpr-approval', animated: true },
+  { id: 'e-gdpr-13-14', source: 'gdpr-approval', target: 'gdpr-audit-trail', animated: true },
+  { id: 'e-gdpr-14-15', source: 'gdpr-audit-trail', target: 'gdpr-output', animated: true },
+]
+
+// ---------------------------------------------------------------------------
 // Exported collection
 // ---------------------------------------------------------------------------
 
@@ -443,4 +678,38 @@ export const demoWorkflows: DemoWorkflow[] = [
     nodes: docAnalysisNodes,
     edges: docAnalysisEdges,
   },
+  {
+    id: 'demo-gdpr-audit',
+    name: 'GDPR Data Processing Audit (15-Node)',
+    description:
+      'Full end-to-end GDPR compliance audit: ingest customer data, detect PII, run AI gap analysis with Gemma 4, check for bias, generate compliance reports, collect evidence, and route through DPO approval — all locally.',
+    category: 'compliance',
+    icon: 'Shield',
+    nodes: gdprAuditNodes,
+    edges: gdprAuditEdges,
+  },
 ]
+
+// Append real-test workflow (defined below export for readability)
+demoWorkflows.push({
+  id: 'demo-real-test',
+  name: '🧪 Real Test: Data Compliance Check',
+  description:
+    'REAL end-to-end test: queries actual employee data from PostgreSQL, redacts PII, sends to Gemma 4 to identify compliance violations, and outputs a real report.',
+  category: 'compliance' as const,
+  icon: 'Shield',
+  nodes: [
+    { id: 'rt-trigger', type: 'triggerNode', position: { x: 100, y: 250 }, data: { label: 'Start Compliance Check', type: 'triggerNode', config: { triggerType: 'manual' } } },
+    { id: 'rt-database', type: 'databaseNode', position: { x: 400, y: 250 }, data: { label: 'Query Employee Data Access', type: 'databaseNode', config: { dbType: 'postgresql', host: 'postgres', port: 5432, database: 'compliance_flow', username: 'postgres', password: 'postgres', query: "SELECT e.name, e.email, e.department, e.role, e.data_access_level, e.gdpr_training_completed, e.last_training_date, dpa.activity_type, dpa.data_category, dpa.legal_basis, dpa.consent_recorded, dpa.retention_period_days, dpa.last_review_date, dpa.notes FROM employees e JOIN data_processing_activities dpa ON e.id = dpa.employee_id ORDER BY dpa.consent_recorded ASC, e.name" } } },
+    { id: 'rt-pii', type: 'piiFilterNode', position: { x: 700, y: 250 }, data: { label: 'Redact Employee PII', type: 'piiFilterNode', config: { mode: 'redact', entities: ['EMAIL', 'PHONE'] } } },
+    { id: 'rt-llm', type: 'llmNode', position: { x: 1000, y: 250 }, data: { label: 'Gemma 4 GDPR Analyzer', type: 'llmNode', config: { model: 'gemma4:latest', prompt: 'You are a GDPR compliance auditor. Analyze the employee data processing records provided and answer this question:\n\n**Which employees are handling sensitive personal data WITHOUT proper consent or legal basis?**\n\nFor each violation found, provide:\n1. Employee name and department\n2. What data they are accessing\n3. What is missing (consent, legal basis, training, etc.)\n4. Risk level (Critical/High/Medium/Low)\n5. Recommended action\n\nAlso flag anyone whose GDPR training is expired (>12 months old) or never completed.\n\nEnd with a summary table of all findings.', temperature: 0.2, maxTokens: 4096 } } },
+    { id: 'rt-output', type: 'outputNode', position: { x: 1300, y: 250 }, data: { label: 'Compliance Report', type: 'outputNode', config: { outputType: 'chat' } } },
+  ],
+  edges: [
+    { id: 'e-rt-1', source: 'rt-trigger', target: 'rt-database', animated: true },
+    { id: 'e-rt-2', source: 'rt-database', target: 'rt-pii', animated: true },
+    { id: 'e-rt-3', source: 'rt-pii', target: 'rt-llm', animated: true },
+    { id: 'e-rt-4', source: 'rt-llm', target: 'rt-output', animated: true },
+  ],
+})
+

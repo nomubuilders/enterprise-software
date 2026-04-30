@@ -4,3 +4,11 @@ __pycache__/
 
 # JetBrains IDEs
 .idea/
+.gitnexus
+
+# Stray pnpm install at repo root (remotion-bits should live in compliance-flow/remotion/)
+node_modules/
+package.json
+pnpm-lock.yaml
+package-lock.json
+yarn.lock

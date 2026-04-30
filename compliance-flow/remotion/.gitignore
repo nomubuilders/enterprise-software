@@ -1,0 +1,7 @@
+node_modules/
+out/
+public/nomu-logo.png
+public/nomu-logo-word.png
+public/nomu-symbol.png
+.remotion/
+*.log

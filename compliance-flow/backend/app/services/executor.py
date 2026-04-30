@@ -627,61 +627,93 @@ class WorkflowExecutionEngine:
         """
         Execute a PII filter node.
 
-        Detects and filters/masks PII in text.
+        Detects and filters/masks PII across ALL input data — strings, lists of
+        dicts (DB rows), nested structures.  Returns the upstream data with PII
+        removed so downstream nodes (LLM, output) receive clean data.
         """
         try:
             node_data = PIIFilterNodeData(**node.data)
         except ValidationError as e:
             raise ValueError(f"Invalid PII filter node configuration: {e}")
 
-        # Get text to filter
-        text_to_filter = None
-        if node_data.context_field:
-            text_to_filter = input_data.get(node_data.context_field, "")
+        # Accept both 'patterns' (backend model) and 'entities' (frontend UI)
+        raw_entities = node.data.get("entities") or node.data.get("detect_entities") or []
+        patterns = node_data.patterns or [e.lower() for e in raw_entities] or ["email", "phone", "ssn", "credit_card", "name"]
+
+        # Also always include NAME/PERSON detection for proper GDPR compliance
+        name_aliases = {"name", "person", "NAME", "PERSON"}
+        if any(p.lower() in ("name", "person") for p in patterns):
+            pass  # already included
         else:
-            # Use the first string value found
-            for value in input_data.values():
-                if isinstance(value, str):
-                    text_to_filter = value
-                    break
+            patterns.append("name")
 
-        if not text_to_filter:
-            return {"filtered_text": "", "pii_found": []}
-
-        filtered_text = text_to_filter
-        pii_found = []
-
-        # Default patterns if none specified
-        patterns = node_data.patterns or ["email", "phone", "ssn", "credit_card"]
-
+        # Compile all regex patterns upfront
+        compiled_patterns: list[tuple[str, re.Pattern]] = []
         for pattern_name in patterns:
-            regex_pattern = self._get_pii_pattern(pattern_name)
-            if not regex_pattern:
-                continue
+            regex_str = self._get_pii_pattern(pattern_name.lower())
+            if regex_str:
+                compiled_patterns.append((pattern_name, re.compile(regex_str, re.IGNORECASE)))
 
-            matches = list(re.finditer(regex_pattern, text_to_filter, re.IGNORECASE))
-            if matches:
-                pii_found.append({"type": pattern_name, "count": len(matches)})
+        if not compiled_patterns:
+            logger.warning("PII filter: no valid patterns found")
+            return {**input_data, "pii_found": [], "pii_mode": node_data.mode.value}
+
+        pii_found: list[dict] = []
+        total_redactions = 0
+
+        def _redact_string(text: str) -> str:
+            """Apply all PII patterns to a single string."""
+            nonlocal total_redactions
+            result = text
+            for pname, regex in compiled_patterns:
+                matches = list(regex.finditer(result))
+                if not matches:
+                    continue
+                # Track findings
+                existing = next((p for p in pii_found if p["type"] == pname), None)
+                if existing:
+                    existing["count"] += len(matches)
+                else:
+                    pii_found.append({"type": pname, "count": len(matches)})
+
+                total_redactions += len(matches)
 
                 if node_data.mode == PIIFilterMode.REDACT:
-                    # Replace entire match with replacement char
                     for match in reversed(matches):
-                        replacement = node_data.replacement_char * len(match.group())
-                        filtered_text = filtered_text[: match.start()] + replacement + filtered_text[match.end() :]
+                        tag = f"[{pname.upper()}]"
+                        result = result[:match.start()] + tag + result[match.end():]
                 elif node_data.mode == PIIFilterMode.MASK:
-                    # Replace with replacement char, keeping some characters visible
                     for match in reversed(matches):
                         matched_text = match.group()
                         if len(matched_text) > 4:
                             masked = matched_text[:2] + node_data.replacement_char * (len(matched_text) - 4) + matched_text[-2:]
                         else:
                             masked = node_data.replacement_char * len(matched_text)
-                        filtered_text = filtered_text[: match.start()] + masked + filtered_text[match.end() :]
+                        result = result[:match.start()] + masked + result[match.end():]
+            return result
 
+        def _redact_value(value: Any) -> Any:
+            """Recursively redact PII in any value type."""
+            if isinstance(value, str):
+                return _redact_string(value)
+            elif isinstance(value, dict):
+                return {k: _redact_value(v) for k, v in value.items()}
+            elif isinstance(value, list):
+                return [_redact_value(item) for item in value]
+            return value
+
+        # Deep-clone and redact ALL input data
+        import copy
+        filtered_data = _redact_value(copy.deepcopy(input_data))
+
+        logger.info(f"PII filter applied: {total_redactions} redactions across {len(pii_found)} entity types")
+
+        # Return filtered upstream data + PII metadata
         return {
-            "filtered_text": filtered_text,
+            **filtered_data,
             "pii_found": pii_found,
-            "mode": node_data.mode.value,
+            "pii_redaction_count": total_redactions,
+            "pii_mode": node_data.mode.value,
         }
 
     async def _execute_output_node(self, node: WorkflowNode, input_data: Dict[str, Any]) -> Dict[str, Any]:
