@@ -1,24 +1,54 @@
 import { AbsoluteFill, useCurrentFrame, interpolate, spring, useVideoConfig } from 'remotion'
 import { AnimatedText } from 'remotion-bits'
+import { z } from 'zod'
+import { zColor } from '@remotion/zod-types'
 import { theme } from '../theme'
 import { ArticleStack } from '../components/ArticleStack'
 
-const PROBLEMS = [
-  {
-    headline: 'Your data leaves the perimeter.',
-    sub: 'Every prompt ships to someone else’s GPU.',
-  },
-  {
-    headline: 'There is no audit trail.',
-    sub: 'Regulators ask what the model saw. Cloud APIs return a string.',
-  },
-  {
-    headline: 'You don’t control the model.',
-    sub: 'It can be banned, repriced, or quietly nerfed — overnight.',
-  },
-]
+export const hookSceneSchema = z.object({
+  providers: z.string(),
+  subtitleLead: z.string(),
+  subtitleAccent: z.string(),
+  accentColor: zColor(),
+  problems: z
+    .array(
+      z.object({
+        headline: z.string(),
+        sub: z.string(),
+      }),
+    )
+    .min(1)
+    .max(5),
+})
 
-export const HookScene: React.FC = () => {
+export type HookSceneProps = z.infer<typeof hookSceneSchema>
+
+export const hookSceneDefaults: HookSceneProps = {
+  providers: 'ChatGPT · Claude · Gemini · Copilot',
+  subtitleLead: 'all share',
+  subtitleAccent: 'three problems.',
+  accentColor: theme.colors.orange,
+  problems: [
+    {
+      headline: 'Your data leaves the perimeter.',
+      sub: 'Every prompt ships to someone else’s GPU.',
+    },
+    {
+      headline: 'There is no audit trail.',
+      sub: 'Regulators ask what the model saw. Cloud APIs return a string.',
+    },
+    {
+      headline: 'You don’t control the model.',
+      sub: 'It can be banned, repriced, or quietly nerfed — overnight.',
+    },
+  ],
+}
+
+export const HookScene: React.FC<Partial<HookSceneProps>> = (props) => {
+  const { providers, subtitleLead, subtitleAccent, accentColor, problems } = {
+    ...hookSceneDefaults,
+    ...props,
+  }
   const frame = useCurrentFrame()
   const { fps } = useVideoConfig()
 
@@ -27,14 +57,12 @@ export const HookScene: React.FC = () => {
     extrapolateRight: 'clamp',
   })
 
-  // Top title timing — providers list comes in early, then shrinks/moves up
   const titleSpring = spring({
     frame: frame - 4,
     fps,
     config: { damping: 18, mass: 0.7 },
   })
 
-  // Subtitle reveal after articles have stacked
   const subtitleOpacity = interpolate(frame, [60, 80], [0, 1], {
     extrapolateLeft: 'clamp',
     extrapolateRight: 'clamp',
@@ -48,12 +76,10 @@ export const HookScene: React.FC = () => {
         color: theme.colors.ink,
       }}
     >
-      {/* Article pile — full opacity 0-60, dims to backdrop after */}
       <div style={{ opacity: exitOpacity }}>
         <ArticleStack startAt={0} dimAfter={60} dimTo={0.18} />
       </div>
 
-      {/* Top title — provider names */}
       <div
         style={{
           position: 'absolute',
@@ -79,11 +105,10 @@ export const HookScene: React.FC = () => {
             duration: 18,
           }}
         >
-          ChatGPT · Claude · Gemini · Copilot
+          {providers}
         </AnimatedText>
       </div>
 
-      {/* Subtitle — appears after pile lands */}
       <div
         style={{
           position: 'absolute',
@@ -102,11 +127,10 @@ export const HookScene: React.FC = () => {
           gap: 12,
         }}
       >
-        <span>all share</span>
-        <span style={{ color: theme.colors.orange }}>three problems.</span>
+        <span>{subtitleLead}</span>
+        <span style={{ color: accentColor }}>{subtitleAccent}</span>
       </div>
 
-      {/* Problems list — over dimmed article backdrop */}
       <div
         style={{
           position: 'absolute',
@@ -120,7 +144,7 @@ export const HookScene: React.FC = () => {
           justifyContent: 'center',
         }}
       >
-        {PROBLEMS.map((p, i) => {
+        {problems.map((p, i) => {
           const appearAt = 80 + i * 22
           const slide = spring({
             frame: frame - appearAt,
@@ -150,7 +174,7 @@ export const HookScene: React.FC = () => {
                   width: 56,
                   height: 56,
                   borderRadius: 14,
-                  background: theme.colors.orange,
+                  background: accentColor,
                   color: theme.colors.bg,
                   display: 'flex',
                   alignItems: 'center',

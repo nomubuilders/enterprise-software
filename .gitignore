@@ -12,3 +12,7 @@ package.json
 pnpm-lock.yaml
 package-lock.json
 yarn.lock
+
+soundcn-mcp-server/
+remotion-bits/package.json
+remotion-bits/

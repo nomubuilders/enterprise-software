@@ -1,90 +1,135 @@
-import { AbsoluteFill, useCurrentFrame, interpolate, spring, useVideoConfig } from 'remotion'
+import { AbsoluteFill, Sequence, useCurrentFrame, interpolate, Easing, useVideoConfig } from 'remotion'
+import { evolvePath } from '@remotion/paths'
 import { loadFont } from '@remotion/google-fonts/Barlow'
+import { TypeWriter, AnimatedCounter } from 'remotion-bits'
 import { theme } from '../theme'
+import { CostChart } from './CostChart'
 
 const { fontFamily: barlow } = loadFont('normal', { weights: ['500', '700', '900'] })
 
-// Scene 6 v3 · Cinematic Contrast
+// Scene 6 v4 · Cinematic Contrast (skill-guided rewrite)
 // 450 frames (15s) standalone.
 //
-// Beat timeline (frames):
-//   0-25    "Let's compare" title types/scales in to center, big
-//   25-55   Title shrinks and rises to top of frame
-//   50-90   Vertical divider grows from bottom up
-//   80-115  Cloud / Local headers appear on each side
-//   115-280 Five rows reveal sequentially
-//   280-310 SCREEN CRACK · cream shatters, black bg revealed
-//   310-340 Chart camera zoomed in on month 1, hardware spike for Local
-//   340-410 Camera pulls back as months progress, lines extend
-//   410-450 Cloud line escapes off top of frame, comedic relief
+// Motion principles applied:
+// - All animation via `interpolate` + `Easing.bezier`, not springs.
+// - Each beat has a single normalized 0..1 progress; multiple properties derive from it.
+// - Enter motion uses out-curves (decelerate). Exit motion uses in-curves (accelerate away).
+// - Crisp UI entrance: cubic-bezier(0.16, 1, 0.3, 1) — the iOS deceleration curve.
+// - Editorial slow moves: cubic-bezier(0.45, 0, 0.55, 1).
+// - Overshoot/impact: cubic-bezier(0.34, 1.56, 0.64, 1).
+// - Charts use @remotion/paths evolvePath for synchronized stroke-dash values.
 
-const ROWS = [
-  { left: 'Locked into one model',         right: 'Pick any open model' },
-  { left: 'Your data leaves the box',      right: 'Stays on your hardware' },
-  { left: 'Model can be nerfed overnight', right: 'You own the version forever' },
-  { left: 'No audit trail',                right: 'Every step is evidence' },
-  { left: 'Black-box decisions',           right: 'Built-in explainability' },
-]
+// === Easing palette ===
+const EASE_ENTER = Easing.bezier(0.16, 1, 0.3, 1)         // crisp UI entrance, decelerates
+const EASE_EXIT = Easing.bezier(0.7, 0, 0.84, 0)          // accelerate away
+const EASE_EDITORIAL = Easing.bezier(0.45, 0, 0.55, 1)    // slow camera, balanced
+const EASE_IMPACT = Easing.bezier(0.34, 1.56, 0.64, 1)    // overshoot for impact
+const EASE_MORPH = Easing.bezier(0.65, 0, 0.35, 1)        // smooth morph (size/position changes)
 
-const TITLE_REVEAL_END = 25
-const TITLE_RISE_END = 55
-const DIVIDER_START = 50
-const DIVIDER_END = 90
-const HEADERS_START = 80
-const HEADERS_END = 115
-const ROWS_START = 115
-const ROW_GAP = 30 // frames between row pairs
-const CRACK_START = 280
-const CRACK_END = 310
-const CHART_ZOOMED_START = 310
-const CHART_PULLBACK_START = 340
-const CHART_OFF_FRAME_START = 410
+// === Timeline ===
+// Per-row pacing now expanded: Cloud card rolls in, reader has 30 frames to read,
+// Local card punches in as the contrast, then both hold. 74 frames per row.
+const T = {
+  titleEnterStart: 0,
+  titleEnterEnd: 22,        // "Let's compare." lands centered, full size
+  titleHoldEnd: 50,         // hold center
+  titleMorphEnd: 80,        // morphs to top, smaller
+  dividerStart: 70,
+  dividerEnd: 110,
+  // Sequential headers: Cloud first, then Local. Each gets a status icon after typing.
+  cloudStart: 90,           // Cloud TypeWriter starts
+  cloudIconStart: 110,      // X mark draws after Cloud finishes typing
+  localStart: 130,          // Local TypeWriter starts
+  localIconStart: 150,      // Check mark draws after Local finishes typing
+  rowsStart: 175,
+  // Per-row beats (relative to the row's startAt):
+  rowCloudEnter: 14,                   // Cloud card roll-in frames
+  rowReadHold: 32,                     // Reader has time to take in the Cloud claim
+  rowLocalEnter: 14,                   // Local card roll-in frames (with overshoot)
+  rowBothHold: 14,                     // Pair holds before next row begins
+  rowDuration: 74,                     // 14 + 32 + 14 + 14
+  rowsEnd: 175 + 5 * 74,               // 545
+  crackStart: 555,                     // 10-frame breath after final row settles
+  crackEnd: 578,
+  chartCameraInStart: 578,
+  // Legacy chart-phase constants. Referenced only by the dormant ChartScene
+  // (kept in this file as backup per the no-delete-without-backup rule).
+  // Active code uses CostChart, which has its own internal timeline.
+  chartCameraInEnd: 615,
+  chartPullbackStart: 615,
+  chartPullbackEnd: 670,
+  chartEscapeStart: 670,
+  chartEscapeEnd: 715,
+} as const
+
+// === Chart geometry (in unscaled canvas-space) ===
+const CHART = {
+  left: 220,
+  right: 1700,
+  bottom: 880,
+  top: 220,
+  monthsTotal: 12,
+}
+const CHART_W = CHART.right - CHART.left
+const CHART_H = CHART.bottom - CHART.top
+
+// Cost data
+const LOCAL_COSTS = [3000, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+const CLOUD_COSTS = [200, 280, 380, 520, 720, 980, 1280, 1620, 1980, 2200, 2350, 2400]
+const Y_NORMAL = 3500
+
+// ====================================================================
 
 export const ContrastScene: React.FC = () => {
   const frame = useCurrentFrame()
-  const { fps, width, height } = useVideoConfig()
+  const { width, height } = useVideoConfig()
 
-  // Background flips from cream to black at the crack moment
-  const bgBlackness = interpolate(frame, [CRACK_START + 5, CRACK_END], [0, 1], {
+  // Ink safety layer fades in as the circle nears full coverage.
+  // Prevents any cream from peeking through at the canvas corners.
+  // Also unmounts the cream world entirely once safe to avoid layout work.
+  const inkSafetyOpacity = interpolate(frame, [T.crackEnd - 6, T.crackEnd + 2], [0, 1], {
     extrapolateLeft: 'clamp',
     extrapolateRight: 'clamp',
   })
 
-  // After the crack we are in black territory. Hide the cream layer.
-  const creamLayerOpacity = 1 - bgBlackness
-
   return (
     <AbsoluteFill style={{ background: theme.colors.ink, fontFamily: barlow }}>
-      {/* Cream layer (will be cracked away) */}
-      <AbsoluteFill style={{ opacity: creamLayerOpacity }}>
-        <CreamBackground />
-        <FilmGrain opacity={0.04} />
-
-        {/* Title that lives in cream world */}
-        <TitleReveal frame={frame} fps={fps} />
-
-        {/* Divider grows from bottom up */}
-        <DividerLine frame={frame} />
-
-        {/* Cloud / Local side headers */}
-        <SideHeaders frame={frame} fps={fps} />
-
-        {/* Comparison rows */}
-        <ComparisonRows frame={frame} fps={fps} />
-      </AbsoluteFill>
-
-      {/* Crack lines drawn over the transition */}
-      <CrackOverlay frame={frame} width={width} height={height} />
-
-      {/* Black world content (chart) */}
-      {frame >= CHART_ZOOMED_START && (
-        <BlackChartSequence frame={frame} fps={fps} width={width} height={height} />
+      {/* Cream world. Visible until circle has covered. */}
+      {frame < T.crackEnd + 4 && (
+        <AbsoluteFill>
+          <CreamBackground />
+          <Title frame={frame} />
+          <Divider frame={frame} />
+          <SideHeaders frame={frame} />
+          <Rows frame={frame} />
+        </AbsoluteFill>
       )}
+
+      {/* Circle wipes the cream away with an S-curve growth */}
+      <CircleReveal frame={frame} width={width} height={height} />
+
+      {/* Ink safety layer · solid black behind chart, prevents cream peek-through at corners */}
+      <AbsoluteFill
+        style={{
+          background: theme.colors.ink,
+          opacity: inkSafetyOpacity,
+          pointerEvents: 'none',
+        }}
+      />
+
+      {/* Chart in black world.
+          Replaced legacy ChartScene with the polished standalone CostChart.
+          ChartScene (and its helpers) are kept dormant below as backup.
+          CostChart is 420 frames; ContrastScene total must be at least
+          T.chartCameraInStart + 420 = 828 frames. See Root.tsx. */}
+      <Sequence from={T.chartCameraInStart} durationInFrames={420}>
+        <CostChart />
+      </Sequence>
     </AbsoluteFill>
   )
 }
 
-// ============================================================
+// ====================================================================
 // Cream world
 
 const CreamBackground: React.FC = () => (
@@ -95,43 +140,26 @@ const CreamBackground: React.FC = () => (
   />
 )
 
-const FilmGrain: React.FC<{ opacity: number }> = ({ opacity }) => (
-  <AbsoluteFill
-    style={{
-      pointerEvents: 'none',
-      opacity,
-      backgroundImage:
-        'url("data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'100\' height=\'100\'><filter id=\'n\'><feTurbulence type=\'fractalNoise\' baseFrequency=\'0.9\' numOctaves=\'3\'/></filter><rect width=\'100%25\' height=\'100%25\' filter=\'url(%23n)\' opacity=\'0.6\'/></svg>")',
-      mixBlendMode: 'multiply',
-    }}
-  />
-)
+// === Title === ("Let's compare." typed in via TypeWriter, then morphs to top)
 
-const TitleReveal: React.FC<{ frame: number; fps: number }> = ({ frame, fps }) => {
-  // Title appears at center, 160pt
-  // At frame 25, starts moving up + shrinking
-  // By frame 55, sits at top, 56pt
-
-  const enter = spring({ frame, fps, config: { damping: 18, mass: 0.5 } })
-
-  // Phase 1: 0-25 enter, big and centered
-  // Phase 2: 25-55 shrink + rise
-  // Phase 3: 55-CRACK_START hold at top, small
-
-  const transitionProgress = interpolate(frame, [TITLE_REVEAL_END, TITLE_RISE_END], [0, 1], {
+const Title: React.FC<{ frame: number }> = ({ frame }) => {
+  // Morph progress controls size/position transition
+  const morphP = interpolate(frame, [T.titleHoldEnd, T.titleMorphEnd], [0, 1], {
     extrapolateLeft: 'clamp',
     extrapolateRight: 'clamp',
+    easing: EASE_MORPH,
   })
 
-  // Vanish at crack moment
-  const exitOpacity = interpolate(frame, [CRACK_START - 5, CRACK_START + 5], [1, 0], {
+  const exitP = interpolate(frame, [T.crackStart - 8, T.crackStart], [0, 1], {
     extrapolateLeft: 'clamp',
     extrapolateRight: 'clamp',
+    easing: EASE_EXIT,
   })
 
-  const fontSize = interpolate(transitionProgress, [0, 1], [160, 56])
-  const top = interpolate(transitionProgress, [0, 1], [440, 70])
-  const letterSpacing = interpolate(transitionProgress, [0, 1], [-6, -1])
+  // Derive properties from morph progress
+  const fontSize = interpolate(morphP, [0, 1], [180, 60])
+  const top = interpolate(morphP, [0, 1], [430, 60])
+  const letterSpacing = interpolate(morphP, [0, 1], [-7, -1.2])
 
   return (
     <div
@@ -147,28 +175,48 @@ const TitleReveal: React.FC<{ frame: number; fps: number }> = ({ frame, fps }) =
         color: theme.colors.ink,
         letterSpacing,
         lineHeight: 1,
-        opacity: enter * exitOpacity,
-        transform: `translateY(${(1 - enter) * 24}px)`,
+        opacity: 1 - exitP,
+        display: 'flex',
+        justifyContent: 'center',
+        gap: '0.25em',
       }}
     >
-      Let's <span style={{ color: theme.colors.purple }}>compare.</span>
+      {/* Two TypeWriters fire sequentially. First the gray ink "Let's", then the purple "compare." */}
+      <Sequence from={T.titleEnterStart} layout="none">
+        <TypeWriter
+          text="Let's"
+          typeSpeed={2}
+          cursor={false}
+          style={{ display: 'inline-block', color: theme.colors.ink }}
+        />
+      </Sequence>
+      <Sequence from={T.titleEnterStart + 12} layout="none">
+        <TypeWriter
+          text="compare."
+          typeSpeed={2}
+          cursor={false}
+          style={{ display: 'inline-block', color: theme.colors.purple }}
+        />
+      </Sequence>
     </div>
   )
 }
 
-const DividerLine: React.FC<{ frame: number }> = ({ frame }) => {
-  // Grows from bottom up
-  const grow = interpolate(frame, [DIVIDER_START, DIVIDER_END], [0, 1], {
+// === Divider === (vertical line growing from bottom)
+
+const Divider: React.FC<{ frame: number }> = ({ frame }) => {
+  const growP = interpolate(frame, [T.dividerStart, T.dividerEnd], [0, 1], {
     extrapolateLeft: 'clamp',
     extrapolateRight: 'clamp',
+    easing: EASE_ENTER,
   })
 
-  const exitOpacity = interpolate(frame, [CRACK_START - 5, CRACK_START + 5], [1, 0], {
+  const exitP = interpolate(frame, [T.crackStart - 8, T.crackStart], [0, 1], {
     extrapolateLeft: 'clamp',
     extrapolateRight: 'clamp',
+    easing: EASE_EXIT,
   })
 
-  const lineHeightPct = grow * 100
   return (
     <div
       style={{
@@ -177,369 +225,504 @@ const DividerLine: React.FC<{ frame: number }> = ({ frame }) => {
         bottom: 60,
         transform: 'translateX(-50%)',
         width: 2,
-        height: `${lineHeightPct * 0.78}%`,
+        height: `${growP * 80}%`,
         background: `linear-gradient(to top, ${theme.colors.purple} 0%, ${theme.colors.divider} 30%, ${theme.colors.divider} 100%)`,
-        opacity: exitOpacity,
+        opacity: 1 - exitP,
         boxShadow: `0 0 24px ${theme.colors.purpleEdge}`,
       }}
     />
   )
 }
 
-const SideHeaders: React.FC<{ frame: number; fps: number }> = ({ frame, fps }) => {
-  const cloudReveal = spring({
-    frame: frame - HEADERS_START,
-    fps,
-    config: { damping: 16, mass: 0.6 },
-  })
-  const localReveal = spring({
-    frame: frame - (HEADERS_START + 6),
-    fps,
-    config: { damping: 16, mass: 0.6 },
-  })
+// === Side headers === Sequential reveal · Cloud first with X, Local second with check.
 
-  const exitOpacity = interpolate(frame, [CRACK_START - 5, CRACK_START + 5], [1, 0], {
+const SideHeaders: React.FC<{ frame: number }> = ({ frame }) => {
+  const exitP = interpolate(frame, [T.crackStart - 8, T.crackStart], [0, 1], {
     extrapolateLeft: 'clamp',
     extrapolateRight: 'clamp',
+    easing: EASE_EXIT,
   })
+
+  const exitOpacity = 1 - exitP
 
   return (
     <>
+      {/* CLOUD (left) — types in first, then X mark scribbles in next to it */}
       <div
         style={{
           position: 'absolute',
           top: 200,
           left: 0,
           width: '50%',
-          textAlign: 'right',
           paddingRight: 100,
           fontFamily: barlow,
-          fontSize: 96,
-          fontWeight: 700,
-          color: theme.colors.inkMuted,
-          letterSpacing: -3,
-          opacity: cloudReveal * exitOpacity,
-          transform: `translateX(${(1 - cloudReveal) * -32}px)`,
+          opacity: exitOpacity,
+          display: 'flex',
+          justifyContent: 'flex-end',
+          alignItems: 'center',
+          gap: 32,
         }}
       >
-        Cloud
+        <XMark frame={frame} startAt={T.cloudIconStart} size={68} color={theme.colors.bad} />
+        <span
+          style={{
+            fontSize: 96,
+            fontWeight: 700,
+            color: theme.colors.inkMuted,
+            letterSpacing: -3,
+            lineHeight: 1,
+          }}
+        >
+          <Sequence from={T.cloudStart} layout="none">
+            <TypeWriter
+              text="Cloud"
+              typeSpeed={2}
+              cursor={false}
+              style={{ color: theme.colors.inkMuted, fontWeight: 700 }}
+            />
+          </Sequence>
+        </span>
       </div>
+
+      {/* LOCAL (right) — types in second, then check mark scribbles in next to it */}
       <div
         style={{
           position: 'absolute',
           top: 200,
           right: 0,
           width: '50%',
-          textAlign: 'left',
           paddingLeft: 100,
           fontFamily: barlow,
-          fontSize: 96,
-          fontWeight: 900,
-          color: theme.colors.purple,
-          letterSpacing: -3,
-          opacity: localReveal * exitOpacity,
-          transform: `translateX(${(1 - localReveal) * 32}px)`,
+          opacity: exitOpacity,
+          display: 'flex',
+          justifyContent: 'flex-start',
+          alignItems: 'center',
+          gap: 32,
         }}
       >
-        Local
+        <span
+          style={{
+            fontSize: 96,
+            fontWeight: 900,
+            color: theme.colors.purple,
+            letterSpacing: -3,
+            lineHeight: 1,
+          }}
+        >
+          <Sequence from={T.localStart} layout="none">
+            <TypeWriter
+              text="Local"
+              typeSpeed={2}
+              cursor={false}
+              style={{ color: theme.colors.purple, fontWeight: 900 }}
+            />
+          </Sequence>
+        </span>
+        <CheckMark frame={frame} startAt={T.localIconStart} size={68} color={theme.colors.good} />
       </div>
     </>
   )
 }
 
-const ComparisonRows: React.FC<{ frame: number; fps: number }> = ({ frame, fps }) => {
-  const exitOpacity = interpolate(frame, [CRACK_START - 5, CRACK_START + 5], [1, 0], {
+// === Status icons === draw in with SVG stroke animation, slight overshoot
+
+const XMark: React.FC<{ frame: number; startAt: number; size: number; color: string }> = ({
+  frame,
+  startAt,
+  size,
+  color,
+}) => {
+  // Don't render anything before startAt. Prevents stroke-linecap residue showing as dots.
+  if (frame < startAt) return null
+
+  // First diagonal: 0-12 frames. Second diagonal: 8-20 frames (overlapping for energy).
+  const stroke1P = interpolate(frame, [startAt, startAt + 12], [0, 1], {
     extrapolateLeft: 'clamp',
     extrapolateRight: 'clamp',
+    easing: EASE_IMPACT,
+  })
+  const stroke2P = interpolate(frame, [startAt + 8, startAt + 20], [0, 1], {
+    extrapolateLeft: 'clamp',
+    extrapolateRight: 'clamp',
+    easing: EASE_IMPACT,
+  })
+
+  const inset = size * 0.2
+  const a = inset
+  const b = size - inset
+  const lineLen = Math.sqrt(2 * (b - a) ** 2)
+
+  return (
+    <svg width={size} height={size} style={{ overflow: 'visible' }}>
+      <line
+        x1={a}
+        y1={a}
+        x2={b}
+        y2={b}
+        stroke={color}
+        strokeWidth={6}
+        strokeLinecap="round"
+        strokeDasharray={lineLen}
+        strokeDashoffset={lineLen * (1 - stroke1P)}
+      />
+      <line
+        x1={b}
+        y1={a}
+        x2={a}
+        y2={b}
+        stroke={color}
+        strokeWidth={6}
+        strokeLinecap="round"
+        strokeDasharray={lineLen}
+        strokeDashoffset={lineLen * (1 - stroke2P)}
+      />
+    </svg>
+  )
+}
+
+const CheckMark: React.FC<{ frame: number; startAt: number; size: number; color: string }> = ({
+  frame,
+  startAt,
+  size,
+  color,
+}) => {
+  if (frame < startAt) return null
+
+  // Single fluid stroke from low-left to mid-down to upper-right
+  const drawP = interpolate(frame, [startAt, startAt + 16], [0, 1], {
+    extrapolateLeft: 'clamp',
+    extrapolateRight: 'clamp',
+    easing: EASE_IMPACT,
+  })
+
+  const path = `M ${size * 0.18} ${size * 0.52} L ${size * 0.42} ${size * 0.74} L ${size * 0.82} ${size * 0.28}`
+  const { strokeDasharray, strokeDashoffset } = evolvePath(drawP, path)
+
+  return (
+    <svg width={size} height={size} style={{ overflow: 'visible' }}>
+      <path
+        d={path}
+        fill="none"
+        stroke={color}
+        strokeWidth={6}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeDasharray={strokeDasharray}
+        strokeDashoffset={strokeDashoffset}
+      />
+    </svg>
+  )
+}
+
+// === Comparison rows ===
+
+const ROWS = [
+  { left: 'Locked into one model',         right: 'Pick any open model' },
+  { left: 'Your data leaves the box',      right: 'Stays on your hardware' },
+  { left: 'Model can be nerfed overnight', right: 'You own the version forever' },
+  { left: 'No audit trail',                right: 'Every step is evidence' },
+  { left: 'Black-box decisions',           right: 'Built-in explainability' },
+]
+
+const Rows: React.FC<{ frame: number }> = ({ frame }) => {
+  const exitP = interpolate(frame, [T.crackStart - 8, T.crackStart], [0, 1], {
+    extrapolateLeft: 'clamp',
+    extrapolateRight: 'clamp',
+    easing: EASE_EXIT,
   })
 
   return (
     <div
       style={{
         position: 'absolute',
-        top: 380,
+        top: 360,
         left: 0,
         right: 0,
         display: 'flex',
         flexDirection: 'column',
-        gap: 18,
-        opacity: exitOpacity,
+        gap: 22,
+        opacity: 1 - exitP,
+        // Perspective applied at the rows wrapper so each card pair shares the same
+        // vanishing point. preserve-3d lets the cards' rotateY/translateZ compose
+        // with their parent flex layout without flattening.
+        perspective: '1400px',
+        perspectiveOrigin: '50% 50%',
+        transformStyle: 'preserve-3d',
       }}
     >
       {ROWS.map((row, i) => {
-        const startAt = ROWS_START + i * ROW_GAP
-        return (
-          <RowPair
-            key={i}
-            startAt={startAt}
-            left={row.left}
-            right={row.right}
-            frame={frame}
-            fps={fps}
-          />
-        )
+        const startAt = T.rowsStart + i * T.rowDuration
+        return <RowPair key={i} left={row.left} right={row.right} startAt={startAt} frame={frame} />
       })}
     </div>
   )
 }
 
+// Per-row 3D card pair · sequential pacing
+//
+// Beat 1 (0..14): Cloud card rolls in from a steep -85° rotateY, lands at -12°.
+//                 Decelerate easing — neutral, "the setup."
+// Beat 2 (14..46): Read window. Cloud card rests, Local slot empty.
+// Beat 3 (46..60): Local card rolls in from +85° to +12° with overshoot.
+//                  IMPACT easing — satisfying snap, "the answer."
+// Beat 4 (60..74): Both rest before next row begins.
+//
+// Cloud rest pose recedes (rotateY -12°, z -30) and Local rest pose advances
+// (rotateY +12°, z +30) so the pair faces each other across the divider.
+// Red ambient glow on Cloud, green ambient glow on Local.
 const RowPair: React.FC<{
-  startAt: number
   left: string
   right: string
+  startAt: number
   frame: number
-  fps: number
-}> = ({ startAt, left, right, frame, fps }) => {
-  const leftReveal = spring({
-    frame: frame - startAt,
-    fps,
-    config: { damping: 18, mass: 0.6 },
-  })
-  const rightReveal = spring({
-    frame: frame - (startAt + 8),
-    fps,
-    config: { damping: 18, mass: 0.6 },
+}> = ({ left, right, startAt, frame }) => {
+  const cloudEnterP = interpolate(frame, [startAt, startAt + T.rowCloudEnter], [0, 1], {
+    extrapolateLeft: 'clamp',
+    extrapolateRight: 'clamp',
+    easing: EASE_ENTER,
   })
 
+  const localStart = startAt + T.rowCloudEnter + T.rowReadHold
+  const localEnterP = interpolate(frame, [localStart, localStart + T.rowLocalEnter], [0, 1], {
+    extrapolateLeft: 'clamp',
+    extrapolateRight: 'clamp',
+    easing: EASE_IMPACT,
+  })
+
+  // Cloud: roll from rotateY -85°, z -160 (edge-on, far back) to rest at -12°, z -30.
+  const cloudRotY = interpolate(cloudEnterP, [0, 1], [-85, -12])
+  const cloudTz = interpolate(cloudEnterP, [0, 1], [-160, -30])
+  const cloudTx = interpolate(cloudEnterP, [0, 1], [-40, 0])
+
+  // Local: roll from rotateY +85°, z -160 to rest at +12°, z +30 (advancing toward camera).
+  const localRotY = interpolate(localEnterP, [0, 1], [85, 12])
+  const localTz = interpolate(localEnterP, [0, 1], [-160, 30])
+  const localTx = interpolate(localEnterP, [0, 1], [40, 0])
+
+  // Glow strengths track the entrance progress so the ambient color "lights up"
+  // as the card materializes, rather than being on from frame zero.
+  const cloudGlowAlpha = cloudEnterP * 0.22
+  const localGlowAlpha = localEnterP * 0.28
+
   return (
-    <div style={{ display: 'flex', alignItems: 'center', height: 70 }}>
+    <div style={{ display: 'flex', alignItems: 'stretch', minHeight: 76 }}>
+      {/* CLOUD card · left half · red-tinted, recedes */}
       <div
         style={{
           flex: 1,
-          textAlign: 'right',
-          paddingRight: 100,
-          fontFamily: barlow,
-          fontSize: 36,
-          fontWeight: 500,
-          color: theme.colors.inkMuted,
-          letterSpacing: -0.6,
-          opacity: leftReveal,
-          transform: `translateX(${(1 - leftReveal) * -32}px)`,
+          display: 'flex',
+          justifyContent: 'flex-end',
+          paddingRight: 56,
+          transformStyle: 'preserve-3d',
         }}
       >
-        {left}
+        <div
+          style={{
+            minWidth: 460,
+            maxWidth: 560,
+            padding: '18px 30px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            textAlign: 'center',
+            background: 'rgba(26, 22, 20, 0.025)',
+            backdropFilter: 'blur(0.5px)',
+            border: '1px solid rgba(224, 72, 72, 0.22)',
+            borderRadius: 16,
+            fontFamily: barlow,
+            fontSize: 30,
+            fontWeight: 500,
+            color: theme.colors.inkMuted,
+            letterSpacing: -0.4,
+            lineHeight: 1.15,
+            opacity: cloudEnterP,
+            transform: `translate3d(${cloudTx}px, 0, ${cloudTz}px) rotateY(${cloudRotY}deg)`,
+            transformStyle: 'preserve-3d',
+            boxShadow: `-8px 14px 28px rgba(0, 0, 0, 0.05), 0 0 36px rgba(224, 72, 72, ${cloudGlowAlpha})`,
+            willChange: 'transform, opacity',
+          }}
+        >
+          {left}
+        </div>
       </div>
+
+      {/* LOCAL card · right half · green-tinted, advances toward camera */}
       <div
         style={{
           flex: 1,
-          textAlign: 'left',
-          paddingLeft: 100,
-          fontFamily: barlow,
-          fontSize: 36,
-          fontWeight: 700,
-          color: theme.colors.ink,
-          letterSpacing: -0.6,
-          opacity: rightReveal,
-          transform: `translateX(${(1 - rightReveal) * 32}px)`,
+          display: 'flex',
+          justifyContent: 'flex-start',
+          paddingLeft: 56,
+          transformStyle: 'preserve-3d',
         }}
       >
-        {right}
+        <div
+          style={{
+            minWidth: 460,
+            maxWidth: 560,
+            padding: '18px 30px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            textAlign: 'center',
+            background: 'rgba(64, 4, 218, 0.04)',
+            border: '1px solid rgba(31, 167, 96, 0.30)',
+            borderRadius: 16,
+            fontFamily: barlow,
+            fontSize: 30,
+            fontWeight: 700,
+            color: theme.colors.ink,
+            letterSpacing: -0.4,
+            lineHeight: 1.15,
+            opacity: localEnterP,
+            transform: `translate3d(${localTx}px, 0, ${localTz}px) rotateY(${localRotY}deg)`,
+            transformStyle: 'preserve-3d',
+            boxShadow: `8px 14px 30px rgba(64, 4, 218, 0.10), 0 0 40px rgba(31, 167, 96, ${localGlowAlpha})`,
+            willChange: 'transform, opacity',
+          }}
+        >
+          {right}
+        </div>
       </div>
     </div>
   )
 }
 
-// ============================================================
-// Crack overlay
+// ====================================================================
+// Circle reveal · S-curve growth from center
 
-const CrackOverlay: React.FC<{ frame: number; width: number; height: number }> = ({ frame, width, height }) => {
-  if (frame < CRACK_START) return null
+const CircleReveal: React.FC<{ frame: number; width: number; height: number }> = ({ frame, width, height }) => {
+  if (frame < T.crackStart) return null
 
-  // Crack lines emanate from center
   const cx = width / 2
   const cy = height / 2
 
-  // Hand-drawn-ish crack paths with mid-vertices for jaggedness
-  const cracks: { d: string; len: number }[] = [
-    { d: `M ${cx} ${cy} L ${cx - 80} ${cy - 180} L ${cx - 220} ${cy - 360} L ${cx - 280} ${cy - 540}`, len: 600 },
-    { d: `M ${cx} ${cy} L ${cx + 100} ${cy - 160} L ${cx + 240} ${cy - 380} L ${cx + 320} ${cy - 560}`, len: 620 },
-    { d: `M ${cx} ${cy} L ${cx + 180} ${cy + 80} L ${cx + 380} ${cy + 200} L ${cx + 600} ${cy + 280}`, len: 700 },
-    { d: `M ${cx} ${cy} L ${cx - 200} ${cy + 100} L ${cx - 420} ${cy + 240} L ${cx - 640} ${cy + 320}`, len: 720 },
-    { d: `M ${cx} ${cy} L ${cx - 60} ${cy + 200} L ${cx - 140} ${cy + 420} L ${cx - 200} ${cy + 600}`, len: 660 },
-    { d: `M ${cx} ${cy} L ${cx + 80} ${cy + 220} L ${cx + 160} ${cy + 440} L ${cx + 240} ${cy + 600}`, len: 660 },
-    { d: `M ${cx} ${cy} L ${cx + 280} ${cy - 60} L ${cx + 540} ${cy - 120} L ${cx + 800} ${cy - 80}`, len: 880 },
-    { d: `M ${cx} ${cy} L ${cx - 280} ${cy - 60} L ${cx - 540} ${cy - 100} L ${cx - 820} ${cy - 60}`, len: 880 },
-  ]
+  // Maximum radius needed to fully cover the canvas from center.
+  // Use diagonal-from-center plus a 5% safety margin.
+  const maxRadius = Math.sqrt((width / 2) ** 2 + (height / 2) ** 2) * 1.05
 
-  // Cracks draw over 0-15 frames after CRACK_START
-  const drawProgress = interpolate(frame, [CRACK_START, CRACK_START + 15], [0, 1], {
+  // S-curve: accelerate in, decelerate out. Classic editorial sigmoid.
+  const growP = interpolate(frame, [T.crackStart, T.crackEnd], [0, 1], {
     extrapolateLeft: 'clamp',
     extrapolateRight: 'clamp',
+    easing: EASE_EDITORIAL, // bezier(0.45, 0, 0.55, 1)
   })
 
-  // Cracks fade out as we move into the chart territory
-  const fadeOut = interpolate(frame, [CHART_ZOOMED_START, CHART_ZOOMED_START + 30], [1, 0.18], {
-    extrapolateLeft: 'clamp',
-    extrapolateRight: 'clamp',
-  })
-
-  // Flash white at impact moment
-  const flashOpacity = interpolate(frame, [CRACK_START, CRACK_START + 4, CRACK_START + 12], [0, 0.7, 0], {
-    extrapolateLeft: 'clamp',
-    extrapolateRight: 'clamp',
-  })
+  const radius = growP * maxRadius
 
   return (
-    <>
-      {/* Brief white flash at crack moment */}
-      <AbsoluteFill style={{ background: theme.colors.bg, opacity: flashOpacity }} />
-
-      {/* Crack lines */}
-      <svg width={width} height={height} style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
-        {cracks.map((c, i) => (
-          <path
-            key={i}
-            d={c.d}
-            fill="none"
-            stroke={theme.colors.bg}
-            strokeWidth={2}
-            strokeLinecap="round"
-            strokeDasharray={c.len}
-            strokeDashoffset={c.len * (1 - drawProgress)}
-            opacity={fadeOut}
-          />
-        ))}
-        {/* Bright crack center */}
-        <circle cx={cx} cy={cy} r={drawProgress * 18} fill={theme.colors.bg} opacity={fadeOut * 0.4} />
-      </svg>
-    </>
+    <div
+      style={{
+        position: 'absolute',
+        left: cx,
+        top: cy,
+        width: radius * 2,
+        height: radius * 2,
+        transform: 'translate(-50%, -50%)',
+        borderRadius: '50%',
+        background: theme.colors.ink,
+        pointerEvents: 'none',
+      }}
+    />
   )
 }
 
-// ============================================================
-// Black world chart sequence
+// ====================================================================
+// Chart scene (black world)
 
-const BlackChartSequence: React.FC<{ frame: number; fps: number; width: number; height: number }> = ({
-  frame,
-  fps,
-  width,
-  height,
-}) => {
-  // Camera zoom + translate state through the chart timeline
-  // Phase A (310-340): zoomed in tight on month 1, hardware spike visible
-  // Phase B (340-410): pull back, lines extend, months reveal
-  // Phase C (410-450): camera tries to keep up, cloud line escapes off top
+const ChartScene: React.FC<{ frame: number; width: number; height: number }> = ({ frame, width, height }) => {
+  // === Camera state via single normalized progresses ===
 
-  // Chart geometry in unzoomed world coordinates
-  const chartLeft = 200
-  const chartRight = 1700
-  const chartBottom = 880
-  const chartTop = 200
-  const chartW = chartRight - chartLeft
-  const chartH = chartBottom - chartTop
+  // Phase A: zoomed in tight on month 0-1 (showing local hardware spike)
+  // Phase B: pull back to show full chart
+  // Phase C: extend axis, cloud line shoots off-frame
 
-  const monthsTotal = 12
-  // Local: hardware spike at month 0 ($3000), then $0/mo onward
-  // Cloud: starts $200, climbs steeply
-  const localCosts = [3000, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-  const cloudCosts = [200, 280, 380, 520, 720, 980, 1280, 1620, 1980, 2200, 2350, 2400]
-  const yMaxNormal = 3500
-  const yMaxStretch = 8000 // when cloud climbs off-screen, expand virtual y axis
-
-  // Determine virtual y max based on phase
-  // Up to frame 410, use yMaxNormal so lines fit comfortably.
-  // After 410, force the cloud cost to render as if line continues climbing past its actual data,
-  // so we can have it shoot off-screen.
-
-  const phaseAProgress = interpolate(frame, [CHART_ZOOMED_START, CHART_PULLBACK_START], [0, 1], {
+  const phaseAP = interpolate(frame, [T.chartCameraInStart, T.chartCameraInEnd], [0, 1], {
     extrapolateLeft: 'clamp',
     extrapolateRight: 'clamp',
+    easing: EASE_ENTER,
   })
-  const phaseBProgress = interpolate(frame, [CHART_PULLBACK_START, CHART_OFF_FRAME_START], [0, 1], {
+  const phaseBP = interpolate(frame, [T.chartPullbackStart, T.chartPullbackEnd], [0, 1], {
     extrapolateLeft: 'clamp',
     extrapolateRight: 'clamp',
+    easing: EASE_EDITORIAL,
   })
-  const phaseCProgress = interpolate(frame, [CHART_OFF_FRAME_START, CHART_OFF_FRAME_START + 40], [0, 1], {
+  const phaseCP = interpolate(frame, [T.chartEscapeStart, T.chartEscapeEnd], [0, 1], {
     extrapolateLeft: 'clamp',
     extrapolateRight: 'clamp',
+    easing: EASE_EDITORIAL,
   })
 
-  // Camera scale + translate in CSS units
-  // Phase A: scale 2.5, focused on left edge of chart (months 1-2 visible)
-  // Phase B: scale 1.0, full chart visible
-  // Phase C: scale 0.8, even wider, then in late C the line extends past frame
-  const camScale = interpolate(
-    frame,
-    [CHART_ZOOMED_START, CHART_PULLBACK_START, CHART_OFF_FRAME_START, CHART_OFF_FRAME_START + 30],
-    [2.5, 1.0, 0.85, 0.85],
-    { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' }
-  )
-  // Origin shifts from left-edge-focused to center
-  const camOriginX = interpolate(
-    frame,
-    [CHART_ZOOMED_START, CHART_PULLBACK_START],
-    [chartLeft + 100, chartLeft + chartW / 2],
-    { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' }
-  )
-  const camOriginY = chartBottom - 100
+  // Camera scale: 1.7x (zoomed in tight enough to see the spike + baseline) → 1.0x → 0.85x.
+  // 2.4x was too tight and clipped both the hardware spike and the cloud baseline.
+  const camScale =
+    1.7 + (1.0 - 1.7) * phaseBP + (0.85 - 1.0) * phaseCP
 
-  // Determine y mapping. Use stretchY when cloud is climbing past frame.
-  const stretchProgress = phaseCProgress
-  const effectiveYMax = interpolate(stretchProgress, [0, 1], [yMaxNormal, yMaxStretch])
-  const yAt = (cost: number) => chartBottom - (cost / effectiveYMax) * chartH
+  // Camera focus.
+  // Phase A: focused at month 0 area (x=300), midpoint between hardware spike (y≈314) and zero baseline (y=880).
+  //          Midpoint = 597, which keeps both the spike and the flat zero in frame at 1.7x.
+  // Phase B: pans to the chart center horizontally, vertical center.
+  const camFocusX = 300 + (CHART_W / 2 + CHART.left - 300) * phaseBP
+  const camFocusY = 600 + (CHART.top + CHART_H / 2 - 600) * phaseBP
 
-  // How many months are revealed at the current frame
-  // Phase A: 1-2 months
-  // Phase B: ramps from 2 to 12
-  // Phase C: cloud line continues to extrapolate beyond month 12 (visually goes up off-screen)
+  // Months revealed (1.5 in phase A, ramping up to 12 in phase B)
   const monthsRevealed = interpolate(
-    frame,
-    [CHART_ZOOMED_START, CHART_ZOOMED_START + 20, CHART_PULLBACK_START, CHART_OFF_FRAME_START],
-    [0, 2, 12, 12],
+    phaseAP * 0.3 + phaseBP * 0.7,
+    [0, 1],
+    [1.5, 12],
     { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' }
   )
 
-  // For Phase C: extrapolate cloud cost past month 12 to drive it off the top of the frame
-  // Cloud at month 12 is 2400. Extrapolate to a cost that would render way off-screen.
-  // We append a synthetic point at "month 13" with cost = effectiveYMax * 2 to force the line off-frame.
-  // Actually simpler: in phase C, virtual chart "y axis" expands so the same $2400 looks lower,
-  // and we draw an additional fake point that climbs off the top.
+  // === Chart paths ===
 
-  // Build paths
-  const xAt = (i: number) => chartLeft + (i / (monthsTotal - 1)) * chartW
+  const xAt = (i: number) => CHART.left + (i / (CHART.monthsTotal - 1)) * CHART_W
+  // Y-axis stretches in phase C so the cloud line continues climbing past frame
+  const yMaxEffective = Y_NORMAL + phaseCP * 6500
+  const yAt = (cost: number) => CHART.bottom - (cost / yMaxEffective) * CHART_H
 
-  // Local path: hardware spike at month 0, then flat at $0
-  const localFlat = (() => {
-    const points: string[] = []
-    points.push(`M ${xAt(0)} ${yAt(localCosts[0])}`)
-    for (let i = 1; i < monthsTotal; i++) {
-      points.push(`L ${xAt(i)} ${yAt(localCosts[i])}`)
+  // Local: step chart. One-time hardware payment at month 0, then flat at $0 forever.
+  // Drawing this as a vertical drop at month 0 (not a diagonal) so the viewer reads it as
+  // "instant payment, then nothing" rather than "gradual cost decrease over the first month."
+  const localPath =
+    `M ${xAt(0)} ${yAt(3000)} ` +              // top of spike at month 0
+    `L ${xAt(0)} ${yAt(0)} ` +                  // vertical drop to baseline
+    `L ${xAt(CHART.monthsTotal - 1)} ${yAt(0)}` // flat to end of timeline
+
+  // Cloud: progressively reveal months, then in phase C extend off the top
+  const cloudPath = (() => {
+    const pts: string[] = [`M ${xAt(0)} ${yAt(CLOUD_COSTS[0])}`]
+    const intMonth = Math.floor(monthsRevealed)
+    const frac = monthsRevealed - intMonth
+
+    for (let i = 1; i <= Math.min(intMonth, CHART.monthsTotal - 1); i++) {
+      pts.push(`L ${xAt(i)} ${yAt(CLOUD_COSTS[i])}`)
     }
-    return points.join(' ')
+    if (frac > 0 && intMonth < CHART.monthsTotal - 1) {
+      const x = xAt(intMonth) + (xAt(intMonth + 1) - xAt(intMonth)) * frac
+      const y = yAt(CLOUD_COSTS[intMonth] + (CLOUD_COSTS[intMonth + 1] - CLOUD_COSTS[intMonth]) * frac)
+      pts.push(`L ${x} ${y}`)
+    }
+    // Phase C: extend cloud line up and to the right, off-screen
+    if (phaseCP > 0) {
+      const escapeX = xAt(CHART.monthsTotal - 1) + phaseCP * 80
+      const escapeY = yAt(CLOUD_COSTS[CHART.monthsTotal - 1]) - phaseCP * (CHART_H * 1.1)
+      pts.push(`L ${escapeX} ${escapeY}`)
+    }
+    return pts.join(' ')
   })()
 
-  // Cloud path. In phase C, append a synthetic point that escapes the frame.
-  const cloudPathBuilder = () => {
-    const points: string[] = []
-    points.push(`M ${xAt(0)} ${yAt(cloudCosts[0])}`)
-    const intMonths = Math.floor(monthsRevealed)
-    const frac = monthsRevealed - intMonths
-    for (let i = 1; i <= Math.min(intMonths, monthsTotal - 1); i++) {
-      points.push(`L ${xAt(i)} ${yAt(cloudCosts[i])}`)
-    }
-    if (frac > 0 && intMonths < monthsTotal - 1) {
-      const i = intMonths
-      const x = xAt(i) + (xAt(i + 1) - xAt(i)) * frac
-      const y = yAt(cloudCosts[i] + (cloudCosts[i + 1] - cloudCosts[i]) * frac)
-      points.push(`L ${x} ${y}`)
-    }
-    // Phase C: extend beyond the chart with an off-frame escape
-    if (phaseCProgress > 0) {
-      const escapeY = yAt(cloudCosts[monthsTotal - 1]) - phaseCProgress * (chartH * 1.2)
-      const escapeX = xAt(monthsTotal - 1) + phaseCProgress * 80
-      points.push(`L ${escapeX} ${escapeY}`)
-    }
-    return points.join(' ')
-  }
-  const cloudPath = cloudPathBuilder()
+  // === Camera transform math ===
 
-  // Camera transform
-  const camTx = (width / 2 - camOriginX) * (1 - 1 / camScale) * camScale
-  const camTy = (height / 2 - camOriginY) * (1 - 1 / camScale) * camScale
+  // We want camFocusX,Y to be at the center of the screen at the given camScale.
+  // transform-origin = top-left, so:
+  //   screenX = origX * camScale + camTx
+  // We want for the focus point: width/2 = camFocusX * camScale + camTx
+  const camTx = width / 2 - camFocusX * camScale
+  const camTy = height / 2 - camFocusY * camScale
 
   return (
     <AbsoluteFill style={{ pointerEvents: 'none' }}>
-      {/* Subtle grid (visible in black world) */}
+      {/* Subtle dark grid */}
       <div
         style={{
           position: 'absolute',
@@ -551,181 +734,188 @@ const BlackChartSequence: React.FC<{ frame: number; fps: number; width: number; 
       />
 
       {/* Chart group with camera transform */}
-      <div
+      <svg
+        width={width}
+        height={height}
         style={{
           position: 'absolute',
           inset: 0,
-          transform: `scale(${camScale}) translate(${camTx / camScale}px, ${camTy / camScale}px)`,
+          overflow: 'visible',
+          transform: `translate(${camTx}px, ${camTy}px) scale(${camScale})`,
           transformOrigin: '0 0',
         }}
       >
-        <svg width={width} height={height} style={{ position: 'absolute', inset: 0, overflow: 'visible' }}>
-          {/* Baseline */}
-          <line
-            x1={chartLeft}
-            y1={chartBottom}
-            x2={chartRight}
-            y2={chartBottom}
-            stroke="rgba(254, 252, 253, 0.18)"
-            strokeWidth={1}
-          />
+        {/* Baseline */}
+        <line
+          x1={CHART.left}
+          y1={CHART.bottom}
+          x2={CHART.right}
+          y2={CHART.bottom}
+          stroke="rgba(254, 252, 253, 0.18)"
+          strokeWidth={1}
+        />
 
-          {/* Local cost line */}
-          <path
-            d={localFlat}
-            fill="none"
-            stroke={theme.colors.purple}
-            strokeWidth={5}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            style={{ filter: `drop-shadow(0 0 12px ${theme.colors.purpleEdge})` }}
-          />
+        {/* Local cost line */}
+        <path
+          d={localPath}
+          fill="none"
+          stroke={theme.colors.purple}
+          strokeWidth={5}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          style={{ filter: `drop-shadow(0 0 12px ${theme.colors.purpleEdge})` }}
+        />
 
-          {/* Cloud cost line */}
-          <path
-            d={cloudPath}
-            fill="none"
-            stroke={theme.colors.orange}
-            strokeWidth={5}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            style={{ filter: `drop-shadow(0 0 18px ${theme.colors.orangeEdge})` }}
-          />
+        {/* Cloud area glow under the line */}
+        <path
+          d={`${cloudPath} L ${xAt(CHART.monthsTotal - 1)} ${CHART.bottom} L ${xAt(0)} ${CHART.bottom} Z`}
+          fill={theme.colors.orange}
+          opacity={0.1}
+        />
 
-          {/* Cloud area glow */}
-          <path
-            d={`${cloudPath} L ${xAt(monthsTotal - 1)} ${chartBottom} L ${xAt(0)} ${chartBottom} Z`}
+        {/* Cloud cost line */}
+        <path
+          d={cloudPath}
+          fill="none"
+          stroke={theme.colors.orange}
+          strokeWidth={5}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          style={{ filter: `drop-shadow(0 0 18px ${theme.colors.orangeEdge})` }}
+        />
+
+        {/* Endpoint markers */}
+        <circle
+          cx={xAt(0)}
+          cy={yAt(LOCAL_COSTS[0])}
+          r={9}
+          fill={theme.colors.purple}
+          stroke={theme.colors.ink}
+          strokeWidth={3}
+          opacity={interpolate(frame, [T.chartCameraInStart + 8, T.chartCameraInStart + 18], [0, 1], {
+            extrapolateLeft: 'clamp',
+            extrapolateRight: 'clamp',
+          })}
+        />
+        {monthsRevealed >= CHART.monthsTotal - 0.1 && (
+          <circle
+            cx={xAt(CHART.monthsTotal - 1) + (phaseCP > 0 ? phaseCP * 80 : 0)}
+            cy={yAt(CLOUD_COSTS[CHART.monthsTotal - 1]) - (phaseCP > 0 ? phaseCP * CHART_H * 1.1 : 0)}
+            r={9}
             fill={theme.colors.orange}
-            opacity={0.1}
+            stroke={theme.colors.ink}
+            strokeWidth={3}
           />
-        </svg>
-      </div>
+        )}
+      </svg>
 
-      {/* Local hardware label, appears in phase A */}
+      {/* Hardware spike label · phase A · AnimatedCounter rolls 0 → 3000 */}
       <ChartLabel
-        x={xAt(0)}
-        y={yAt(localCosts[0])}
+        sourceX={xAt(0)}
+        sourceY={yAt(LOCAL_COSTS[0])}
         camScale={camScale}
         camTx={camTx}
         camTy={camTy}
-        text="$3,000"
+        offsetX={32}
+        offsetY={-60}
+        opacity={interpolate(frame, [T.chartCameraInStart + 14, T.chartCameraInStart + 30], [0, 1], {
+          extrapolateLeft: 'clamp',
+          extrapolateRight: 'clamp',
+          easing: EASE_ENTER,
+        }) * (1 - interpolate(frame, [T.chartEscapeStart, T.chartEscapeStart + 20], [0, 1], {
+          extrapolateLeft: 'clamp',
+          extrapolateRight: 'clamp',
+        }))}
         sub="hardware · paid once"
         color={theme.colors.purple}
-        opacity={interpolate(frame, [CHART_ZOOMED_START + 8, CHART_ZOOMED_START + 22], [0, 1], {
-          extrapolateLeft: 'clamp',
-          extrapolateRight: 'clamp',
-        })}
-      />
+      >
+        <AnimatedCounter
+          transition={{
+            values: [0, 3000],
+            duration: 24,
+            delay: T.chartCameraInStart + 14,
+          }}
+          prefix="$"
+        />
+      </ChartLabel>
 
-      {/* Cloud running cost label, appears in phase B */}
+      {/* Cloud running cost label · phase B · AnimatedCounter rolls 0 → 2400 */}
       <ChartLabel
-        x={xAt(monthsTotal - 1)}
-        y={yAt(cloudCosts[monthsTotal - 1])}
+        sourceX={xAt(CHART.monthsTotal - 1) + phaseCP * 80}
+        sourceY={yAt(CLOUD_COSTS[CHART.monthsTotal - 1]) - phaseCP * CHART_H * 1.1}
         camScale={camScale}
         camTx={camTx}
         camTy={camTy}
-        text="$2,400/mo"
-        sub="and counting..."
-        color={theme.colors.orange}
-        opacity={interpolate(frame, [CHART_PULLBACK_START + 30, CHART_PULLBACK_START + 50], [0, 1], {
+        offsetX={32}
+        offsetY={-60}
+        opacity={interpolate(frame, [T.chartPullbackStart + 20, T.chartPullbackEnd], [0, 1], {
           extrapolateLeft: 'clamp',
           extrapolateRight: 'clamp',
+          easing: EASE_ENTER,
         })}
-        // Slide up with the line in phase C
-        offsetY={phaseCProgress > 0 ? -phaseCProgress * (chartH * 1.0) : 0}
-      />
-
-      {/* Off-frame indicator: arrow pointing up at the top edge */}
-      {phaseCProgress > 0.4 && (
-        <div
-          style={{
-            position: 'absolute',
-            top: 60,
-            right: 200,
-            fontFamily: barlow,
-            fontSize: 28,
-            fontWeight: 700,
-            color: theme.colors.orange,
-            opacity: interpolate(phaseCProgress, [0.4, 0.7], [0, 1], {
-              extrapolateLeft: 'clamp',
-              extrapolateRight: 'clamp',
-            }),
-            transform: `translateY(${interpolate(phaseCProgress, [0.4, 0.7], [12, 0], {
-              extrapolateLeft: 'clamp',
-              extrapolateRight: 'clamp',
-            })}px)`,
-            display: 'flex',
-            alignItems: 'center',
-            gap: 8,
+        sub="and counting..."
+        color={theme.colors.orange}
+      >
+        <AnimatedCounter
+          transition={{
+            values: [0, 2400],
+            duration: 36,
+            delay: T.chartPullbackStart + 20,
           }}
-        >
-          <span style={{ fontSize: 36, fontWeight: 900 }}>↑</span>
-          <span>still climbing</span>
-        </div>
-      )}
+          prefix="$"
+          postfix="/mo"
+        />
+      </ChartLabel>
 
-      {/* Local label "still $0/mo" stays at bottom */}
-      {phaseCProgress > 0.5 && (
-        <div
-          style={{
-            position: 'absolute',
-            bottom: 100,
-            right: 200,
-            fontFamily: barlow,
-            color: theme.colors.purple,
-            textAlign: 'right',
-            opacity: interpolate(phaseCProgress, [0.5, 0.8], [0, 1], {
-              extrapolateLeft: 'clamp',
-              extrapolateRight: 'clamp',
-            }),
-          }}
-        >
-          <div style={{ fontSize: 32, fontWeight: 900, letterSpacing: -1, lineHeight: 1 }}>$0/mo</div>
-          <div
-            style={{
-              fontSize: 13,
-              color: 'rgba(254, 252, 253, 0.6)',
-              letterSpacing: 1.5,
-              textTransform: 'uppercase',
-              marginTop: 4,
-              fontWeight: 600,
-            }}
-          >
-            local · still flat
-          </div>
-        </div>
-      )}
+      {/* Off-frame indicator · phase C */}
+      <OffFrameIndicator phaseCP={phaseCP} />
+
+      {/* Final "still $0/mo" stamp · phase C */}
+      <FinalLocalStamp phaseCP={phaseCP} />
     </AbsoluteFill>
   )
 }
 
+// === Chart label ===
+
 const ChartLabel: React.FC<{
-  x: number
-  y: number
+  sourceX: number
+  sourceY: number
   camScale: number
   camTx: number
   camTy: number
-  text: string
+  offsetX: number
+  offsetY: number
+  opacity: number
   sub: string
   color: string
-  opacity: number
-  offsetY?: number
-}> = ({ x, y, camScale, camTx, camTy, text, sub, color, opacity, offsetY = 0 }) => {
-  // Project chart-space coords to screen coords
-  const screenX = x * camScale + camTx
-  const screenY = (y + offsetY) * camScale + camTy
+  children: React.ReactNode
+}> = ({ sourceX, sourceY, camScale, camTx, camTy, offsetX, offsetY, opacity, sub, color, children }) => {
+  // Project chart-space to screen-space
+  const screenX = sourceX * camScale + camTx
+  const screenY = sourceY * camScale + camTy
 
   return (
     <div
       style={{
         position: 'absolute',
-        top: screenY - 60,
-        left: screenX + 24,
+        top: screenY + offsetY,
+        left: screenX + offsetX,
         opacity,
         fontFamily: barlow,
       }}
     >
-      <div style={{ fontSize: 36, fontWeight: 900, color, letterSpacing: -1, lineHeight: 1 }}>{text}</div>
+      <div
+        style={{
+          fontSize: 40,
+          fontWeight: 900,
+          color,
+          letterSpacing: -1.4,
+          lineHeight: 1,
+        }}
+      >
+        {children}
+      </div>
       <div
         style={{
           fontSize: 13,
@@ -737,6 +927,82 @@ const ChartLabel: React.FC<{
         }}
       >
         {sub}
+      </div>
+    </div>
+  )
+}
+
+const OffFrameIndicator: React.FC<{ phaseCP: number }> = ({ phaseCP }) => {
+  if (phaseCP < 0.3) return null
+
+  const opacity = interpolate(phaseCP, [0.3, 0.6], [0, 1], {
+    extrapolateLeft: 'clamp',
+    extrapolateRight: 'clamp',
+    easing: EASE_ENTER,
+  })
+  const ty = interpolate(phaseCP, [0.3, 0.6], [16, 0], {
+    extrapolateLeft: 'clamp',
+    extrapolateRight: 'clamp',
+    easing: EASE_ENTER,
+  })
+
+  return (
+    <div
+      style={{
+        position: 'absolute',
+        top: 70,
+        right: 200,
+        fontFamily: barlow,
+        fontSize: 28,
+        fontWeight: 700,
+        color: theme.colors.orange,
+        opacity,
+        transform: `translateY(${ty}px)`,
+        display: 'flex',
+        alignItems: 'center',
+        gap: 12,
+      }}
+    >
+      <span style={{ fontSize: 40, fontWeight: 900, lineHeight: 1 }}>↑</span>
+      <span>still climbing</span>
+    </div>
+  )
+}
+
+const FinalLocalStamp: React.FC<{ phaseCP: number }> = ({ phaseCP }) => {
+  if (phaseCP < 0.5) return null
+
+  const opacity = interpolate(phaseCP, [0.5, 0.8], [0, 1], {
+    extrapolateLeft: 'clamp',
+    extrapolateRight: 'clamp',
+    easing: EASE_ENTER,
+  })
+
+  return (
+    <div
+      style={{
+        position: 'absolute',
+        bottom: 100,
+        right: 200,
+        fontFamily: barlow,
+        textAlign: 'right',
+        opacity,
+      }}
+    >
+      <div style={{ fontSize: 32, fontWeight: 900, color: theme.colors.purple, letterSpacing: -1, lineHeight: 1 }}>
+        $0/mo
+      </div>
+      <div
+        style={{
+          fontSize: 13,
+          color: 'rgba(254, 252, 253, 0.6)',
+          letterSpacing: 1.5,
+          textTransform: 'uppercase',
+          marginTop: 6,
+          fontWeight: 600,
+        }}
+      >
+        local · still flat
       </div>
     </div>
   )

@@ -1,5 +1,7 @@
-import { AbsoluteFill, useCurrentFrame, interpolate, spring, useVideoConfig } from 'remotion'
+import { AbsoluteFill, useCurrentFrame, spring, useVideoConfig } from 'remotion'
 import { AnimatedCounter, AnimatedText } from 'remotion-bits'
+import { z } from 'zod'
+import { zColor } from '@remotion/zod-types'
 import { theme } from '../theme'
 import { WorkflowNode } from '../components/WorkflowNode'
 import { AnimatedEdge } from '../components/AnimatedEdge'
@@ -21,7 +23,31 @@ const EDGES = [
   { from: 'llm',     to: 'output', startAt: 92 },
 ]
 
-export const WorkflowScene: React.FC = () => {
+export const workflowSceneSchema = z.object({
+  titleLead: z.string(),
+  titleAccent: z.string(),
+  totalNodes: z.number().int().min(0).max(999),
+  caption: z.string(),
+  accentColor: zColor(),
+  primaryColor: zColor(),
+})
+
+export type WorkflowSceneProps = z.infer<typeof workflowSceneSchema>
+
+export const workflowSceneDefaults: WorkflowSceneProps = {
+  titleLead: 'Drag. Connect. Run —',
+  titleAccent: 'on your own machine.',
+  totalNodes: 38,
+  caption: 'nodes · GDPR · HIPAA · EU AI Act · DORA',
+  accentColor: theme.colors.orange,
+  primaryColor: theme.colors.purple,
+}
+
+export const WorkflowScene: React.FC<Partial<WorkflowSceneProps>> = (props) => {
+  const { titleLead, titleAccent, totalNodes, caption, accentColor, primaryColor } = {
+    ...workflowSceneDefaults,
+    ...props,
+  }
   const frame = useCurrentFrame()
   const { fps } = useVideoConfig()
 
@@ -41,7 +67,6 @@ export const WorkflowScene: React.FC = () => {
         color: theme.colors.ink,
       }}
     >
-      {/* Title — split into two AnimatedText pieces (avoids JSX-children stringify bug) */}
       <div
         style={{
           position: 'absolute',
@@ -68,9 +93,9 @@ export const WorkflowScene: React.FC = () => {
             duration: 18,
           }}
         >
-          Drag. Connect. Run —
+          {titleLead}
         </AnimatedText>
-        <span style={{ color: theme.colors.orange }}>
+        <span style={{ color: accentColor }}>
           <AnimatedText
             transition={{
               split: 'word',
@@ -81,12 +106,11 @@ export const WorkflowScene: React.FC = () => {
               delay: 12,
             }}
           >
-            on your own machine.
+            {titleAccent}
           </AnimatedText>
         </span>
       </div>
 
-      {/* Subtle grid — quiet on light bg */}
       <svg style={{ position: 'absolute', inset: 0 }}>
         <defs>
           <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
@@ -110,7 +134,7 @@ export const WorkflowScene: React.FC = () => {
             from={{ x: f.x, y: f.y }}
             to={{ x: t.x, y: t.y }}
             startAt={e.startAt}
-            color={theme.colors.purple}
+            color={primaryColor}
           />
         )
       })}
@@ -129,7 +153,6 @@ export const WorkflowScene: React.FC = () => {
         />
       ))}
 
-      {/* Animated counter caption */}
       <div
         style={{
           position: 'absolute',
@@ -154,19 +177,19 @@ export const WorkflowScene: React.FC = () => {
             fontFamily: theme.fonts.heading,
             fontSize: 36,
             fontWeight: 700,
-            color: theme.colors.orange,
+            color: accentColor,
           }}
         >
           <AnimatedCounter
             transition={{
-              values: [0, 38],
+              values: [0, totalNodes],
               duration: 36,
               delay: 130,
               easing: 'easeOutCubic',
             }}
           />
         </span>
-        <span>nodes · GDPR · HIPAA · EU AI Act · DORA</span>
+        <span>{caption}</span>
       </div>
     </AbsoluteFill>
   )

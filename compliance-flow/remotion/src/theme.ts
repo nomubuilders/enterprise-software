@@ -26,6 +26,12 @@ export const theme = {
     tealSoft: 'rgba(8, 145, 178, 0.12)',
     tealEdge: 'rgba(8, 145, 178, 0.4)',
 
+    // Semantic accents · for status icons (X / check / warning)
+    bad: '#E04848',         // red · for X marks, error states
+    badSoft: 'rgba(224, 72, 72, 0.12)',
+    good: '#1FA760',        // green · for check marks, confirmed states
+    goodSoft: 'rgba(31, 167, 96, 0.12)',
+
     // Legacy aliases (backwards-compat for components that reference them)
     offWhite: '#FEFCFD',
     darkGray: '#36312E',

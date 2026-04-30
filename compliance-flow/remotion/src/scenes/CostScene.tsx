@@ -1,12 +1,13 @@
 import { AbsoluteFill, useCurrentFrame, interpolate, spring, useVideoConfig } from 'remotion'
 import { AnimatedText } from 'remotion-bits'
+import { z } from 'zod'
+import { zColor } from '@remotion/zod-types'
 import { theme } from '../theme'
 
 // 12 months of monthly bills. Cloud climbs as usage scales + price hikes.
 // Local stays at $0/month after initial hardware purchase (one-time).
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 const CLOUD_COSTS = [200, 280, 380, 520, 720, 980, 1280, 1620, 1980, 2200, 2350, 2400]
-const LOCAL_COSTS = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 const Y_MAX = 2500
 
 // Chart geometry
@@ -28,7 +29,6 @@ const cloudArea = `${cloudPath} L ${xAt(MONTHS.length - 1)} ${yAt(0)} L ${xAt(0)
 
 const localPath = `M ${xAt(0)} ${yAt(0)} L ${xAt(MONTHS.length - 1)} ${yAt(0)}`
 
-// Approximate path length for stroke-dash animation
 const approxLength = (() => {
   let total = 0
   for (let i = 1; i < CLOUD_COSTS.length; i++) {
@@ -40,11 +40,48 @@ const approxLength = (() => {
 })()
 const LOCAL_LENGTH = CHART_W
 
-export const CostScene: React.FC = () => {
+export const costSceneSchema = z.object({
+  titleLead: z.string(),
+  titleAccent: z.string(),
+  subtitle: z.string(),
+  cloudFinalValue: z.string(),
+  cloudLabel: z.string(),
+  localFinalValue: z.string(),
+  localLabel: z.string(),
+  accentColor: zColor(),
+  primaryColor: zColor(),
+})
+
+export type CostSceneProps = z.infer<typeof costSceneSchema>
+
+export const costSceneDefaults: CostSceneProps = {
+  titleLead: 'And every month',
+  titleAccent: 'the bill grows.',
+  subtitle: 'Monthly cost (USD) · 12 months',
+  cloudFinalValue: '$2,400/mo',
+  cloudLabel: 'Cloud LLM · still rising',
+  localFinalValue: '$0/mo',
+  localLabel: 'Local · hardware paid once',
+  accentColor: theme.colors.orange,
+  primaryColor: theme.colors.purple,
+}
+
+export const CostScene: React.FC<Partial<CostSceneProps>> = (props) => {
+  const {
+    titleLead,
+    titleAccent,
+    subtitle,
+    cloudFinalValue,
+    cloudLabel,
+    localFinalValue,
+    localLabel,
+    accentColor,
+    primaryColor,
+  } = { ...costSceneDefaults, ...props }
+
   const frame = useCurrentFrame()
   const { fps } = useVideoConfig()
 
-  // Cloud line draws from frame 30 to 130
   const cloudDraw = interpolate(frame, [30, 130], [0, 1], {
     extrapolateLeft: 'clamp',
     extrapolateRight: 'clamp',
@@ -54,13 +91,11 @@ export const CostScene: React.FC = () => {
     extrapolateRight: 'clamp',
   })
 
-  // Local line draws from frame 60 to 110 (faster — it's just a flat line)
   const localDraw = interpolate(frame, [60, 110], [0, 1], {
     extrapolateLeft: 'clamp',
     extrapolateRight: 'clamp',
   })
 
-  // Final-state callouts
   const cloudCalloutSpring = spring({
     frame: frame - 130,
     fps,
@@ -72,7 +107,6 @@ export const CostScene: React.FC = () => {
     config: { damping: 14, mass: 0.6 },
   })
 
-  // Exit fade
   const exitOpacity = interpolate(frame, [156, 180], [1, 0], {
     extrapolateLeft: 'clamp',
     extrapolateRight: 'clamp',
@@ -114,9 +148,9 @@ export const CostScene: React.FC = () => {
             duration: 18,
           }}
         >
-          And every month
+          {titleLead}
         </AnimatedText>
-        <span style={{ color: theme.colors.orange }}>
+        <span style={{ color: accentColor }}>
           <AnimatedText
             transition={{
               split: 'word',
@@ -127,7 +161,7 @@ export const CostScene: React.FC = () => {
               delay: 8,
             }}
           >
-            the bill grows.
+            {titleAccent}
           </AnimatedText>
         </span>
       </div>
@@ -151,12 +185,11 @@ export const CostScene: React.FC = () => {
           }),
         }}
       >
-        Monthly cost (USD) · 12 months
+        {subtitle}
       </div>
 
       {/* SVG chart */}
       <svg width={1920} height={1080} style={{ position: 'absolute', inset: 0 }}>
-        {/* Y-axis grid lines */}
         {[0, 500, 1000, 1500, 2000, 2500].map((tick) => {
           const y = yAt(tick)
           const tickOpacity = interpolate(frame, [10, 30], [0, 1], {
@@ -190,7 +223,6 @@ export const CostScene: React.FC = () => {
           )
         })}
 
-        {/* X-axis month labels (every other month for clarity) */}
         {MONTHS.map((m, i) => {
           if (i % 2 !== 0 && i !== MONTHS.length - 1) return null
           const labelOpacity = interpolate(frame, [15, 35], [0, 1], {
@@ -216,18 +248,12 @@ export const CostScene: React.FC = () => {
           )
         })}
 
-        {/* Cloud area fill (the growing money pile) */}
-        <path
-          d={cloudArea}
-          fill={theme.colors.orange}
-          opacity={cloudFill}
-        />
+        <path d={cloudArea} fill={accentColor} opacity={cloudFill} />
 
-        {/* Cloud cost line */}
         <path
           d={cloudPath}
           fill="none"
-          stroke={theme.colors.orange}
+          stroke={accentColor}
           strokeWidth={5}
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -236,23 +262,21 @@ export const CostScene: React.FC = () => {
           style={{ filter: `drop-shadow(0 4px 12px ${theme.colors.orangeEdge})` }}
         />
 
-        {/* Local cost line (flat at $0) */}
         <path
           d={localPath}
           fill="none"
-          stroke={theme.colors.purple}
+          stroke={primaryColor}
           strokeWidth={5}
           strokeLinecap="round"
           strokeDasharray={LOCAL_LENGTH}
           strokeDashoffset={LOCAL_LENGTH * (1 - localDraw)}
         />
 
-        {/* Endpoint dots */}
         <circle
           cx={xAt(MONTHS.length - 1)}
           cy={yAt(CLOUD_COSTS[CLOUD_COSTS.length - 1])}
           r={cloudDraw >= 1 ? 9 : 0}
-          fill={theme.colors.orange}
+          fill={accentColor}
           stroke={theme.colors.bg}
           strokeWidth={3}
         />
@@ -260,7 +284,7 @@ export const CostScene: React.FC = () => {
           cx={xAt(MONTHS.length - 1)}
           cy={yAt(0)}
           r={localDraw >= 1 ? 9 : 0}
-          fill={theme.colors.purple}
+          fill={primaryColor}
           stroke={theme.colors.bg}
           strokeWidth={3}
         />
@@ -283,11 +307,11 @@ export const CostScene: React.FC = () => {
           style={{
             fontSize: 38,
             fontWeight: 700,
-            color: theme.colors.orange,
+            color: accentColor,
             letterSpacing: -1,
           }}
         >
-          $2,400/mo
+          {cloudFinalValue}
         </div>
         <div
           style={{
@@ -299,7 +323,7 @@ export const CostScene: React.FC = () => {
             marginTop: 2,
           }}
         >
-          Cloud LLM · still rising
+          {cloudLabel}
         </div>
       </div>
 
@@ -320,11 +344,11 @@ export const CostScene: React.FC = () => {
           style={{
             fontSize: 38,
             fontWeight: 700,
-            color: theme.colors.purple,
+            color: primaryColor,
             letterSpacing: -1,
           }}
         >
-          $0/mo
+          {localFinalValue}
         </div>
         <div
           style={{
@@ -336,7 +360,7 @@ export const CostScene: React.FC = () => {
             marginTop: 2,
           }}
         >
-          Local · hardware paid once
+          {localLabel}
         </div>
       </div>
     </AbsoluteFill>

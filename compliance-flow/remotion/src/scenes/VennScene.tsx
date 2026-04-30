@@ -1,43 +1,64 @@
 import { AbsoluteFill, useCurrentFrame, interpolate, spring, useVideoConfig } from 'remotion'
 import { AnimatedText } from 'remotion-bits'
+import { z } from 'zod'
+import { zColor } from '@remotion/zod-types'
 import { theme } from '../theme'
 
-const CIRCLES = [
-  {
-    label: 'Local-first',
-    sub: 'Data never leaves the box',
-    color: theme.colors.purple,
-    fill: theme.colors.purpleSoft,
-    edge: theme.colors.purpleEdge,
-    cx: 760,
-    cy: 480,
-    appearAt: 0,
-  },
-  {
-    label: 'Audit-native',
-    sub: 'Every step emits evidence',
-    color: theme.colors.orange,
-    fill: theme.colors.orangeSoft,
-    edge: theme.colors.orangeEdge,
-    cx: 1160,
-    cy: 480,
-    appearAt: 24,
-  },
-  {
-    label: 'Governance',
-    sub: 'Bias · drift · explainability',
-    color: theme.colors.teal,
-    fill: theme.colors.tealSoft,
-    edge: theme.colors.tealEdge,
-    cx: 960,
-    cy: 740,
-    appearAt: 48,
-  },
+// Geometry + color slot per circle. Editable text comes from props; layout stays locked.
+const CIRCLE_GEOMETRY = [
+  { color: 'purple' as const, cx: 760, cy: 480, appearAt: 0 },
+  { color: 'orange' as const, cx: 1160, cy: 480, appearAt: 24 },
+  { color: 'teal' as const, cx: 960, cy: 740, appearAt: 48 },
 ]
+
+const COLOR_MAP = {
+  purple: { color: theme.colors.purple, fill: theme.colors.purpleSoft, edge: theme.colors.purpleEdge },
+  orange: { color: theme.colors.orange, fill: theme.colors.orangeSoft, edge: theme.colors.orangeEdge },
+  teal: { color: theme.colors.teal, fill: theme.colors.tealSoft, edge: theme.colors.tealEdge },
+}
 
 const RADIUS = 280
 
-export const VennScene: React.FC = () => {
+const LABEL_OFFSETS = [
+  { dx: -RADIUS - 220, dy: -40, align: 'right' as const },
+  { dx: RADIUS + 40, dy: -40, align: 'left' as const },
+  { dx: -130, dy: RADIUS + 40, align: 'left' as const },
+]
+
+export const vennSceneSchema = z.object({
+  title: z.string(),
+  centerLead: z.string(),
+  centerAccent: z.string(),
+  circles: z
+    .array(
+      z.object({
+        label: z.string(),
+        sub: z.string(),
+      }),
+    )
+    .length(3),
+  accentColor: zColor(),
+})
+
+export type VennSceneProps = z.infer<typeof vennSceneSchema>
+
+export const vennSceneDefaults: VennSceneProps = {
+  title: 'Three things have to be true at once.',
+  centerLead: 'Compliance',
+  centerAccent: 'Flow',
+  circles: [
+    { label: 'Local-first', sub: 'Data never leaves the box' },
+    { label: 'Audit-native', sub: 'Every step emits evidence' },
+    { label: 'Governance', sub: 'Bias · drift · explainability' },
+  ],
+  accentColor: theme.colors.orange,
+}
+
+export const VennScene: React.FC<Partial<VennSceneProps>> = (props) => {
+  const { title, centerLead, centerAccent, circles, accentColor } = {
+    ...vennSceneDefaults,
+    ...props,
+  }
   const frame = useCurrentFrame()
   const { fps } = useVideoConfig()
 
@@ -83,7 +104,7 @@ export const VennScene: React.FC = () => {
             duration: 16,
           }}
         >
-          Three things have to be true at once.
+          {title}
         </AnimatedText>
       </div>
 
@@ -92,20 +113,21 @@ export const VennScene: React.FC = () => {
         height={1080}
         style={{ position: 'absolute', top: 0, left: 0 }}
       >
-        {CIRCLES.map((c) => {
+        {CIRCLE_GEOMETRY.map((g, i) => {
+          const palette = COLOR_MAP[g.color]
           const appear = spring({
-            frame: frame - c.appearAt,
+            frame: frame - g.appearAt,
             fps,
             config: { damping: 14, mass: 0.7 },
           })
           return (
-            <g key={c.label} opacity={appear}>
+            <g key={i} opacity={appear}>
               <circle
-                cx={c.cx}
-                cy={c.cy}
+                cx={g.cx}
+                cy={g.cy}
                 r={RADIUS}
-                fill={c.fill}
-                stroke={c.edge}
+                fill={palette.fill}
+                stroke={palette.edge}
                 strokeWidth={2.5}
               />
             </g>
@@ -113,26 +135,23 @@ export const VennScene: React.FC = () => {
         })}
       </svg>
 
-      {CIRCLES.map((c, i) => {
+      {CIRCLE_GEOMETRY.map((g, i) => {
+        const palette = COLOR_MAP[g.color]
+        const content = circles[i]
         const labelOpacity = interpolate(
-          frame - c.appearAt,
+          frame - g.appearAt,
           [12, 28],
           [0, 1],
-          { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' }
+          { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' },
         )
-        const labelOffsets = [
-          { dx: -RADIUS - 220, dy: -40, align: 'right' as const },
-          { dx: RADIUS + 40, dy: -40, align: 'left' as const },
-          { dx: -130, dy: RADIUS + 40, align: 'left' as const },
-        ]
-        const offset = labelOffsets[i]
+        const offset = LABEL_OFFSETS[i]
         return (
           <div
-            key={c.label}
+            key={i}
             style={{
               position: 'absolute',
-              left: c.cx + offset.dx,
-              top: c.cy + offset.dy,
+              left: g.cx + offset.dx,
+              top: g.cy + offset.dy,
               width: 280,
               textAlign: offset.align,
               opacity: labelOpacity,
@@ -144,12 +163,12 @@ export const VennScene: React.FC = () => {
                 fontFamily: theme.fonts.heading,
                 fontSize: 30,
                 fontWeight: 700,
-                color: c.color,
+                color: palette.color,
                 marginBottom: 4,
                 letterSpacing: -0.5,
               }}
             >
-              {c.label}
+              {content.label}
             </div>
             <div
               style={{
@@ -158,7 +177,7 @@ export const VennScene: React.FC = () => {
                 letterSpacing: 0.2,
               }}
             >
-              {c.sub}
+              {content.sub}
             </div>
           </div>
         )
@@ -178,11 +197,12 @@ export const VennScene: React.FC = () => {
           background: theme.colors.bg,
           padding: '14px 32px',
           borderRadius: 16,
-          border: `2px solid ${theme.colors.orange}`,
+          border: `2px solid ${accentColor}`,
           boxShadow: `0 12px 32px rgba(255, 108, 29, 0.25)`,
         }}
       >
-        Compliance<span style={{ color: theme.colors.orange }}>Flow</span>
+        {centerLead}
+        <span style={{ color: accentColor }}>{centerAccent}</span>
       </div>
     </AbsoluteFill>
   )

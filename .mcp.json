@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "soundcn": {
+      "command": "node",
+      "args": [
+        "/Users/aljereaumarten/git/enterprise-software/soundcn-mcp-server/dist/index.js"
+      ]
+    }
+  }
+}
