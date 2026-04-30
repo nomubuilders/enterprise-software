@@ -39,8 +39,8 @@ export const WorkflowNode: React.FC<Props> = ({
         })
       : 0
 
-  const glow = interpolate(activeProgress, [0, 1], [0, 32])
-  const borderAlpha = interpolate(activeProgress, [0, 1], [0.3, 1])
+  const shadowSize = interpolate(activeProgress, [0, 1], [10, 28])
+  const shadowAlpha = interpolate(activeProgress, [0, 1], [0.08, 0.22])
 
   return (
     <div
@@ -53,11 +53,11 @@ export const WorkflowNode: React.FC<Props> = ({
         width: 220,
         padding: '20px 24px',
         borderRadius: 18,
-        background: `linear-gradient(135deg, rgba(54, 49, 46, 0.95), rgba(0, 0, 0, 0.95))`,
-        border: `2px solid ${hexToRgba(accent, borderAlpha)}`,
-        boxShadow: `0 0 ${glow}px ${hexToRgba(accent, 0.6)}`,
+        background: theme.colors.bg,
+        border: `2px solid ${hexToRgba(accent, 0.85)}`,
+        boxShadow: `0 ${shadowSize / 2}px ${shadowSize * 1.5}px rgba(26, 22, 20, ${shadowAlpha})`,
         fontFamily: theme.fonts.body,
-        color: theme.colors.offWhite,
+        color: theme.colors.ink,
       }}
     >
       <div
@@ -76,7 +76,7 @@ export const WorkflowNode: React.FC<Props> = ({
         <div
           style={{
             fontSize: 14,
-            color: theme.colors.grayMuted,
+            color: theme.colors.inkMuted,
             letterSpacing: 0.5,
           }}
         >

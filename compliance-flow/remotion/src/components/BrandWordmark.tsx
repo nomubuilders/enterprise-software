@@ -40,10 +40,25 @@ export const BrandWordmark: React.FC<Props> = ({ delay = 0, showTagline = true }
       }}
     >
       <div style={{ transform: `scale(${symbolScale})` }}>
-        <Img
-          src={staticFile('nomu-symbol.png')}
-          style={{ width: 180, height: 180, objectFit: 'contain' }}
-        />
+        {/* If asset is missing, fall back to a brand-tinted square so layout isn't empty */}
+        <div
+          style={{
+            width: 180,
+            height: 180,
+            borderRadius: 32,
+            background: theme.colors.purple,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            overflow: 'hidden',
+            boxShadow: `0 12px 40px ${theme.colors.purpleEdge}`,
+          }}
+        >
+          <Img
+            src={staticFile('nomu-symbol.png')}
+            style={{ width: 180, height: 180, objectFit: 'contain' }}
+          />
+        </div>
       </div>
 
       <div
@@ -52,7 +67,7 @@ export const BrandWordmark: React.FC<Props> = ({ delay = 0, showTagline = true }
           fontFamily: theme.fonts.heading,
           fontSize: 96,
           fontWeight: 700,
-          color: theme.colors.offWhite,
+          color: theme.colors.ink,
           letterSpacing: -2,
         }}
       >
@@ -65,7 +80,7 @@ export const BrandWordmark: React.FC<Props> = ({ delay = 0, showTagline = true }
             opacity: taglineOpacity,
             fontFamily: theme.fonts.body,
             fontSize: 28,
-            color: theme.colors.grayMuted,
+            color: theme.colors.inkSubtle,
             letterSpacing: 4,
             textTransform: 'uppercase',
           }}

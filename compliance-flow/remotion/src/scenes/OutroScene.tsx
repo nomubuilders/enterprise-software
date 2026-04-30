@@ -11,7 +11,7 @@ export const OutroScene: React.FC = () => {
   return (
     <AbsoluteFill
       style={{
-        background: theme.colors.black,
+        background: theme.colors.bg,
         opacity: fadeIn,
         alignItems: 'center',
         justifyContent: 'center',

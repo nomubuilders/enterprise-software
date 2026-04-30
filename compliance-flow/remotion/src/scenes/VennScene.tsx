@@ -24,11 +24,11 @@ const CIRCLES = [
     appearAt: 24,
   },
   {
-    label: 'Governance primitives',
-    sub: 'Bias, drift, explainability',
-    color: theme.colors.cyan,
-    fill: 'rgba(0, 229, 255, 0.18)',
-    edge: 'rgba(0, 229, 255, 0.45)',
+    label: 'Governance',
+    sub: 'Bias · drift · explainability',
+    color: theme.colors.teal,
+    fill: theme.colors.tealSoft,
+    edge: theme.colors.tealEdge,
     cx: 960,
     cy: 740,
     appearAt: 48,
@@ -54,15 +54,15 @@ export const VennScene: React.FC = () => {
   return (
     <AbsoluteFill
       style={{
-        background: `radial-gradient(circle at 50% 50%, ${theme.colors.darkGray}, ${theme.colors.black} 80%)`,
+        background: `radial-gradient(circle at 50% 50%, ${theme.colors.bg}, ${theme.colors.bgEdge} 95%)`,
         fontFamily: theme.fonts.body,
-        color: theme.colors.offWhite,
+        color: theme.colors.ink,
       }}
     >
       <div
         style={{
           position: 'absolute',
-          top: 80,
+          top: 100,
           left: 0,
           right: 0,
           textAlign: 'center',
@@ -71,6 +71,7 @@ export const VennScene: React.FC = () => {
           fontSize: 56,
           fontWeight: 700,
           letterSpacing: -1,
+          color: theme.colors.ink,
         }}
       >
         <AnimatedText
@@ -105,7 +106,7 @@ export const VennScene: React.FC = () => {
                 r={RADIUS}
                 fill={c.fill}
                 stroke={c.edge}
-                strokeWidth={3}
+                strokeWidth={2.5}
               />
             </g>
           )
@@ -120,9 +121,9 @@ export const VennScene: React.FC = () => {
           { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' }
         )
         const labelOffsets = [
-          { dx: -RADIUS - 200, dy: -40, align: 'right' as const },
+          { dx: -RADIUS - 220, dy: -40, align: 'right' as const },
           { dx: RADIUS + 40, dy: -40, align: 'left' as const },
-          { dx: -110, dy: RADIUS + 30, align: 'left' as const },
+          { dx: -130, dy: RADIUS + 40, align: 'left' as const },
         ]
         const offset = labelOffsets[i]
         return (
@@ -132,7 +133,7 @@ export const VennScene: React.FC = () => {
               position: 'absolute',
               left: c.cx + offset.dx,
               top: c.cy + offset.dy,
-              width: 260,
+              width: 280,
               textAlign: offset.align,
               opacity: labelOpacity,
               fontFamily: theme.fonts.body,
@@ -141,18 +142,20 @@ export const VennScene: React.FC = () => {
             <div
               style={{
                 fontFamily: theme.fonts.heading,
-                fontSize: 28,
+                fontSize: 30,
                 fontWeight: 700,
                 color: c.color,
                 marginBottom: 4,
+                letterSpacing: -0.5,
               }}
             >
               {c.label}
             </div>
             <div
               style={{
-                fontSize: 16,
-                color: theme.colors.grayMuted,
+                fontSize: 17,
+                color: theme.colors.inkMuted,
+                letterSpacing: 0.2,
               }}
             >
               {c.sub}
@@ -171,12 +174,12 @@ export const VennScene: React.FC = () => {
           fontFamily: theme.fonts.heading,
           fontSize: 44,
           fontWeight: 700,
-          color: theme.colors.offWhite,
-          background: theme.colors.black,
+          color: theme.colors.ink,
+          background: theme.colors.bg,
           padding: '14px 32px',
           borderRadius: 16,
           border: `2px solid ${theme.colors.orange}`,
-          boxShadow: `0 0 32px ${theme.colors.orangeEdge}`,
+          boxShadow: `0 12px 32px rgba(255, 108, 29, 0.25)`,
         }}
       >
         Compliance<span style={{ color: theme.colors.orange }}>Flow</span>
