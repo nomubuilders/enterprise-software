@@ -40,23 +40,25 @@ export const BrandWordmark: React.FC<Props> = ({ delay = 0, showTagline = true }
       }}
     >
       <div style={{ transform: `scale(${symbolScale})` }}>
-        {/* If asset is missing, fall back to a brand-tinted square so layout isn't empty */}
         <div
           style={{
             width: 180,
             height: 180,
             borderRadius: 32,
-            background: theme.colors.purple,
+            // White squarcle with subtle purple shadow for separation from the
+            // off-white scene background. Inner padding keeps the wave icon
+            // off the edges so it can breathe.
+            background: '#FFFFFF',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             overflow: 'hidden',
-            boxShadow: `0 12px 40px ${theme.colors.purpleEdge}`,
+            boxShadow: `0 12px 40px ${theme.colors.purpleEdge}, 0 0 0 1px ${theme.colors.purpleSoft}`,
           }}
         >
           <Img
             src={staticFile('nomu-symbol.png')}
-            style={{ width: 180, height: 180, objectFit: 'contain' }}
+            style={{ width: 128, height: 128, objectFit: 'contain' }}
           />
         </div>
       </div>
@@ -71,7 +73,7 @@ export const BrandWordmark: React.FC<Props> = ({ delay = 0, showTagline = true }
           letterSpacing: -2,
         }}
       >
-        Compliance<span style={{ color: theme.colors.orange }}>Flow</span>
+        Compliance<span style={{ color: theme.colors.purple }}>Flow</span>
       </div>
 
       {showTagline && (

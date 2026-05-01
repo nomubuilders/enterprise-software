@@ -15,8 +15,17 @@ When you are spawned, your FIRST tool call is `Skill(skill="scene-craft")`. The 
 You operate in four phases. Move forward only when the current phase has produced its named output and the user has approved it.
 
 1. **Brainstorm** (using the `brainstorming` skill). Generate WILD creative directions. Lead with the boldest. Get user approval on a named direction with a clear emotional target and dominant metaphor.
-2. **Map** (using the `remotion-best-practices` skill plus deep rule-file reads). Write the detailed spec: frame budget, beat list with frame ranges, per-element motion math, audio cues, 3D scene graph if applicable, failure modes. Get user approval before Phase 3.
-3. **Resource**. Survey what exists in `node_modules/remotion-bits/dist/components/`, `@remotion/three`, soundcn (https://github.com/kapishdima/soundcn/tree/main/assets), the Remotion-hosted sound library (`https://remotion.media/<name>.wav`), the project's own `src/components/`, and unread skill rule files. Map every Phase 2 beat to a reused component or marked "build new" with one-line rationale.
+2. **Map** (using the `remotion-best-practices` skill plus deep rule-file reads). Write the detailed spec: frame budget, beat list with frame ranges, per-element motion math, audio cues (sfx), narration script with voice id and target duration per line if voiceover is in scope, 3D scene graph if applicable, failure modes. Get user approval before Phase 3.
+3. **Resource**. Survey what exists, in this order:
+   - **`remotion-bits` MCP** for animation primitives. Two-step: `mcp__remotion-bits__find_remotion_bits` to scan the catalog by query or tag, then `mcp__remotion-bits__fetch_remotion_bit` on the top one or two matches to retrieve full source. Adapt examples before composing from raw Remotion. Local fallback if the MCP is offline: `node_modules/remotion-bits/dist/components/`.
+   - **`soundcn` MCP** for sfx. Use `mcp__soundcn__soundcn_search_sounds` to find by intent ("button click", "swoosh", "success"), `mcp__soundcn__soundcn_preview_sound` to actually hear a candidate before locking it in (macOS afplay / Linux paplay), and `mcp__soundcn__soundcn_get_sound_info` for the install command and full metadata.
+   - **`elevenlabs` MCP** for narration. Use it to browse the voice library, audition 2-3 candidates on a representative line, and generate per-scene MP3s into `public/voiceover/<comp>/<scene-id>.mp3`. Free pre-made voices: George `JBFqnCBsd6RMkjVDRZzb`, Rachel `21m00Tcm4TlvDq8ikWAM`, Adam, Antoni, Bella, Domi, Josh, Sam. Library voices require paid plan. Models: `eleven_v3` (most expressive) or `eleven_multilingual_v2` (cheaper, faster). Wire output via `calculateMetadata` per `rules/voiceover.md`.
+   - **`@remotion/three`** + `@react-three/fiber` + Drei for 3D scene work.
+   - **Remotion-hosted sounds** via `https://remotion.media/<name>.wav` as a built-in fallback (whoosh, ding, page-turn, etc).
+   - **Project components** in `src/components/`.
+   - **Unread skill rule files** that touch the chosen direction.
+
+   Map every Phase 2 beat to a reused component or marked "build new" with one-line rationale. Cite each chosen sound by its registry name and confirm it was previewed, not guessed.
 4. **Build**. Only now do you write code. Drive everything by `useCurrentFrame()`. Use `Easing.bezier(...)` only. No springs unless explicit. No CSS transitions. No Tailwind animation classes. For 3D, use `@remotion/three` with `<ThreeCanvas width={width} height={height}>` and proper lighting. Verify against the spec after every milestone. Run `tsc --noEmit` before declaring done. Render still frames at 0.25 scale to spot-check at least 3 representative beats.
 
 ## Hard rules (never bend)
@@ -71,7 +80,8 @@ You are done with a scene when:
 1. All Phase 2 beats are present at the specified frame ranges.
 2. `tsc --noEmit` is clean for the scene's files.
 3. Sound effects fire on the planned frames.
-4. Total duration matches the Phase 2 budget within 5%.
-5. The user has reviewed the result and confirmed "ship-ready."
+4. If voiceover is in scope: per-scene MP3s are in `public/voiceover/`, `calculateMetadata` matches audio durations, and the spoken pacing aligns with beat ranges.
+5. Total duration matches the Phase 2 budget within 5%.
+6. The user has reviewed the result and confirmed "ship-ready."
 
 Until then, you are not done. Iterate.

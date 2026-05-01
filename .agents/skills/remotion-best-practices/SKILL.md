@@ -9,6 +9,28 @@ metadata:
 
 Use this skills whenever you are dealing with Remotion code to obtain the domain-specific knowledge.
 
+## Discovery via MCPs
+
+Two MCP servers complement the rule files below. The MCPs answer **"what already exists?"** The rule files answer **"how do I compose it properly?"** Use both.
+
+- **`remotion-bits` MCP** for animation primitives (text effects, scene transitions, particle systems, code blocks, scrolling images, etc). Two-step lookup:
+  - `mcp__remotion-bits__find_remotion_bits` to scan the published catalog by query or tags. Returns lightweight summaries (id, exportName, dimensions, tags, components, registry deps).
+  - `mcp__remotion-bits__fetch_remotion_bit` on the top one or two matches to retrieve full source code. Adapt examples before composing from raw Remotion primitives.
+
+- **`soundcn` MCP** for UI sound effects (813 sounds, 96 categories, mostly CC0 from Kenney). Tools:
+  - `mcp__soundcn__soundcn_list_categories` for the navigable index.
+  - `mcp__soundcn__soundcn_search_sounds` to find by intent ("button click", "swoosh", "success") with optional category and `max_duration_sec` filters.
+  - `mcp__soundcn__soundcn_get_sound_info` for full metadata plus the install command.
+  - `mcp__soundcn__soundcn_preview_sound` to actually hear the sound through system audio (afplay on macOS, paplay on Linux) before locking it in. Critical for not picking sounds blind from names alone.
+
+- **`elevenlabs` MCP** for narration / voiceover (TTS, voice library browsing, voice cloning, speech-to-text). Workflow:
+  - **Audition voices** on a representative line before committing. Free pre-made voices that work without paid plan: George `JBFqnCBsd6RMkjVDRZzb` (deep UK male), Rachel `21m00Tcm4TlvDq8ikWAM` (calm US female), Adam `pNInz6obpgDQGcFmaJgB` (deep US male narrator), plus Antoni, Bella, Domi, Josh, Sam. Library voices need a paid subscription, surfaced as HTTP 402 `paid_plan_required` if attempted on free tier.
+  - **Generate per-scene MP3s** into `public/voiceover/<comp>/<scene-id>.mp3` so Remotion can resolve them via `staticFile()`.
+  - **Wire into compositions** via `<Audio src={staticFile(...)}>` plus `calculateMetadata` to size the composition to the audio durations. See `rules/voiceover.md` for the composition pattern and `rules/calculate-metadata.md` for dynamic duration.
+  - **Models**: `eleven_v3` for maximum expressiveness, `eleven_multilingual_v2` for cheaper/faster bulk generation.
+
+These are live registries. Re-query their search/list tools to see fresh data. soundcn additionally exposes `mcp__soundcn__soundcn_refresh_catalog` to update its bundled snapshot.
+
 ## New project setup
 
 When in an empty folder or workspace with no existing Remotion project, scaffold one using:
@@ -56,7 +78,11 @@ When needing to visualize audio (spectrum bars, waveforms, bass-reactive effects
 
 ## Sound effects
 
-When needing to use sound effects, load the [./rules/sfx.md](./rules/sfx.md) file for more information.
+For **discovery and preview**, use the `soundcn` MCP (`mcp__soundcn__soundcn_search_sounds`, `mcp__soundcn__soundcn_preview_sound`) detailed in the Discovery section above. For **composition patterns** (timing relative to frames, layering, fades, integrating with `<Audio>`), load the [./rules/sfx.md](./rules/sfx.md) file.
+
+## Voiceover
+
+For **discovery, audition, and generation**, use the `elevenlabs` MCP detailed in the Discovery section above. For **composition and timing patterns** (loading audio, dynamic composition duration via `calculateMetadata`, scene-by-scene timing alignment), load the [./rules/voiceover.md](./rules/voiceover.md) file. Voiceover MP3s should land in `public/voiceover/<comp>/<scene-id>.mp3` so Remotion can access them via `staticFile()`.
 
 ## How to use
 

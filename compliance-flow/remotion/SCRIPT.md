@@ -343,3 +343,9 @@ All five creative calls confirmed. The script is the spec.
 # Sign-off
 
 When this script is approved, the next change to this file should be `## Changelog` entries documenting any post-implementation deviations from the script. Code follows the script, not the other way around.
+
+---
+
+## Changelog
+
+- **Scene 6 Part 1 rebuilt as @remotion/three direction "Two Boxes, One Room".** 5 contrast rows (cost row stays in CostChart, not duplicated as text). Title morph + Cloud/Local typed headers replaced by a 3D-scene-native title beat ("Let's compare." via Drei `<Text>`) plus the two stylized objects acting as the headers themselves. Circle wipe replaced by an LED ring radial expansion that fills the frame and hands off to CostChart at frame 578.

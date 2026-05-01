@@ -1,0 +1,92 @@
+{
+  "name": "compliance-flow-remotion",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Pitch / explainer videos for Compliance Ready AI, rendered with Remotion.",
+  "scripts": {
+    "copy-assets": "node scripts/copy-assets.mjs",
+    "postinstall": "npm run copy-assets",
+    "studio": "remotion studio src/index.ts",
+    "render": "remotion render src/index.ts PitchVideo out/pitch.mp4",
+    "render:webm": "remotion render src/index.ts PitchVideo out/pitch.webm --codec=vp9",
+    "render:still": "remotion still src/index.ts PitchVideo out/poster.png --frame=300"
+  },
+  "dependencies": {
+    "@mediabunny/ac3": "1.42.0",
+    "@react-three/drei": "^10.7.7",
+    "@react-three/fiber": "^9.6.1",
+    "@react-three/postprocessing": "^3.0.4",
+    "@remotion/animated-emoji": "4.0.454",
+    "@remotion/animation-utils": "4.0.454",
+    "@remotion/captions": "4.0.454",
+    "@remotion/cli": "^4.0.200",
+    "@remotion/cloudrun": "4.0.454",
+    "@remotion/elevenlabs": "4.0.454",
+    "@remotion/enable-scss": "4.0.454",
+    "@remotion/fonts": "4.0.454",
+    "@remotion/gif": "4.0.454",
+    "@remotion/google-fonts": "4.0.454",
+    "@remotion/install-whisper-cpp": "4.0.454",
+    "@remotion/lambda": "4.0.454",
+    "@remotion/layout-utils": "4.0.454",
+    "@remotion/licensing": "4.0.454",
+    "@remotion/light-leaks": "4.0.454",
+    "@remotion/lottie": "4.0.454",
+    "@remotion/mcp": "4.0.454",
+    "@remotion/media": "4.0.454",
+    "@remotion/media-parser": "4.0.454",
+    "@remotion/media-utils": "4.0.454",
+    "@remotion/motion-blur": "4.0.454",
+    "@remotion/noise": "4.0.454",
+    "@remotion/openai-whisper": "4.0.454",
+    "@remotion/paths": "4.0.454",
+    "@remotion/player": "4.0.454",
+    "@remotion/player-a11y": "4.0.454",
+    "@remotion/preload": "4.0.454",
+    "@remotion/renderer": "4.0.454",
+    "@remotion/rive": "4.0.454",
+    "@remotion/rounded-text-box": "4.0.454",
+    "@remotion/sfx": "4.0.454",
+    "@remotion/shapes": "4.0.454",
+    "@remotion/skia": "4.0.454",
+    "@remotion/starburst": "4.0.454",
+    "@remotion/studio": "4.0.454",
+    "@remotion/tailwind": "4.0.454",
+    "@remotion/tailwind-v4": "4.0.454",
+    "@remotion/three": "4.0.454",
+    "@remotion/transitions": "4.0.454",
+    "@remotion/vercel": "4.0.454",
+    "@remotion/webcodecs": "4.0.454",
+    "@remotion/whisper-web": "4.0.454",
+    "@remotion/zod-types": "4.0.454",
+    "@remotion/zod-types-v3": "4.0.454",
+    "culori": "^4.0.2",
+    "mediabunny": "1.42.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "remotion": "^4.0.200",
+    "remotion-bits": "^0.2.0",
+    "three": "^0.182.0",
+    "zod": "4.3.6"
+  },
+  "devDependencies": {
+    "@fontsource/barlow": "^5.2.8",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@types/three": "^0.182.0",
+    "typescript": "^5.5.4"
+  },
+  "pnpm": {
+    "overrides": {
+      "three": "^0.182.0",
+      "@react-three/fiber": "9.6.1"
+    },
+    "packageExtensions": {
+      "remotion-bits": {
+        "dependencies": {
+          "culori": "^4.0.2"
+        }
+      }
+    }
+  }
+}

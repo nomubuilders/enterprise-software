@@ -2,7 +2,7 @@
 name: scene-craft
 description: Four-phase workflow for shipping Apple-tier video scenes in Remotion. Brainstorm > Map > Resource > Build. Use whenever starting a new scene, transition, animation, or major visual effect that must be production-ready without further editing. Enforces "no safe ideas," bans flat-2D-as-3D, and forbids writing code until phases 1-3 are complete.
 metadata:
-  tags: video, remotion, scene, workflow, brainstorming, apple-tier, three.js, sfx
+  tags: video, remotion, scene, workflow, brainstorming, apple-tier, three.js, sfx, voiceover, elevenlabs
 ---
 
 # Scene-Craft
@@ -64,6 +64,7 @@ Each phase has explicit inputs, work, and outputs. Move forward only when the ou
    - `rules/timing.md`. For pacing math and easings.
    - `rules/3d.md`. Mandatory when real 3D is involved.
    - `rules/sfx.md`. For any per-beat sound design.
+   - `rules/voiceover.md`. Mandatory when narration is involved (uses ElevenLabs TTS plus dynamic composition duration via `calculateMetadata`).
    - `rules/transitions.md`. For scene-to-scene cuts.
    - `rules/sequencing.md`. For layered timing.
    - `rules/text-animations.md`. For any typography reveal.
@@ -74,9 +75,10 @@ Each phase has explicit inputs, work, and outputs. Move forward only when the ou
 1. **Frame budget.** Total frames, fps, per-beat allocation. Numbers, not "around X."
 2. **Beat list.** Every named moment with frame range, what is on screen, and why it lands emotionally.
 3. **Per-element motion math.** Interpolated values, easings (`Easing.bezier(...)` only, no springs), transform compositions, normalized 0..1 progresses per beat.
-4. **Audio cues.** Which sfx fires on which frame, sourced from the soundcn package or `https://remotion.media/<name>.wav`, what mood it sets.
-5. **3D scene graph if applicable.** Meshes, materials, lights, camera, frame-driven animation paths. Drei components if any.
-6. **Failure modes.** What could go wrong at render time, what to verify mid-build.
+4. **Audio cues (sfx).** Which sfx fires on which frame and what mood it sets. Discovery is via the **soundcn MCP** (`mcp__soundcn__soundcn_search_sounds`, `mcp__soundcn__soundcn_preview_sound`) over the 813-sound CC0 library. Cite each chosen sound by its registry name (e.g. `bong-001`, `whoosh-001`) and confirm it was previewed, not guessed. Remotion-hosted built-ins via `https://remotion.media/<name>.wav` are still available for fallback.
+5. **Narration (voiceover) if applicable.** Per-scene script text, the chosen ElevenLabs voice id with the voice's name and tonal axis ("George `JBFqnCBsd6RMkjVDRZzb` deep UK male, gravitas"), the model id (`eleven_v3` for expressive or `eleven_multilingual_v2` for fast/cheap), and the target spoken duration per line. Voice discovery and audition is via the **elevenlabs MCP**. Sample 2-3 voices on a representative line before locking. Cite the voice id and confirm it was auditioned, not picked from name alone. The composition uses `calculateMetadata` to size itself to the generated audio durations (see `rules/voiceover.md`).
+6. **3D scene graph if applicable.** Meshes, materials, lights, camera, frame-driven animation paths. Drei components if any.
+7. **Failure modes.** What could go wrong at render time, what to verify mid-build.
 
 **Output:** the spec as a written document, presented to the user for explicit approval before Phase 3. Locked specs do not change without an explicit user-approved revision.
 
@@ -86,11 +88,12 @@ Each phase has explicit inputs, work, and outputs. Move forward only when the ou
 
 **Work:** find what already exists before writing anything new. Search in this order:
 
-1. **`remotion-bits`** components at `node_modules/remotion-bits/dist/components/`. Catalog: `AnimatedCounter`, `AnimatedText`, `CodeBlock`, `GradientTransition`, `MatrixRain`, `ParticleSystem`, `Scene3D`, `ScrollingImages`, `StaggeredMotion`, `TypeWriter`. Read each `.d.ts` for exact prop signatures.
+1. **`remotion-bits` MCP** is the primary discovery tool for animation primitives. Two-step: call `mcp__remotion-bits__find_remotion_bits` with a query or tags to scan the published catalog (lightweight summaries with id, exportName, dimensions, components, registry deps), then `mcp__remotion-bits__fetch_remotion_bit` on the top one or two matches to retrieve full source code. Adapt examples before composing from raw Remotion primitives. Local fallback if the MCP is offline: `node_modules/remotion-bits/dist/components/` (catalog includes `AnimatedCounter`, `AnimatedText`, `CodeBlock`, `GradientTransition`, `MatrixRain`, `ParticleSystem`, `Scene3D`, `ScrollingImages`, `StaggeredMotion`, `TypeWriter`).
 2. **`@remotion/three`** + `@react-three/fiber` + Drei for 3D scene work. Confirm install via `package.json`. Check `node_modules/@remotion/three/dist/index.d.ts` for the `<ThreeCanvas>` API.
-3. **soundcn** sfx package and Remotion's hosted sound library. Browse `https://github.com/kapishdima/soundcn/tree/main/assets` for additional effects. Built-ins: whoosh, whip, page-turn, switch, mouse-click, shutter-modern, shutter-old, ding, vine-boom, windows-xp-error.
-4. **Existing project components** in `src/components/` (in this repo: `BrandWordmark`, `WorkflowNode`, `AnimatedEdge`, `ArticleStack`).
-5. **Unread skill rule files** that touch the chosen direction. Read them now.
+3. **soundcn MCP** for sfx discovery and preview. Use `mcp__soundcn__soundcn_list_categories` for the navigable index (96 categories, 813 sounds), `mcp__soundcn__soundcn_search_sounds` to find by intent ("button click", "success fanfare", "swoosh") with optional `category` and `max_duration_sec` filters, `mcp__soundcn__soundcn_get_sound_info` for full metadata plus install command, and `mcp__soundcn__soundcn_preview_sound` to actually hear the candidate through system audio before locking it into the spec. Remotion-hosted built-ins still available via `https://remotion.media/<name>.wav`: whoosh, whip, page-turn, switch, mouse-click, shutter-modern, shutter-old, ding, vine-boom, windows-xp-error.
+4. **elevenlabs MCP** for narration voice selection and voiceover generation. Use it to browse the voice library, audition 2-3 voices on a representative line from the script, and produce final per-scene MP3s into `public/voiceover/<comp>/<scene-id>.mp3`. Free pre-made voices (work without paid plan): George `JBFqnCBsd6RMkjVDRZzb` (deep UK male), Rachel `21m00Tcm4TlvDq8ikWAM` (calm US female), Adam `pNInz6obpgDQGcFmaJgB` (deep US male narrator), plus Antoni, Bella, Domi, Josh, Sam. Library voices require a paid plan. Models: `eleven_v3` for max expressiveness, `eleven_multilingual_v2` for cheaper/faster bulk. The composition uses `calculateMetadata` to size to the generated audio (`rules/voiceover.md`). Confirm the voice was auditioned, not chosen from name alone.
+5. **Existing project components** in `src/components/` (in this repo: `BrandWordmark`, `WorkflowNode`, `AnimatedEdge`, `ArticleStack`).
+6. **Unread skill rule files** that touch the chosen direction. Read them now.
 
 **Output:** a resource map. For every beat from Phase 2, mark either (a) which existing component handles it OR (b) "build new" with a one-line rationale. No beat may be left unresolved.
 
@@ -129,6 +132,7 @@ Before declaring a scene done:
 - [ ] No overlapping text at any frame in the scene
 - [ ] No CSS transitions, no springs (unless explicit), no Tailwind animation classes
 - [ ] sfx cues fire on the planned frames
+- [ ] If voiceover is in scope: per-scene MP3s exist in `public/voiceover/`, `calculateMetadata` reflects the audio durations, and beat pacing aligns with spoken delivery
 - [ ] `tsc --noEmit` clean for the scene's files (pre-existing errors elsewhere acceptable)
 - [ ] Still-frame render at 0.25 scale matches the map for at least 3 representative frames
 - [ ] Total duration matches the budget set in Phase 2 (within 5% tolerance)

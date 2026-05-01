@@ -7,12 +7,21 @@ __pycache__/
 .gitnexus
 
 # Stray pnpm install at repo root (remotion-bits should live in compliance-flow/remotion/)
-node_modules/
-package.json
-pnpm-lock.yaml
-package-lock.json
-yarn.lock
+# Leading slash anchors each rule to the repo root so subproject files are never accidentally swallowed.
+/node_modules/
+/package.json
+/pnpm-lock.yaml
+/package-lock.json
+/yarn.lock
 
-soundcn-mcp-server/
-remotion-bits/package.json
-remotion-bits/
+/soundcn-mcp-server/
+/remotion-bits/package.json
+/remotion-bits/
+.env
+.env.*
+
+elevenexample.py
+
+# ElevenLabs throwaway test setup
+/.venv-eleven/
+/test.mp3

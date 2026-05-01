@@ -5,6 +5,17 @@
       "args": [
         "/Users/aljereaumarten/git/enterprise-software/soundcn-mcp-server/dist/index.js"
       ]
+    },
+    "remotion-bits": {
+      "command": "npx",
+      "args": ["-y", "remotion-bits", "mcp"]
+    },
+    "elevenlabs": {
+      "command": "bash",
+      "args": [
+        "-c",
+        "set -a && source /Users/aljereaumarten/git/enterprise-software/.env && set +a && exec uvx elevenlabs-mcp"
+      ]
     }
   }
 }
