@@ -73,6 +73,13 @@ export const BrandIntroScene: React.FC<BrandIntroSceneProps> = (props) => {
   const { pillars, tagline } = { ...brandIntroSceneDefaults, ...props }
   const frame = useCurrentFrame()
 
+  // Ambient drift on the content stack (NOT the bg wash, which stays anchored
+  // at canvas center as the brand presence). ±6px translate + 0.3% scale
+  // breath keeps the wordmark + pillars + tagline alive after they settle.
+  const ambientX = Math.sin(frame * 0.046) * 6
+  const ambientY = Math.cos(frame * 0.040) * 5
+  const ambientScale = 1 + Math.sin(frame * 0.054) * 0.003
+
   // Tagline fade-in · simple opacity ramp via Easing.bezier ease-out.
   const taglineOpacity = interpolate(frame, [TAGLINE_IN, TAGLINE_OUT], [0, 1], {
     easing: TAGLINE_EASING,
@@ -102,7 +109,9 @@ export const BrandIntroScene: React.FC<BrandIntroSceneProps> = (props) => {
       />
 
       {/* Centered content stack · wordmark on top, pillars below, tagline
-          beneath. flex column so vertical centering is a single property. */}
+          beneath. flex column so vertical centering is a single property.
+          Ambient drift applied here so the brand presence (wash) stays
+          anchored while the foreground content breathes. */}
       <AbsoluteFill
         style={{
           display: 'flex',
@@ -113,6 +122,8 @@ export const BrandIntroScene: React.FC<BrandIntroSceneProps> = (props) => {
           paddingRight: 200,
           textAlign: 'center',
           gap: 72,
+          transform: `translate(${ambientX}px, ${ambientY}px) scale(${ambientScale})`,
+          transformOrigin: 'center center',
         }}
       >
         {/* BrandWordmark · existing component, owns its own spring entrance.

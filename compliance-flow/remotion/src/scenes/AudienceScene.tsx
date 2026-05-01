@@ -389,6 +389,14 @@ export const AudienceScene: React.FC<AudienceSceneProps> = (props) => {
     },
   )
 
+  // Ambient drift on the held verdict line. Once the cascade is gone and
+  // the line has settled (frame > 115), the eye lands here for ~35 frames.
+  // Without drift the line freezes; ±5px / ±0.2% scale keeps it alive
+  // without competing with the hold beat's gravity.
+  const holdAmbientX = Math.sin(frame * 0.043) * 5
+  const holdAmbientY = Math.cos(frame * 0.039) * 4
+  const holdAmbientScale = 1 + Math.sin(frame * 0.050) * 0.002
+
   // Background vignette: extremely subtle radial darkening from bg toward
   // bgEdge, anchored at the perspective origin. This grounds the room.
   const bgGradient = `radial-gradient(ellipse at 50% 38%, ${theme.colors.bg} 0%, ${theme.colors.bg} 45%, ${theme.colors.bgEdge} 100%)`
@@ -459,7 +467,9 @@ export const AudienceScene: React.FC<AudienceSceneProps> = (props) => {
           // The hold-line lives in 2D plane (no perspective math) — pull it
           // out of the parent's 3D context so it always renders crisp at
           // exactly its declared font size, regardless of camera depth.
-          transform: `translateY(${holdLift}px)`,
+          // Compose the entrance lift with the ambient drift so the line
+          // never sits frozen during the 35f hold.
+          transform: `translate(${holdAmbientX}px, ${holdLift + holdAmbientY}px) scale(${holdAmbientScale})`,
           opacity: holdOpacity,
           willChange: 'opacity, transform',
           pointerEvents: 'none',

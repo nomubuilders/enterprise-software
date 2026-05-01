@@ -81,9 +81,13 @@ export const CloudObject: React.FC = () => {
         {/* speed=0 freezes Drei's internal useFrame loop. We drive time externally. */}
         <MeshDistortMaterial
           ref={matRef}
-          color="#1a2c33"
-          metalness={0.3}
-          roughness={0.6}
+          // Was #1a2c33 · only one luminance step above the #0a0807 bg, which
+          // made the cube vanish into the floor in headless render. Lifted to
+          // a readable dark teal-blue · still cool / "shadowed" relative to
+          // Local's brand purple, but visible at any vignette setting.
+          color="#3e5663"
+          metalness={0.35}
+          roughness={0.55}
           distort={distort * 0.18}
           speed={0}
           transparent

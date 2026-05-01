@@ -1,11 +1,16 @@
 import { interpolate } from 'remotion'
 import { EASE_EDITORIAL } from './easings'
 
-// Camera spline · 6 keyframes. Pure function: getCameraState(frame) -> { position, lookAt }.
-// Segment-based interpolation with editorial bezier easing.
+// Camera spline for ContrastScene Part 1 · "The Leash".
+// Pure function: getCameraState(frame) -> { position, lookAt }.
 //
-// Justification per spec: editorial in-out for camera (the camera moves like film,
-// not like a UI element). Single curve across all segments keeps the orbit feel coherent.
+// Phase 2 §3 camera math:
+//   K0 establish entry (f6) → K1 establish settle (f48) → hold through B9 (f372)
+//   → K2 morph dolly along the cable (f390 · intimate single-line framing).
+//
+// The camera is mostly static so the choreography on the orb/monolith reads
+// without distraction. Only the establish push-in (6%) and the f372..f390
+// dolly are non-trivial moves. Editorial bezier across all segments.
 
 export type Vec3 = [number, number, number]
 
@@ -15,14 +20,19 @@ interface Keyframe {
   lookAt: Vec3
 }
 
-// Spec section 3 · 6-keyframe spline.
+// Cable/orb live around (-1.8, 1.6, 0). Monolith around (1.8, 0.7, 0).
+// Default camera frames the pair across center.
+//
+// Camera holds at K1 (0, 1.4, 6.9) lookAt (0, 0.7, 0) from f48 through f390.
+// The cable's morph target line was sized to FIT inside this framing
+// (cableCurve.ts COST_TARGET) so no dolly is needed at the hand-off · the
+// orange line resolves into view at the same camera the rest of the scene
+// has been holding. Steady camera + everything else fading out makes the
+// final orange line the only focal point.
 const KEYFRAMES: readonly Keyframe[] = [
-  { frame: 8,   position: [ 0.0, 1.4, 7.0], lookAt: [0.0, 0.5, 0.0] }, // K0 · stage entry
-  { frame: 60,  position: [-0.6, 1.4, 5.5], lookAt: [0.0, 0.5, 0.0] }, // K1 · 3/4 view, title beat
-  { frame: 158, position: [-0.4, 1.5, 5.3], lookAt: [0.0, 0.5, 0.0] }, // K2 · pre-row settle
-  { frame: 286, position: [ 0.0, 1.5, 5.0], lookAt: [0.0, 0.5, 0.0] }, // K3 · centered for Row 3
-  { frame: 472, position: [ 1.2, 1.5, 4.8], lookAt: [0.6, 0.5, 0.0] }, // K4 · Local-favored hero
-  { frame: 568, position: [ 1.6, 1.4, 3.8], lookAt: [1.6, 0.5, 0.0] }, // K5 · through LED ring core
+  { frame: 6,   position: [0.0, 1.4, 7.4], lookAt: [0.0, 0.7, 0.0] }, // K0 stage entry
+  { frame: 48,  position: [0.0, 1.4, 6.9], lookAt: [0.0, 0.7, 0.0] }, // K1 establish settle
+  { frame: 390, position: [0.0, 1.4, 6.9], lookAt: [0.0, 0.7, 0.0] }, // hold through morph
 ] as const
 
 const lerp3 = (a: Vec3, b: Vec3, t: number): Vec3 => [
@@ -32,17 +42,14 @@ const lerp3 = (a: Vec3, b: Vec3, t: number): Vec3 => [
 ]
 
 export const getCameraState = (frame: number): { position: Vec3; lookAt: Vec3 } => {
-  // Before first keyframe · clamp to K0
   if (frame <= KEYFRAMES[0].frame) {
     return { position: KEYFRAMES[0].position, lookAt: KEYFRAMES[0].lookAt }
   }
-  // After last keyframe · clamp to K5
   const last = KEYFRAMES[KEYFRAMES.length - 1]
   if (frame >= last.frame) {
     return { position: last.position, lookAt: last.lookAt }
   }
 
-  // Find segment
   for (let i = 0; i < KEYFRAMES.length - 1; i++) {
     const k0 = KEYFRAMES[i]
     const k1 = KEYFRAMES[i + 1]
@@ -58,6 +65,5 @@ export const getCameraState = (frame: number): { position: Vec3; lookAt: Vec3 } 
       }
     }
   }
-  // Fallback (unreachable)
   return { position: last.position, lookAt: last.lookAt }
 }

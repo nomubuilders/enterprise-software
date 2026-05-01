@@ -104,6 +104,16 @@ const CARD_LAND_FRAMES: readonly number[] = (() => {
 const TICK_RATE_FIRST = 0.9
 const TICK_RATE_LAST = 1.15
 
+// Per-card tick: heavy wood impact. An earlier revision used metal-click
+// (felt too mechanical / "computer UI") and a 4-variant cycle (felt
+// sonically chaotic). The story this beat tells is articles being slammed
+// onto a desk as evidence · the right sonic register is wooden gavel /
+// stamp / book-closing thud, not a metallic UI click. impact-wood-heavy-002
+// reads as "rich, heavy wood impact, conveying finality and importance" ·
+// each card landing is now an evidentiary thunk. The volume + playbackRate
+// ramps still drive the rising panic across the cascade.
+const TICK_SRC = 'sfx/impact-wood-heavy-002.mp3'
+
 // Card geometry — single source of truth.
 const CARD_W = 800
 const CARD_H = 250
@@ -677,7 +687,7 @@ export const AnswerScene: React.FC<Partial<AnswerSceneProps>> = () => {
             layout="none"
           >
             <Audio
-              src={staticFile('sfx/metal-click.mp3')}
+              src={staticFile(TICK_SRC)}
               volume={tickVolume}
               playbackRate={tickRate}
             />

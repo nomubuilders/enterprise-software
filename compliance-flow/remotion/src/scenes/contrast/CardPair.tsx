@@ -61,24 +61,32 @@ export const CardPair: React.FC<CardPairProps> = ({ rowIndex, cloudText, localTe
   const localStackOpacity = Math.max(0.45, Math.pow(0.92, rowsAbove))
 
   // === Cloud card transforms ===
-  // Enter from [-3.0, 0.6, -1.2] to [-2.0, 0.6, -0.3]
-  // Plus stack-back z offset (recedes when next row arrives)
-  const cloudX = interpolate(cloudEnterP, [0, 1], [-3.0, -2.0])
+  // CRITICAL FIX: cards previously landed at z=-0.3 which is INSIDE the
+  // cube's z-range [-0.6, +0.6]. From the camera at z=7 the cube's front
+  // face (z=+0.6) sat in front of every card and occluded it via depth
+  // test. Net result: the entire 33-second scene played with zero text
+  // visible · just abstract cubes growing and shrinking.
+  // Cards now land at z=+2.4 (clearly in front of cubes) at x=±1.5
+  // (within frustum at this depth · the camera frustum at z=2.4 is only
+  // ±2.4 wide horizontally, so cards must be inboard). They sit IN FRONT
+  // of the cubes which become background visual anchors. Scale 1.4 keeps
+  // the comparison text legible at this distance.
+  const cloudX = interpolate(cloudEnterP, [0, 1], [-2.5, -1.5])
   const cloudY = 0.6
-  const cloudZ = interpolate(cloudEnterP, [0, 1], [-1.2, -0.3]) + cloudStackZ
+  const cloudZ = interpolate(cloudEnterP, [0, 1], [1.4, 2.4]) + cloudStackZ
   const cloudRotY = interpolate(cloudEnterP, [0, 1], [-Math.PI / 2, -0.14])
-  const cloudScale = interpolate(cloudEnterP, [0, 1], [0.85, 1.0])
+  const cloudScale = interpolate(cloudEnterP, [0, 1], [1.2, 1.4])
   // Hover during read hold (frame-driven sin)
   const cloudHoverY = cloudEnterP * Math.sin(frame * 0.08) * 0.02
   // Final opacity = enter progress * stack dim
   const cloudOpacity = cloudEnterP * cloudStackOpacity
 
   // === Local card transforms ===
-  const localX = interpolate(localEnterP, [0, 1], [3.0, 2.0])
+  const localX = interpolate(localEnterP, [0, 1], [2.5, 1.5])
   const localY = 0.6
-  const localZ = interpolate(localEnterP, [0, 1], [-1.2, -0.3]) + localStackZ
+  const localZ = interpolate(localEnterP, [0, 1], [1.4, 2.4]) + localStackZ
   const localRotY = interpolate(localEnterP, [0, 1], [Math.PI / 2, 0.14])
-  const localScale = interpolate(localEnterP, [0, 1], [0.85, 1.0])
+  const localScale = interpolate(localEnterP, [0, 1], [1.2, 1.4])
   // Local does not hover (static — doesn't fidget per spec)
   const localOpacity = localEnterP * localStackOpacity
 
@@ -110,15 +118,15 @@ export const CardPair: React.FC<CardPairProps> = ({ rowIndex, cloudText, localTe
           <meshBasicMaterial color="#E04848" transparent opacity={0.10 * cloudOpacity} toneMapped={false} />
         </mesh>
         <Text
-          position={[0, 0, 0.025]}
-          fontSize={0.085}
-          font={BARLOW_FONT}
-          color="#1A1614"
+          position={[0, 0, 0.5]}
+          fontSize={0.18}
+          color="#FF0000"
           anchorX="center"
           anchorY="middle"
           maxWidth={1.3}
           textAlign="center"
-          fillOpacity={cloudOpacity}
+          material-toneMapped={false}
+          renderOrder={10}
         >
           {cloudText}
         </Text>
@@ -147,8 +155,8 @@ export const CardPair: React.FC<CardPairProps> = ({ rowIndex, cloudText, localTe
           <meshBasicMaterial color="#1FA760" transparent opacity={0.14 * localOpacity} toneMapped={false} />
         </mesh>
         <Text
-          position={[0, 0, 0.025]}
-          fontSize={0.085}
+          position={[0, 0, 0.06]}
+          fontSize={0.12}
           font={BARLOW_FONT}
           color="#1A1614"
           anchorX="center"
@@ -157,6 +165,7 @@ export const CardPair: React.FC<CardPairProps> = ({ rowIndex, cloudText, localTe
           textAlign="center"
           fillOpacity={localOpacity}
           fontWeight={700}
+          material-toneMapped={false}
         >
           {localText}
         </Text>

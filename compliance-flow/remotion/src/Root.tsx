@@ -51,13 +51,14 @@ export const RemotionRoot: React.FC = () => {
         defaultProps={hookSceneDefaults}
       />
 
-      {/* Standalone preview · ContrastScene · 33.3s
-          578 frames @remotion/three "Two Boxes, One Room" 3D stage,
-          then 420 frames embedded CostChart at frame 578. */}
+      {/* Standalone preview · ContrastScene · 27.0s
+          390 frames @remotion/three "The Leash" 3D stage (orb tethered by a
+          cable on the left, sovereign monolith on the right), then 420
+          frames embedded CostChart at frame 390. */}
       <Composition
         id="ContrastScene"
         component={ContrastSceneV2}
-        durationInFrames={998}
+        durationInFrames={810}
         fps={theme.scene.fps}
         width={theme.scene.width}
         height={theme.scene.height}

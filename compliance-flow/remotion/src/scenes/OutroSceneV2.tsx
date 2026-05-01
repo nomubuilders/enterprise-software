@@ -55,15 +55,26 @@ const ARRIVAL_EASING = Easing.bezier(0.16, 1, 0.3, 1)
 const TAGLINE_DELAY_FRAMES = 50
 const TAGLINE_TYPE_SPEED = 2
 
-// URL begins at frame 145. typeSpeed 1.5 over 24 chars = 36 frames, completes
-// at ~181 — within the 180 budget when we account for the floating-frame
-// accumulator. We hold the final state visible regardless.
+// URL begins at frame 145. typeSpeed 1.0 over 24 chars = 24 frames, finishes
+// at f169 with 11 frames of full-state hold before the scene ends at f180.
+// Earlier revisions used typeSpeed 1.5 which clipped the last 2 chars off
+// the URL ("nomu.com/compliance-fl" instead of the full "...compliance-flow")
+// since the math hit 36 frames against a 35-frame budget · a pro-studio
+// catch-it-on-watch issue. Fixed by tightening the type cadence.
 const URL_DELAY_FRAMES = 145
-const URL_TYPE_SPEED = 1.5
+const URL_TYPE_SPEED = 1.0
 
 export const OutroSceneV2: React.FC<OutroSceneV2Props> = (props) => {
   const { tagline, url } = { ...outroSceneV2Defaults, ...props }
   const frame = useCurrentFrame()
+
+  // Ambient drift on the entire scene · the considered-close beat. Once the
+  // tagline and URL have typed in (~f180), the scene would otherwise sit
+  // frozen on the final state. ±6px / ±0.3% scale gives the signature beat
+  // a quiet pulse so it reads as "considered" rather than "paused".
+  const ambientX = Math.sin(frame * 0.045) * 6
+  const ambientY = Math.cos(frame * 0.038) * 5
+  const ambientScale = 1 + Math.sin(frame * 0.052) * 0.003
 
   // Tagline wrapper opacity. Comes online one frame before TypeWriter emits so
   // the brand-orange color is mounted the instant the first character appears.
@@ -105,6 +116,10 @@ export const OutroSceneV2: React.FC<OutroSceneV2Props> = (props) => {
         paddingLeft: 240,
         paddingRight: 240,
         textAlign: 'center',
+        // Ambient drift · the bg is uniform off-white so translating the
+        // whole AbsoluteFill is invisible at the edges; only the centered
+        // content reads as drifting.
+        transform: `translate(${ambientX}px, ${ambientY}px) scale(${ambientScale})`,
       }}
     >
       {/* Beat 1 · BrandWordmark settle. Symbol springs in (its internal API),

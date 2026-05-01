@@ -1,7 +1,13 @@
 import { Text } from '@react-three/drei'
 import { interpolate, staticFile, useCurrentFrame } from 'remotion'
 import { EASE_ENTER, EASE_EXIT } from './easings'
-import { TL } from './timeline'
+import { TL, TL_LEGACY } from './timeline'
+
+// DEPRECATED · this component is no longer mounted in ProductStage after the
+// "The Leash" rebuild (Phase 2/4). Headers now render via RowOverlay's <Headers>
+// instead of a 3D Drei <Text>. File retained per project no-delete-without-
+// confirmation rule. References to titleHoldEnd / titleOutEnd map to TL_LEGACY
+// stubs in timeline.ts so this file still typechecks.
 
 // TitleText · "Let's compare." Drei Text in 3D world space.
 //
@@ -30,14 +36,14 @@ const BARLOW_FONT = staticFile('fonts/Barlow-Bold.woff')
 export const TitleText: React.FC = () => {
   const frame = useCurrentFrame()
 
-  if (frame < TL.titleInStart || frame > TL.titleOutEnd) return null
+  if (frame < TL.titleInStart || frame > TL_LEGACY.titleOutEnd) return null
 
   const inP = interpolate(frame, [TL.titleInStart, TL.titleInEnd], [0, 1], {
     extrapolateLeft: 'clamp',
     extrapolateRight: 'clamp',
     easing: EASE_ENTER,
   })
-  const outP = interpolate(frame, [TL.titleHoldEnd, TL.titleOutEnd], [0, 1], {
+  const outP = interpolate(frame, [TL_LEGACY.titleHoldEnd, TL_LEGACY.titleOutEnd], [0, 1], {
     extrapolateLeft: 'clamp',
     extrapolateRight: 'clamp',
     easing: EASE_EXIT,

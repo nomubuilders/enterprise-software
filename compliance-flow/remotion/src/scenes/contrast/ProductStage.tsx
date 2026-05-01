@@ -1,33 +1,41 @@
 import { ThreeCanvas } from '@remotion/three'
-import { Environment } from '@react-three/drei'
 import { EffectComposer, Bloom, Vignette, Noise, ChromaticAberration } from '@react-three/postprocessing'
 import { interpolate, useCurrentFrame, useVideoConfig } from 'remotion'
 import { CameraRig } from './CameraRig'
 import { Lights } from './Lights'
 import { Floor } from './Floor'
-import { CloudObject } from './CloudObject'
-import { LocalObject } from './LocalObject'
+import { Cable } from './Cable'
+import { Orb } from './Orb'
+import { ParticleSiphon } from './ParticleSiphon'
+import { Monolith } from './Monolith'
+import { VersionPlate } from './VersionPlate'
+import { AuditTicks } from './AuditTicks'
+import { ExplainabilityGrid } from './ExplainabilityGrid'
 import { LEDRing } from './LEDRing'
-import { CardPair } from './CardPair'
-import { TitleText } from './TitleText'
 import { FinalWipeRing } from './FinalWipeRing'
-import { TL, ROW_TEXT } from './timeline'
+import { TL } from './timeline'
 import { EASE_ENTER, EASE_EDITORIAL } from './easings'
 
-// ProductStage · the <ThreeCanvas> and full 3D scene graph.
-// Postprocessing envelope is computed here and passed to EffectComposer's
-// children as props (frame-driven, NOT via useFrame).
+// ProductStage · the <ThreeCanvas> and full 3D scene graph for "The Leash".
 //
-// Per spec section 4 · scene graph:
-//   color · camera · lights · environment · floor · objects · cards · title · wipe · effects
+// Per Phase 2 §5 scene graph:
+//   color · camera · lights · floor · cloud-side (orb + cable + particles)
+//   · local-side (monolith + version plate + audit ticks + grid + LED ring)
+//   · final wipe · post-processing
+//
+// Postprocessing envelope is computed here per frame and passed to
+// EffectComposer as props (no useFrame, no internal animation).
+//
+// All hardcoded frame constants for bloom / vignette / chromatic aberration
+// are remapped to the new 390-frame budget per Phase 2 §6 failure mode #7.
 
 export const ProductStage: React.FC = () => {
   const frame = useCurrentFrame()
   const { width, height } = useVideoConfig()
 
-  // === Bloom envelope ===
-  // 0 → 0.6 over establish. Holds. Peaks 0.85 at f490. Spikes to 1.4 at 555.
-  // Falls to 0.3 at 578.
+  // === Bloom envelope (retimed to 390-frame budget) ===
+  // 0 → 0.6 over establish. Holds. Peaks 0.85 at f366. Spikes to 1.4 at f378.
+  // Falls to 0.3 at f390.
   let bloomIntensity = 0
   const establishP = interpolate(frame, [TL.establishStart, TL.establishEnd], [0, 1], {
     extrapolateLeft: 'clamp',
@@ -36,35 +44,36 @@ export const ProductStage: React.FC = () => {
   })
   bloomIntensity = 0.6 * establishP
 
-  // Peak at frame 490
-  if (frame >= TL.ledMaxStart) {
-    const peakP = interpolate(frame, [TL.ledMaxStart, 490], [0, 1], {
+  // Pre-morph rise · bloom inches up across B8-B9 as the LED ring approaches
+  // peak. Peak at f366 (6 frames before morph).
+  if (frame >= TL.lockStart) {
+    const peakP = interpolate(frame, [TL.lockStart, 366], [0, 1], {
       extrapolateLeft: 'clamp',
       extrapolateRight: 'clamp',
       easing: EASE_EDITORIAL,
     })
     bloomIntensity = 0.6 + (0.85 - 0.6) * peakP
   }
-  // Falloff toward 510
-  if (frame >= 490) {
-    const settleP = interpolate(frame, [490, TL.wipeStart], [0, 1], {
+  // Settle from 366 to morph start
+  if (frame >= 366) {
+    const settleP = interpolate(frame, [366, TL.morphStart], [0, 1], {
       extrapolateLeft: 'clamp',
       extrapolateRight: 'clamp',
     })
-    bloomIntensity = 0.85 + (0.6 - 0.85) * settleP
+    bloomIntensity = 0.85 + (0.7 - 0.85) * settleP
   }
-  // Wipe spike to 1.4 at 555
-  if (frame >= TL.wipeStart) {
-    const spikeP = interpolate(frame, [TL.wipeStart, 555], [0, 1], {
+  // Morph spike to 1.4 at f378 (color flip crescendo)
+  if (frame >= TL.morphStart) {
+    const spikeP = interpolate(frame, [TL.morphStart, 378], [0, 1], {
       extrapolateLeft: 'clamp',
       extrapolateRight: 'clamp',
       easing: EASE_EDITORIAL,
     })
-    bloomIntensity = 0.6 + (1.4 - 0.6) * spikeP
+    bloomIntensity = 0.7 + (1.4 - 0.7) * spikeP
   }
-  // Final fade to 0.3 by 578
-  if (frame >= 555) {
-    const fadeP = interpolate(frame, [555, TL.wipeEnd], [0, 1], {
+  // Final fade to 0.3 by f390
+  if (frame >= 378) {
+    const fadeP = interpolate(frame, [378, TL.morphEnd], [0, 1], {
       extrapolateLeft: 'clamp',
       extrapolateRight: 'clamp',
     })
@@ -72,29 +81,33 @@ export const ProductStage: React.FC = () => {
   }
 
   // === Vignette darkness ===
-  const vignetteDarkness = interpolate(frame, [540, TL.wipeEnd], [0.6, 0.92], {
+  // Base 0.42. Morph window pulls toward 0.85 for cinematic close.
+  const vignetteDarkness = interpolate(frame, [TL.morphStart, TL.morphEnd], [0.42, 0.85], {
     extrapolateLeft: 'clamp',
     extrapolateRight: 'clamp',
   })
 
-  // === Chromatic aberration ===
+  // === Chromatic aberration · tight to morph window only (372..390) ===
+  // Peak at f378 to land WITH the color flip crescendo, then settle so the
+  // orange line at f389 reads cleanly without RGB-fringing distortion. The
+  // hand-off frame must look like an orange line, not a smeared rainbow.
   let caX = 0
   let caY = 0
-  if (frame >= 530) {
-    if (frame <= 548) {
-      const enterP = interpolate(frame, [530, 548], [0, 1], {
+  if (frame >= TL.morphStart) {
+    if (frame <= 378) {
+      const enterP = interpolate(frame, [TL.morphStart, 378], [0, 1], {
         extrapolateLeft: 'clamp',
         extrapolateRight: 'clamp',
       })
-      caX = 0.003 * enterP
-      caY = 0.0015 * enterP
+      caX = 0.0022 * enterP
+      caY = 0.0011 * enterP
     } else {
-      const exitP = interpolate(frame, [548, TL.wipeEnd], [0, 1], {
+      const exitP = interpolate(frame, [378, TL.morphEnd], [0, 1], {
         extrapolateLeft: 'clamp',
         extrapolateRight: 'clamp',
       })
-      caX = 0.003 * (1 - exitP)
-      caY = 0.0015 * (1 - exitP)
+      caX = 0.0022 * (1 - exitP)
+      caY = 0.0011 * (1 - exitP)
     }
   }
 
@@ -102,26 +115,30 @@ export const ProductStage: React.FC = () => {
     <ThreeCanvas
       width={width}
       height={height}
-      camera={{ position: [0, 1.4, 7.0], fov: 32, near: 0.1, far: 100 }}
+      camera={{ position: [0, 1.4, 7.4], fov: 32, near: 0.1, far: 100 }}
     >
       <color attach="background" args={['#0a0807']} />
 
       <CameraRig />
       <Lights />
-      {/* <Environment preset="studio" background={false} /> · disabled: HDRI CDN fetch hangs the headless render. Direct lights carry illumination for now. */}
+      {/* <Environment> intentionally absent · HDRI CDN fetch hangs headless
+          render per rules/3d.md. Direct lights from <Lights /> carry the
+          illumination signature. */}
       <Floor />
 
-      <CloudObject />
-      <LocalObject />
+      {/* === Cloud side · the leash === */}
+      <Orb />
+      <Cable />
+      <ParticleSiphon />
+
+      {/* === Local side · the sovereign === */}
+      <Monolith />
+      <VersionPlate />
+      <AuditTicks />
+      <ExplainabilityGrid />
       <LEDRing />
 
-      <CardPair rowIndex={0} cloudText={ROW_TEXT[0].cloud} localText={ROW_TEXT[0].local} />
-      <CardPair rowIndex={1} cloudText={ROW_TEXT[1].cloud} localText={ROW_TEXT[1].local} />
-      <CardPair rowIndex={2} cloudText={ROW_TEXT[2].cloud} localText={ROW_TEXT[2].local} />
-      <CardPair rowIndex={3} cloudText={ROW_TEXT[3].cloud} localText={ROW_TEXT[3].local} />
-      <CardPair rowIndex={4} cloudText={ROW_TEXT[4].cloud} localText={ROW_TEXT[4].local} />
-
-      <TitleText />
+      {/* === Hand-off backstop === */}
       <FinalWipeRing />
 
       <EffectComposer>

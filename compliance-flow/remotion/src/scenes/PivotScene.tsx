@@ -53,7 +53,14 @@ export const PivotScene: React.FC<PivotSceneProps> = (props) => {
   const { headline, subtitle } = { ...pivotSceneDefaults, ...props }
   const frame = useCurrentFrame()
 
-  // Headline: fade-in only. No translate, no scale. The pause IS the point.
+  // Ambient drift · the "breath" beat must never go fully static. Translate
+  // only (no scale) at ±4px / ±3px so the eye reads it as continuous breath
+  // rather than a settle. Lissajous-style sin/cos at non-commensurable
+  // frequencies keeps the orbit from ever closing on itself.
+  const ambientX = Math.sin(frame * 0.044) * 4
+  const ambientY = Math.cos(frame * 0.037) * 3
+
+  // Headline: fade-in only. The pause IS the point.
   const headlineOpacity = interpolate(frame, [10, 40], [0, 1], {
     easing: HEADLINE_EASING,
     extrapolateLeft: 'clamp',
@@ -90,6 +97,8 @@ export const PivotScene: React.FC<PivotSceneProps> = (props) => {
         paddingLeft: 240,
         paddingRight: 240,
         textAlign: 'center',
+        // Ambient drift · keeps the breath beat alive without competing.
+        transform: `translate(${ambientX}px, ${ambientY}px)`,
       }}
     >
       {/* Headline · 96pt Barlow 700 · ink · simple opacity fade. */}

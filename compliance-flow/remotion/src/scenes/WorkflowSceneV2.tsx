@@ -630,13 +630,20 @@ const ResultCard: React.FC = () => {
     easing: EASE_OUT,
   })
 
+  // Ambient drift after the card has settled (frame > 304). Composed on top
+  // of the entrance scale so the result card never freezes during its 26f
+  // hold (304-330) and the 30f tail hold (330-360). ±6px / ±0.3% scale.
+  const ambientX = Math.sin(frame * 0.048) * 6
+  const ambientY = Math.cos(frame * 0.041) * 5
+  const ambientScale = 1 + Math.sin(frame * 0.053) * 0.003
+
   return (
     <div
       style={{
         position: 'absolute',
         left: '50%',
         top: '50%',
-        transform: `translate(-50%, -50%) scale(${cardScale})`,
+        transform: `translate(calc(-50% + ${ambientX}px), calc(-50% + ${ambientY}px)) scale(${cardScale * ambientScale})`,
         opacity: cardOpacity,
         width: 760,
         padding: '44px 56px',
